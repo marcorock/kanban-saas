@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Adicionado
+- Perfil e configurações pessoais: edição do nome, troca autenticada de senha e encerramento das demais sessões; invalidação de links de recuperação na troca de senha.
 - Base PHP 8.3 com configuração, rotas Pecee, controller e templates Twig.
 - Conexão PDO MariaDB em UTC e executor CLI de migrations.
 - Schema inicial de usuários, tenants e vínculos.

@@ -65,4 +65,14 @@ Os testes criam contas, alteram limites e criam temporariamente triggers para va
 
 ## Próximos módulos
 
-Projetos e autorização por projeto implementados conforme [PROJECTS.md](PROJECTS.md). Convites e participantes implementados conforme [MEMBERS.md](MEMBERS.md). Edição de perfil ainda pendente.
+Projetos e autorização por projeto implementados conforme [PROJECTS.md](PROJECTS.md). Convites e participantes implementados conforme [MEMBERS.md](MEMBERS.md). Perfil e configurações pessoais implementados em `/settings`.
+
+## Perfil e configurações pessoais
+
+`GET /settings` e `POST /settings` exigem autenticação e e-mail confirmado. A navegação contém Configurações. Nome entre 2 e 120 caracteres; e-mail exibido somente para consulta. Identidade vem exclusivamente da sessão, sem aceitar user_id ou alterações de e-mail/papel pelo formulário.
+
+Troca de senha exige senha atual, nova senha de 12 caracteres até 72 bytes e confirmação. A transação bloqueia primeiro o usuário, revalida session_version, altera o hash, exclui tokens de recuperação e incrementa a versão das sessões. A sessão atual é regenerada com novo CSRF; as demais são rejeitadas na próxima requisição. Encerrar demais sessões exige senha atual, incrementa a versão e mantém a sessão atual sem mudar a senha.
+
+Todos os formulários exigem CSRF. Limites por usuário e ação: 30 alterações de nome ou 10 tentativas de senha/sessões por 15 minutos. Senhas nunca retornam ao HTML. Nome é escapado por Twig. Falhas no banco revertem a operação inteira. Nenhuma migration adicional é necessária; o nome do tenant pessoal não é alterado junto ao nome do usuário.
+
+Teste em banco descartável com servidor HTTP no mesmo ambiente: `AUTH_TEST_DATABASE=disposable php tests/profile.php`. Cobre autorização, validação, CSRF, campos protegidos, XSS, senha atual, revogação, tokens e rollback. Não há alteração de e-mail, avatar, preferências de tema/fuso ou listagem individual de dispositivos neste incremento.

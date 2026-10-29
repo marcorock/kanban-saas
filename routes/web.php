@@ -57,3 +57,7 @@ $reports = new \App\Controllers\ReportingController($views, $config);
 SimpleRouter::get('/tasks', static fn (): string => $reports->handle('tasks'));
 SimpleRouter::get('/history', static fn (): string => $reports->handle('history'));
 SimpleRouter::get('/projects/{id}/history', static fn (string $id): string => $reports->handle('history', $id));
+
+$profile = new \App\Controllers\ProfileController($views, $config);
+SimpleRouter::get('/settings', static fn (): string => $profile->handle(false));
+SimpleRouter::post('/settings', static fn (): string => $profile->handle(true));

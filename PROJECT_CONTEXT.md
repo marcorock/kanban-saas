@@ -30,10 +30,11 @@
 - c26cb49 — convites, participantes, papéis, transferência de propriedade e regra permanente de continuidade.
 - b39e005 — quadro Kanban, colunas/cards, drag and drop, conclusão e controle de concorrência.
 - 7d170fe — detalhes das tarefas, responsáveis, prioridades/datas, checklists, comentários e filtros.
+- 75927a9 — dashboard, Minhas Tarefas e históricos consolidados.
 
 ## Última entrega aprovada — dashboard e históricos (Fase 5)
 
-- Dashboard, Minhas Tarefas e históricos aprovados pelo usuário; incluídos no commit de fechamento desta pausa: `feat: adiciona dashboard e históricos consolidados`. Consultar `git log -1` para o hash ao retomar.
+- Dashboard, Minhas Tarefas e históricos aprovados pelo usuário; incluídos no commit `75927a9` — `feat: adiciona dashboard e históricos consolidados`.
 - Migration 008: índices de período de activity_logs por tenant/projeto e por autor.
 - Dashboard: projetos ativos acessíveis, contagens de tarefas atribuídas em projetos ativos, progresso paginado, prazos próximos e atividades recentes.
 - Minhas Tarefas: somente atribuições próprias, com filtros de projeto, prioridade, estado, prazo e arquivamento; 25 registros por página.
@@ -47,12 +48,17 @@
 - Chromium aprovado: Kanban, navegação, métricas, filtros, snapshots seguros, links diretos e layout móvel.
 - Testes somente em PHP 8.3.32/MariaDB 11.8.8/Mailpit descartáveis; ambiente local recebe apenas migrations verificadas.
 
-## Pausa e retomada
+## Última entrega aprovada — perfil e configurações pessoais
 
-- Desenvolvimento pausado por solicitação explícita do usuário em 29/10/2026. Não iniciar nova implementação até o usuário solicitar retomada.
-- Incremento aprovado será commitado antes de encerrar; nenhum trabalho de perfil foi iniciado.
-- Ao retomar: consultar este contexto e `git status`/`git log`; implementar perfil e configurações pessoais, pendência dos requisitos de conta.
-- Depois: revisão final de segurança/desempenho, instalação e preparação para produção (Fase 6).
+- Retomada solicitada em 29/10/2026. Incremento aprovado pelo usuário; commit de fechamento: `feat: adiciona perfil e configurações pessoais`. Próxima etapa autorizada: Fase 6.
+- `/settings`: edição do nome, e-mail confirmado para consulta, troca de senha e encerramento das demais sessões.
+- Troca exige senha atual e confirmação; invalida tokens de recuperação, incrementa session_version e regenera a sessão atual/CSRF.
+- ProfileService bloqueia o usuário e revalida a versão na transação; rollback preserva senha/tokens/versão. Identidade vem apenas da sessão.
+- Formulários protegidos por CSRF, limites por usuário/ação e escape Twig. Sem nova migration; schema local 001–008 permanece suficiente.
+- Teste descartável de perfil aprovado: autorização, validação, campos protegidos, XSS, senha, rollback, tokens, revogação e concorrência entre processos.
+- Regressão PHP aprovada: sessões, autenticação, contas/SMTP, projetos, membros, Kanban, tarefas e relatórios; migrations idempotentes e sintaxe PHP verificadas. Não houve teste visual em navegador neste incremento.
+- Limitações: sem alteração de e-mail, avatar, tema/fuso ou listagem individual de dispositivos; conta não altera nome do tenant.
+- Próximo incremento após aprovação: revisão final de segurança/desempenho, instalação e preparação para produção (Fase 6).
 - Gerenciamento de organizações segue pendente de expansão; sem cobrança/pagamentos no MVP.
 
 ## Documentação por módulo
