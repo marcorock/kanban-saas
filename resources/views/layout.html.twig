@@ -10,6 +10,7 @@
 <body class="bg-body-tertiary">
     <main class="container py-5" style="max-width: {{ wide|default(false) ? '1100px' : '640px' }}">
         <h1 class="h3 mb-4">{{ projectName }}</h1>
+        {% if user is defined and user.email_verified_at %}{% include 'navigation.html.twig' %}{% endif %}
         {% block content %}{% endblock %}
     </main>
     {% block scripts %}{% endblock %}

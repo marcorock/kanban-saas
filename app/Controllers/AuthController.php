@@ -82,19 +82,7 @@ final class AuthController
 
     public function dashboard(): string
     {
-        if (!isset($_SESSION['user_id'])) {
-            return $this->redirect('/login');
-        }
-        $auth = new AuthService(Database::connect($this->config['database']));
-        $user = $auth->currentUser();
-        if (!$user) {
-            return $this->redirect('/login');
-        }
-        if ($user['email_verified_at'] === null) {
-            http_response_code(403);
-            return $this->views->render('verify-notice.html.twig', ['projectName' => $this->config['name'], 'csrf' => $_SESSION['csrf']]);
-        }
-        return $this->views->render('dashboard.html.twig', ['projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf'], 'sessionInvitation' => isset($_SESSION['pending_invitation'])]);
+        return (new ReportingController($this->views, $this->config))->handle('dashboard');
     }
 
     public function logout(): string

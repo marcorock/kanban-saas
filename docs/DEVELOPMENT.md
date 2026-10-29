@@ -16,5 +16,10 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 0cb3560 | Projetos, isolamento, permissões e auditoria |
 | c26cb49 | Convites, participantes, papéis, transferência e regra de continuidade |
 | b39e005 | Kanban com colunas/cards, drag and drop e controle de versão |
+| 7d170fe | Detalhes das tarefas, responsáveis, datas, checklists, comentários e filtros |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
+
+## Pausa em 29/10/2026
+
+Dashboard, Minhas Tarefas e históricos aprovados e registrados no commit `feat: adiciona dashboard e históricos consolidados` (consultar Git para o hash). Regressão PHP e Chromium aprovadas; migrations 001–008 aplicadas ao ambiente local. Desenvolvimento pausado a pedido do usuário, sem iniciar perfil/configurações pessoais, que será o próximo incremento na retomada.

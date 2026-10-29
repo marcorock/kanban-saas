@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 {% block styles %}<link rel="stylesheet" href="/assets/css/board.css">{% endblock %}
 {% block content %}
-<nav class="d-flex gap-3 mb-3" aria-label="Navegação principal"><a href="/projects">Projetos</a><a href="/projects/{{ board.project_id }}">Detalhes do projeto</a><a href="/projects/{{ board.project_id }}/members">Participantes</a></nav>
+<nav class="d-flex gap-3 mb-3" aria-label="Navegação do projeto"><a href="/projects/{{ board.project_id }}">Detalhes do projeto</a><a href="/projects/{{ board.project_id }}/members">Participantes</a><a href="/projects/{{ board.project_id }}/history">Histórico do projeto</a></nav>
 <h2 class="h4">{{ board.name }}</h2>
 {% if board.archived %}<p class="alert alert-info">Projeto arquivado. O quadro está disponível somente para consulta.</p>{% elseif not board.can_write %}<p class="alert alert-info">Você possui acesso de leitura a este quadro.</p>{% endif %}
 <div id="board-message" class="alert d-none" role="status" aria-live="polite"></div>

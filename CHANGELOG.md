@@ -33,6 +33,11 @@
 - Filtros por responsável, prioridade, coluna e prazo; indicadores de atraso.
 - Migration 007, limpeza auditada de atribuições na remoção de participante e testes de backend/navegador.
 
+- Dashboard com indicadores pessoais, progresso por projeto, prazos próximos e atividades recentes.
+- Minhas Tarefas e históricos pessoal/por projeto com filtros, paginação e valores anteriores/novos.
+- Navegação unificada, links diretos para tarefas, privacidade de convites nos históricos e índices de consulta (migration 008).
+- Testes de relatórios, isolamento, contagens, XSS, filtros e navegação no navegador.
+
 ### Corrigido
 - Configuração local de e-mail direcionada ao Mailpit na rede Docker, preservando suporte a SMTP de produção.
 

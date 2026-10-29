@@ -1,0 +1,56 @@
+# Dashboard, tarefas e históricos
+
+A navegação principal inclui **Dashboard**, **Projetos**, **Minhas Tarefas** e **Meu Histórico**. Todas essas páginas exigem sessão válida e e-mail confirmado.
+
+## Dashboard
+
+- **Projetos ativos:** todos os projetos não arquivados/excluídos que o usuário pode consultar, próprios ou compartilhados.
+- **Minhas tarefas pendentes/concluídas/atrasadas:** somente tarefas atribuídas ao usuário em projetos ativos acessíveis.
+- **Minhas tarefas iniciadas:** pendentes com início real preenchido; não depende do nome da coluna. Esse indicador pode se sobrepor a pendentes/atrasadas.
+- **Progresso:** percentual das tarefas concluídas entre todas as tarefas de cada projeto ativo acessível, inclusive tarefas sem responsável. Projeto sem tarefas tem 0%. Há dez projetos por página.
+- **Prazos próximos:** até cinco tarefas pendentes atribuídas ao usuário, com prazo de hoje até sete dias adiante, inclusive, considerando UTC.
+- **Atividades recentes:** dez eventos mais recentes dos projetos acessíveis, incluindo arquivados. Mostram ação, autor e contexto; os detalhes ficam no histórico de cada projeto.
+
+As consultas do dashboard usam uma transação de leitura para manter as contagens consistentes. Não há gráficos complexos ou atualizações em tempo real.
+
+## Minhas Tarefas
+
+`/tasks` consolida atribuições do usuário em todos os projetos acessíveis. O padrão mostra pendentes em projetos ativos; filtros permitem projeto, prioridade, estado (pendentes/iniciadas/concluídas/todas), prazo, intervalo de vencimento e projetos ativos/arquivados/todos.
+
+O intervalo de datas filtra o prazo previsto, não a criação da tarefa. A ordenação prioriza prazos definidos mais próximos, prioridade e identificador; são 25 itens por página. Tarefas atribuídas também a outros usuários aparecem uma única vez. Criar uma tarefa sem atribuí-la ao próprio usuário não a inclui nesta visão.
+
+Cada link abre o quadro com o painel da tarefa correta. Projetos arquivados continuam em modo de leitura. Projetos excluídos ou sem participação atual não aparecem.
+
+## Históricos
+
+- **Meu Histórico** (`/history`): somente ações realizadas pelo usuário em projetos aos quais ele ainda tem acesso. Pode incluir projetos arquivados.
+- **Histórico do projeto** (`/projects/{id}/history`): ações de todos os participantes daquele projeto. Acesso pelo projeto ou quadro.
+- Filtros: projeto (na visão pessoal), tipo de ação e período UTC inclusivo. São 25 eventos por página, dos mais recentes para os mais antigos, com ID como desempate.
+- **Ver alterações** apresenta valores anteriores/novos com nomes de participantes e colunas. Colunas removidas recebem essa indicação. Comentários, títulos e descrições aparecem como texto simples, escapado pelo Twig.
+- E-mails e detalhes de convites permanecem restritos ao proprietário e administradores atuais, inclusive nas ações que o próprio usuário realizou quando possuía outro papel. Os demais veem somente ação, autor e contexto.
+
+Valores de criação/exclusão usam “Não definido” no lado ausente. A linha do tempo de uma tarefa continua disponível no painel lateral. Eventos de projetos excluídos permanecem no banco para auditoria, mas não aparecem nestas consultas porque o projeto não pode mais ser acessado.
+
+## Isolamento e implementação
+
+ReportingService exige vínculo atual tanto em tenant_users quanto em project_members em todas as consultas, com igualdade do tenant e projeto nas junções de tarefas, atribuições e eventos. Filtros de projeto revalidam acesso no backend e retornam 404 para projetos alheios. IDs de usuário ou autor enviados por query string não mudam a identidade da consulta.
+
+ActivityPresenter converte apenas campos conhecidos dos snapshots em valores legíveis; não expõe JSON bruto, tokens, hashes ou campos futuros desconhecidos. Nomes são carregados em lote, evitando consultas por evento.
+
+ReportFilters valida tipos, opções, datas reais, intervalo e paginação. Filtros inválidos retornam 422 com uma mensagem e opção de limpar. Filtros e paginação usam GET e preservam as seleções; nenhuma dessas rotas altera dados.
+
+A migration 008 acrescenta índices de período por projeto/tenant e por autor em activity_logs. Não há nova dependência ou variável de ambiente.
+
+## Instalação e testes
+
+Execute `php bin/migrate.php`. Em ambiente **descartável**, conforme AUTHENTICATION.md e KANBAN.md:
+
+```sh
+AUTH_TEST_DATABASE=disposable php tests/reports.php
+```
+
+O teste verifica contagens e progresso sem duplicação, projetos vazios/arquivados/excluídos, acesso entre tenants, ações próprias versus de outros participantes, privacidade de convites, limites de período UTC, XSS, filtros inválidos, paginação e revogação de acesso/sessão.
+
+Com Chromium e playwright-core no ambiente externo de testes já documentado, execute `node tests/reports-browser.cjs` com as mesmas variáveis. Ele reutiliza a regressão do Kanban e testa navegação, filtros, métricas, snapshots escapados, abertura direta do painel e layout móvel.
+
+Próxima pendência funcional: perfil e configurações pessoais. Depois: revisão final de segurança/desempenho e preparação para produção.

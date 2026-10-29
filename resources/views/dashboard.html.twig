@@ -1,13 +1,21 @@
 {% extends 'layout.html.twig' %}
 {% block content %}
-<section class="card card-body">
-    <h2 class="h4">Olá, {{ user.name }}</h2>
-    <p>Crie e acompanhe seus projetos.</p>
-    {% if sessionInvitation|default(false) %}<a class="btn btn-outline-primary mb-3" href="/invitations/accept">Ver convite pendente</a>{% endif %}
-    <a class="btn btn-primary mb-3" href="/projects">Meus projetos</a>
-    <form method="post" action="/logout">
-        <input type="hidden" name="_token" value="{{ csrf }}">
-        <button class="btn btn-outline-secondary" type="submit">Sair</button>
-    </form>
-</section>
+<h2 class="h4">Olá, {{ user.name }}</h2>
+{% if sessionInvitation|default(false) %}<a class="btn btn-outline-primary mb-3" href="/invitations/accept">Ver convite pendente</a>{% endif %}
+<p class="text-body-secondary">Projetos ativos acessíveis e suas tarefas atribuídas nesses projetos.</p>
+<div class="row g-3 mb-4">
+{% for key, label in {active_projects: 'Projetos ativos', pending: 'Minhas tarefas pendentes', in_progress: 'Minhas tarefas iniciadas', completed: 'Minhas tarefas concluídas', overdue: 'Minhas tarefas atrasadas'} %}
+<div class="col-6 col-md"><div class="card card-body h-100"><span class="small">{{ label }}</span><strong class="fs-3" data-metric="{{ key }}">{{ counts[key] }}</strong></div></div>
+{% endfor %}
+</div>
+<section class="mb-4"><h3 class="h5">Progresso dos projetos</h3>
+{% for project in projects.items %}
+<div class="card card-body mb-2"><a class="fw-semibold" href="/projects/{{ project.id }}/board">{{ project.name }}</a><p class="small mb-2">{{ project.completed }} de {{ project.total }} tarefas concluídas · {{ project.percentage }}%</p><div class="progress" role="progressbar" aria-label="Conclusão de {{ project.name }}" aria-valuenow="{{ project.percentage }}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width: {{ project.percentage }}%"></div></div></div>
+{% else %}<p>Nenhum projeto ativo. <a href="/projects/new">Criar projeto</a></p>{% endfor %}
+{% if projects.pages > 1 %}<nav class="d-flex justify-content-between" aria-label="Paginação de projetos">{% if projects.page > 1 %}<a href="?page={{ projects.page - 1 }}">Anterior</a>{% endif %}<span>Página {{ projects.page }} de {{ projects.pages }}</span>{% if projects.page < projects.pages %}<a href="?page={{ projects.page + 1 }}">Próxima</a>{% endif %}</nav>{% endif %}
+<a class="d-inline-block mt-2" href="/projects">Ver todos os projetos</a></section>
+<section class="mb-4"><h3 class="h5">Meus prazos nos próximos 7 dias</h3>
+{% for task in upcoming %}<div class="card card-body mb-2"><a href="/projects/{{ task.project_id }}/board?task={{ task.id }}">{{ task.title }}</a><span class="small">{{ task.project_name }} · {{ task.due_on|date('d/m/Y') }}</span></div>{% else %}<p>Nenhuma tarefa atribuída com prazo próximo.</p>{% endfor %}
+<a href="/tasks?due=upcoming">Ver meus prazos</a></section>
+<section><h3 class="h5">Atividades recentes dos projetos</h3>{% include 'reports/events.html.twig' with {events: recent} %}</section>
 {% endblock %}

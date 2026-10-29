@@ -1,0 +1,55 @@
+'use strict';
+const assert = require('node:assert/strict');
+const runBoardBrowser = require('./board-browser.cjs');
+
+runBoardBrowser(async ({page, save, boardUrl}) => {
+    await page.setViewportSize({width: 1280, height: 1000});
+    await page.getByRole('button', {name: 'Título persistido', exact: true}).click();
+    const edit = page.locator('#task-edit'); await edit.waitFor();
+    await edit.locator('[name="title"]').fill('Tarefa consolidada');
+    await edit.locator('[name="description"]').fill('<script>window.reportXss=true</script>');
+    await edit.locator('[name="priority"]').selectOption('high');
+    await edit.locator('[name="due_on"]').fill('2000-01-01');
+    await edit.locator('[name="assignee_ids"]').first().check();
+    await save(() => edit.getByRole('button', {name: 'Salvar detalhes'}).click()); await edit.waitFor();
+    await page.locator('#task-panel-close').click();
+    await page.waitForFunction(() => !document.getElementById('task-panel').classList.contains('show'));
+    await page.getByRole('link', {name: 'Dashboard', exact: true}).click();
+    assert.equal(await page.locator('[data-metric="pending"]').innerText(), '1');
+    assert.equal(await page.locator('[data-metric="overdue"]').innerText(), '1');
+    assert.equal(await page.getByRole('progressbar').getAttribute('aria-valuenow'), '50');
+    await page.getByRole('link', {name: 'Minhas Tarefas', exact: true}).click();
+    assert.equal(await page.getByRole('link', {name: 'Tarefa consolidada', exact: true}).count(), 1);
+    await page.locator('#priority').selectOption('low');
+    await Promise.all([page.waitForURL(/priority=low/), page.getByRole('button', {name: 'Filtrar', exact: true}).click()]);
+    assert.equal(await page.getByRole('link', {name: 'Tarefa consolidada', exact: true}).count(), 0);
+    await page.locator('#priority').selectOption('high');
+    await Promise.all([page.waitForURL(/priority=high/), page.getByRole('button', {name: 'Filtrar', exact: true}).click()]);
+    await page.getByRole('link', {name: 'Tarefa consolidada', exact: true}).click();
+    await page.waitForURL(/\/board\?task=\d+/); await edit.waitFor();
+    assert.equal(await edit.locator('[name="title"]').inputValue(), 'Tarefa consolidada', 'Link abre o painel da tarefa correta');
+    await page.locator('#task-panel-close').click();
+    await page.waitForFunction(() => !document.getElementById('task-panel').classList.contains('show'));
+    await page.getByRole('link', {name: 'Meu Histórico', exact: true}).click();
+    await page.locator('#action').selectOption('task.updated');
+    await Promise.all([page.waitForURL(/action=task.updated/), page.getByRole('button', {name: 'Filtrar', exact: true}).click()]);
+    const event = page.locator('article').filter({hasText: 'Tarefa consolidada'}).first();
+    await event.locator('summary').click();
+    assert.match(await event.innerText(), /Prioridade/);
+    assert.match(await event.innerText(), /Alta/);
+    assert.match(await event.innerText(), /<script>window.reportXss=true<\/script>/);
+    assert.equal(await page.evaluate(() => window.reportXss), undefined, 'Snapshots escapados');
+    const projectUrl = boardUrl.replace(/\/board$/, '');
+    await page.goto(projectUrl);
+    await page.getByRole('link', {name: 'Histórico do projeto', exact: true}).click();
+    assert.match(await page.getByRole('heading', {level: 2}).innerText(), /Histórico do projeto/);
+    await page.locator('#from').fill('2000-01-01'); await page.locator('#to').fill('2000-01-01');
+    await Promise.all([page.waitForURL(/from=2000-01-01/), page.getByRole('button', {name: 'Filtrar', exact: true}).click()]);
+    assert.match(await page.locator('main').innerText(), /Nenhuma atividade/);
+    await page.setViewportSize({width: 390, height: 844});
+    for (const path of ['/dashboard', '/tasks', '/history']) {
+        await page.goto(new URL(path, boardUrl).href);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'Relatório responsivo: ' + path);
+    }
+    console.log('OK: dashboard, filtros, snapshots seguros, navegação, link direto de tarefa e relatórios mobile.');
+}).catch(error => { console.error(error); process.exitCode = 1; });

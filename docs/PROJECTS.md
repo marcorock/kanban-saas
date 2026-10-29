@@ -40,7 +40,7 @@ Convites, gerenciamento de participantes e transferência de propriedade estão 
 | POST | /projects/{id}/restore | Restaurar arquivado |
 | POST | /projects/{id}/delete | Excluir logicamente; exige `confirm=delete` |
 
-Todas as alterações exigem `_token` CSRF. Criação e alterações usam transações; cada mudança efetiva gera `activity_logs` com tenant, projeto, autor, ação, valores anteriores/novos e data UTC. Repetir arquivamento sem mudança não duplica o evento. A tela de histórico será adicionada no módulo correspondente.
+Todas as alterações exigem `_token` CSRF. Criação e alterações usam transações; cada mudança efetiva gera `activity_logs` com tenant, projeto, autor, ação, valores anteriores/novos e data UTC. Repetir arquivamento sem mudança não duplica o evento. O histórico do projeto e as visões consolidadas estão disponíveis conforme [REPORTS.md](REPORTS.md).
 
 ## Instalação e teste
 

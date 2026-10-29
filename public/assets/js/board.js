@@ -343,4 +343,6 @@
 
     if (typeof Sortable === 'undefined') { notify('Não foi possível carregar o quadro. Atualize a página.', true); return; }
     render();
+    const linkedTask = new URLSearchParams(window.location.search).get('task');
+    if (linkedTask && /^[0-9]{1,18}$/.test(linkedTask) && Number(linkedTask) > 0) openTask(Number(linkedTask));
 })();

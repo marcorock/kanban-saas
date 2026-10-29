@@ -1,0 +1,7 @@
+{% if result.pages > 1 %}
+<nav class="d-flex justify-content-between gap-3 mt-3" aria-label="Paginação">
+    {% if result.page > 1 %}<a href="?{{ filters|merge({page: result.page - 1})|url_encode }}">Anterior</a>{% endif %}
+    <span>Página {{ result.page }} de {{ result.pages }}</span>
+    {% if result.page < result.pages %}<a href="?{{ filters|merge({page: result.page + 1})|url_encode }}">Próxima</a>{% endif %}
+</nav>
+{% endif %}

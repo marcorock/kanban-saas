@@ -63,4 +63,4 @@ Os testes cobrem datas, responsáveis inválidos, autoria de comentários, IDOR 
 
 Para o navegador, use Chromium e playwright-core no ambiente externo de testes descrito em KANBAN.md, executando `node tests/tasks-browser.cjs` com as mesmas variáveis. Ele reutiliza os testes do Kanban e acrescenta painel, responsáveis, datas, checklists, comentários, conteúdo HTML literal, preservação de rascunho e filtros no desktop/mobile.
 
-Próximo incremento: dashboard consolidado, Minhas Tarefas e visualizações de histórico por projeto/usuário.
+Dashboard, Minhas Tarefas e históricos estão disponíveis conforme [REPORTS.md](REPORTS.md). Links com `/projects/{id}/board?task={taskId}` abrem o painel da tarefa; o backend revalida seu escopo.

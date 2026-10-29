@@ -1,0 +1,17 @@
+{% extends 'layout.html.twig' %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/reports.css">{% endblock %}
+{% block content %}
+<h2 class="h4">{{ project ? 'Histórico do projeto — ' ~ project.name : 'Meu Histórico' }}</h2>
+<p class="text-body-secondary">{{ project ? 'Atividades dos participantes deste projeto.' : 'Suas ações nos projetos aos quais você tem acesso atualmente.' }}</p>
+{% if project %}<a href="/projects/{{ project.id }}">Voltar ao projeto</a>{% endif %}
+<form method="get" class="row g-3 my-3">
+    {% if not project %}<div class="col-sm-6"><label class="form-label" for="project">Projeto</label><select class="form-select" id="project" name="project_id"><option value="">Todos os projetos</option>{% for item in projects %}<option value="{{ item.id }}" {{ filters.project_id == item.id ? 'selected' : '' }}>{{ item.name }}{{ item.archived_at ? ' (arquivado)' : '' }}</option>{% endfor %}</select></div>{% endif %}
+    <div class="col-sm-6"><label class="form-label" for="action">Tipo de ação</label><select class="form-select" id="action" name="action"><option value="">Todas as ações</option>{% for value, label in actions %}<option value="{{ value }}" {{ filters.action == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-sm-6"><label class="form-label" for="from">De (UTC)</label><input type="date" class="form-control" id="from" name="from" value="{{ filters.from }}" min="1000-01-01" max="9999-12-31"></div>
+    <div class="col-sm-6"><label class="form-label" for="to">Até (UTC)</label><input type="date" class="form-control" id="to" name="to" value="{{ filters.to }}" min="1000-01-01" max="9999-12-31"></div>
+    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Filtrar</button><a class="btn btn-outline-secondary" href="{{ project ? '/projects/' ~ project.id ~ '/history' : '/history' }}">Limpar filtros</a></div>
+</form>
+<p>{{ result.total }} atividade(s)</p>
+{% include 'reports/events.html.twig' with {events: result.items} %}
+{% include 'reports/pagination.html.twig' %}
+{% endblock %}

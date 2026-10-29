@@ -1,0 +1,14 @@
+{% for event in events %}
+<article class="card card-body mb-3">
+    <div class="d-flex flex-wrap gap-2 justify-content-between"><strong>{{ event.label }}</strong><time class="small text-body-secondary">{{ event.created_at|date('d/m/Y H:i', 'UTC') }} UTC</time></div>
+    <p class="small mb-1">{{ event.author }} · <a href="/projects/{{ event.project_id }}">{{ event.project_name }}</a>{% if event.task_id %} · <a href="/projects/{{ event.project_id }}/board?task={{ event.task_id }}">{{ event.task_title ?: 'Ver tarefa' }}</a>{% endif %}</p>
+    {% if event.restricted|default(false) %}<p class="small text-body-secondary mb-0">Detalhes disponíveis somente à administração do projeto.</p>{% endif %}
+    {% if event.changes|default([]) %}
+    <details><summary class="small">Ver alterações</summary>
+        <div class="table-responsive mt-2"><table class="table table-sm"><thead><tr><th>Campo</th><th>Antes</th><th>Depois</th></tr></thead><tbody>
+        {% for change in event.changes %}<tr><th>{{ change.label }}</th><td class="report-value">{{ change.before }}</td><td class="report-value">{{ change.after }}</td></tr>{% endfor %}
+        </tbody></table></div>
+    </details>
+    {% endif %}
+</article>
+{% else %}<p class="alert alert-info">Nenhuma atividade encontrada.</p>{% endfor %}

@@ -1,0 +1,25 @@
+{% extends 'layout.html.twig' %}
+{% block content %}
+<h2 class="h4">Minhas Tarefas</h2>
+<p class="text-body-secondary">Tarefas atribuídas a você nos projetos acessíveis.</p>
+<form method="get" class="row g-3 mb-4">
+    <div class="col-sm-6"><label class="form-label" for="project">Projeto</label><select class="form-select" id="project" name="project_id"><option value="">Todos os projetos</option>{% for item in projects %}<option value="{{ item.id }}" {{ filters.project_id == item.id ? 'selected' : '' }}>{{ item.name }}{{ item.archived_at ? ' (arquivado)' : '' }}</option>{% endfor %}</select></div>
+    <div class="col-sm-6"><label class="form-label" for="priority">Prioridade</label><select class="form-select" id="priority" name="priority">{% for value, label in {'': 'Todas', low: 'Baixa', normal: 'Normal', high: 'Alta', urgent: 'Urgente'} %}<option value="{{ value }}" {{ filters.priority == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-sm-4"><label class="form-label" for="status">Estado</label><select class="form-select" id="status" name="status">{% for value, label in {pending: 'Pendentes', in_progress: 'Iniciadas', completed: 'Concluídas', all: 'Todas'} %}<option value="{{ value }}" {{ filters.status == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-sm-4"><label class="form-label" for="due">Prazo</label><select class="form-select" id="due" name="due">{% for value, label in {'': 'Todos', overdue: 'Atrasadas', upcoming: 'Próximos 7 dias', none: 'Sem prazo'} %}<option value="{{ value }}" {{ filters.due == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-sm-4"><label class="form-label" for="archived">Projetos</label><select class="form-select" id="archived" name="archived">{% for value, label in {active: 'Ativos', archived: 'Arquivados', all: 'Todos'} %}<option value="{{ value }}" {{ filters.archived == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-sm-6"><label class="form-label" for="from">Prazo a partir de</label><input class="form-control" type="date" id="from" name="from" value="{{ filters.from }}" min="1000-01-01" max="9999-12-31"></div>
+    <div class="col-sm-6"><label class="form-label" for="to">Prazo até</label><input class="form-control" type="date" id="to" name="to" value="{{ filters.to }}" min="1000-01-01" max="9999-12-31"></div>
+    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Filtrar</button><a class="btn btn-outline-secondary" href="/tasks">Limpar filtros</a></div>
+</form>
+<p>{{ result.total }} tarefa(s)</p>
+{% set priorities = {low: 'Baixa', normal: 'Normal', high: 'Alta', urgent: 'Urgente'} %}
+{% for task in result.items %}
+<article class="card card-body mb-3">
+    <div class="d-flex flex-wrap gap-2 justify-content-between"><a href="/projects/{{ task.project_id }}/board?task={{ task.id }}" class="fw-semibold">{{ task.title }}</a><span>{{ priorities[task.priority] }}</span></div>
+    <p class="small mb-1"><a href="/projects/{{ task.project_id }}">{{ task.project_name }}</a> · {{ task.column_name }}{{ task.archived_at ? ' · Projeto arquivado' : '' }}</p>
+    <p class="small mb-0 {{ task.overdue ? 'text-danger fw-semibold' : 'text-body-secondary' }}">{{ task.completed_at ? 'Concluída' : (task.overdue ? 'Atrasada' : 'Pendente') }} · Prazo: {{ task.due_on ? task.due_on|date('d/m/Y') : 'Não definido' }}</p>
+</article>
+{% else %}<p class="alert alert-info">Nenhuma tarefa encontrada.</p>{% endfor %}
+{% include 'reports/pagination.html.twig' %}
+{% endblock %}

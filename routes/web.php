@@ -52,3 +52,8 @@ SimpleRouter::get('/projects/{id}/board', static fn (string $id): string => $boa
 SimpleRouter::post('/projects/{id}/board', static fn (string $id): string => $board->handle($id, true));
 
 SimpleRouter::get('/projects/{id}/tasks/{taskId}', static fn (string $id, string $taskId): string => $board->handle($id, false, $taskId));
+
+$reports = new \App\Controllers\ReportingController($views, $config);
+SimpleRouter::get('/tasks', static fn (): string => $reports->handle('tasks'));
+SimpleRouter::get('/history', static fn (): string => $reports->handle('history'));
+SimpleRouter::get('/projects/{id}/history', static fn (string $id): string => $reports->handle('history', $id));

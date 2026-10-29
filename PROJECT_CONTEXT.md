@@ -17,7 +17,7 @@
 - Controllers, Services, Repository de projetos e Policy; ActivityLogger compartilhado grava eventos dentro das transações.
 - DocumentRoot public/; configuração em config/, bootstrap em bootstrap/, templates em resources/views/.
 - Ambiente local usa containers Coruja; PHP não está no PATH do host. Executar PHP no container web em /var/www/projects/kanbansaas.
-- Banco local configurado no .env (não versionado). Migrations 001–007 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
+- Banco local configurado no .env (não versionado). Migrations 001–008 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
 - Mailpit local: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; interface http://mail.localhost. Produção segue configurável por MAIL_*.
 - Branch de trabalho atual: Authentication. Não mudar/mesclar branches automaticamente.
 
@@ -29,26 +29,31 @@
 - 0cb3560 — projetos: CRUD, arquivar/restaurar, exclusão lógica, paginação, policies e auditoria.
 - c26cb49 — convites, participantes, papéis, transferência de propriedade e regra permanente de continuidade.
 - b39e005 — quadro Kanban, colunas/cards, drag and drop, conclusão e controle de concorrência.
+- 7d170fe — detalhes das tarefas, responsáveis, prioridades/datas, checklists, comentários e filtros.
 
-## Incremento atual — detalhes de tarefas (Fase 4)
+## Última entrega aprovada — dashboard e históricos (Fase 5)
 
-- Kanban aprovado e commitado em b39e005. Detalhes de tarefas implementados/validados e em revisão, ainda sem commit.
-- Migration 007: descrição, prioridade e datas de tarefas; task_assignees, task_checklists, task_checklist_items e task_comments com FKs compostas.
-- Painel Bootstrap Offcanvas local: edição, múltiplos responsáveis, checklists/subtarefas simples, comentários e histórico paginado.
-- Responsáveis devem ser participantes verificados do projeto; remoção de membro limpa atribuições com auditoria e invalidação de versões abertas.
-- Comentários: autor edita; autor/proprietário/admin exclui logicamente; visualizador e projeto arquivado têm somente leitura.
-- Datas previstas são DATE; início real e conclusão são UTC. Conclusão continua vinculada à coluna is_done.
-- TaskService opera dentro da transação e controle de versão do BoardService; leitura de quadro e detalhes é consistente.
-- Filtros locais de responsável, prioridade, coluna e prazo; arrastar fica indisponível durante filtros para preservar ordenação completa.
-- Regressão PHP aprovada, incluindo autorização, IDOR, datas, atribuições, rollback, paginação e remoção de membro.
-- Chromium aprovado: Kanban, painel, descrição literal segura, responsáveis, datas, checklists, comentários, rascunhos em erro, filtros e mobile.
-- Testes executados apenas em PHP 8.3.32/MariaDB 11.8.8/Mailpit descartáveis; ferramentas de navegador ficam em container de teste.
+- Dashboard, Minhas Tarefas e históricos aprovados pelo usuário; incluídos no commit de fechamento desta pausa: `feat: adiciona dashboard e históricos consolidados`. Consultar `git log -1` para o hash ao retomar.
+- Migration 008: índices de período de activity_logs por tenant/projeto e por autor.
+- Dashboard: projetos ativos acessíveis, contagens de tarefas atribuídas em projetos ativos, progresso paginado, prazos próximos e atividades recentes.
+- Minhas Tarefas: somente atribuições próprias, com filtros de projeto, prioridade, estado, prazo e arquivamento; 25 registros por página.
+- Meu Histórico: ações próprias em projetos ainda acessíveis. Histórico do projeto: ações de todos os participantes; filtros de ação/período e snapshots legíveis.
+- ReportingService aplica vínculos atuais de tenant e projeto em todas as consultas; ProjectRepository valida filtros de projeto.
+- Detalhes/e-mails de convites nos históricos são restritos à administração atual, inclusive após alteração de papel.
+- ActivityPresenter usa campos conhecidos, nomes em lote e saída escapada; relatórios não exibem JSON bruto.
+- Navegação unificada e links de tarefas abrem o painel correto por query task, com autorização no backend.
+- Regressão PHP aprovada: sessões, contas/SMTP, projetos, participantes, Kanban, tarefas e relatórios.
+- Testes de relatórios aprovados: contagens/progresso, múltiplos tenants, acesso, privacidade, período UTC, XSS, paginação e revogação.
+- Chromium aprovado: Kanban, navegação, métricas, filtros, snapshots seguros, links diretos e layout móvel.
+- Testes somente em PHP 8.3.32/MariaDB 11.8.8/Mailpit descartáveis; ambiente local recebe apenas migrations verificadas.
 
-## Próximo incremento após aprovação
+## Pausa e retomada
 
-- Fazer commit dos detalhes de tarefas aprovados e iniciar Fase 5: dashboard, Minhas Tarefas e históricos de projeto/usuário com filtros.
-- Depois: validação final de segurança/desempenho e preparação para produção.
-- Pendentes adicionais: edição de perfil e gerenciamento de organizações; sem cobrança/pagamentos no MVP.
+- Desenvolvimento pausado por solicitação explícita do usuário em 29/10/2026. Não iniciar nova implementação até o usuário solicitar retomada.
+- Incremento aprovado será commitado antes de encerrar; nenhum trabalho de perfil foi iniciado.
+- Ao retomar: consultar este contexto e `git status`/`git log`; implementar perfil e configurações pessoais, pendência dos requisitos de conta.
+- Depois: revisão final de segurança/desempenho, instalação e preparação para produção (Fase 6).
+- Gerenciamento de organizações segue pendente de expansão; sem cobrança/pagamentos no MVP.
 
 ## Documentação por módulo
 
@@ -56,4 +61,5 @@
 - Conta e segurança: docs/AUTHENTICATION.md.
 - Projetos: docs/PROJECTS.md. Convites e membros: docs/MEMBERS.md.
 - Kanban e protocolo JSON: docs/KANBAN.md. Detalhes, limites e testes de tarefas: docs/TASKS.md.
+- Relatórios, regras de contagem e históricos: docs/REPORTS.md.
 - Evolução funcional: CHANGELOG.md. Histórico de commits e continuidade: docs/DEVELOPMENT.md.
