@@ -24,7 +24,7 @@ Neste incremento, os papéis têm estas permissões sobre **dados do projeto**:
 | Membro | Sim | Não | Não |
 | Visualizador | Sim | Não | Não |
 
-Migrations já suportam vínculos com os quatro papéis. Convites, gerenciamento de participantes, transferência de propriedade e criação de organizações ainda não possuem interface ou endpoints. Permissões de tarefas e colunas serão implementadas nesses módulos.
+Convites, gerenciamento de participantes e transferência de propriedade estão disponíveis conforme [MEMBERS.md](MEMBERS.md). Criação e gerenciamento de organizações ainda não possuem interface ou endpoints. Permissões de tarefas e colunas serão implementadas nesses módulos.
 
 ## Rotas
 

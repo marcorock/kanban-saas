@@ -25,7 +25,11 @@ final class Session
 
     public static function login(int $userId, int $version = 1): void
     {
+        $pending = $_SESSION['pending_invitation'] ?? null;
         self::clear();
+        if (is_string($pending) && preg_match('/^[a-f0-9]{64}$/D', $pending)) {
+            $_SESSION['pending_invitation'] = $pending;
+        }
         $_SESSION['user_id'] = $userId;
         $_SESSION['session_version'] = $version;
         $_SESSION['authenticated_at'] = time();

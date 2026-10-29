@@ -27,7 +27,7 @@ final class ProjectService
             $id = (int) $this->pdo->lastInsertId();
             $this->pdo->prepare("INSERT INTO project_members (tenant_id, project_id, user_id, role) VALUES (?, ?, ?, 'owner')")->execute([$tenantId, $id, $userId]);
             $project = (new ProjectRepository($this->pdo))->find($userId, $id);
-            $this->log($project, $userId, 'project.created', null, $this->snapshot($project));
+            (new ActivityLogger($this->pdo))->record($project, $userId, 'project.created', null, $this->snapshot($project));
             $this->pdo->commit();
             return $id;
         } catch (Throwable $exception) {
@@ -62,7 +62,7 @@ final class ProjectService
             $after = $this->snapshot($statement->fetch());
             if ($before !== $after) {
                 $event = match ($action) { 'update' => 'updated', 'archive' => 'archived', 'restore' => 'restored', 'delete' => 'deleted' };
-                $this->log($project, $userId, 'project.' . $event, $before, $after);
+                (new ActivityLogger($this->pdo))->record($project, $userId, 'project.' . $event, $before, $after);
             }
             $this->pdo->commit();
         } catch (Throwable $exception) {
@@ -76,12 +76,4 @@ final class ProjectService
         return array_intersect_key($project, array_flip(['name', 'description', 'owner_id', 'starts_on', 'due_on', 'archived_at', 'deleted_at']));
     }
 
-    private function log(array $project, int $userId, string $action, ?array $before, array $after): void
-    {
-        $this->pdo->prepare('INSERT INTO activity_logs (tenant_id, project_id, actor_id, action, before_data, after_data) VALUES (?, ?, ?, ?, ?, ?)')->execute([
-            $project['tenant_id'], $project['id'], $userId, $action,
-            $before === null ? null : json_encode($before, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-            json_encode($after, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-        ]);
-    }
 }

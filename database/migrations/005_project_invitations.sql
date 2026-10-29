@@ -1,0 +1,21 @@
+CREATE TABLE project_invitations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id BIGINT UNSIGNED NOT NULL,
+    project_id BIGINT UNSIGNED NOT NULL,
+    invited_by BIGINT UNSIGNED NOT NULL,
+    email VARCHAR(254) NOT NULL,
+    role ENUM('admin', 'member', 'viewer') NOT NULL,
+    token_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    expires_at DATETIME NOT NULL,
+    accepted_at DATETIME NULL,
+    cancelled_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_invitation_project_email (project_id, email),
+    UNIQUE KEY uq_invitation_hash (token_hash),
+    KEY ix_invitation_project (tenant_id, project_id, accepted_at, cancelled_at, id),
+    KEY ix_invitation_expiry (expires_at),
+    KEY ix_invitation_inviter (invited_by),
+    CONSTRAINT fk_invitation_project FOREIGN KEY (tenant_id, project_id) REFERENCES projects (tenant_id, id),
+    CONSTRAINT fk_invitation_inviter FOREIGN KEY (invited_by) REFERENCES users (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

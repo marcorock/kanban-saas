@@ -77,7 +77,7 @@ final class AuthController
         if ($register) {
             (new \App\Services\AccountTokenService($pdo, new \App\Services\Mailer($this->config['mail']), $this->config['url']))->request($data['email'], 'verify');
         }
-        return $this->redirect('/dashboard');
+        return $this->redirect(isset($_SESSION['pending_invitation']) ? '/invitations/accept' : '/dashboard');
     }
 
     public function dashboard(): string
@@ -94,7 +94,7 @@ final class AuthController
             http_response_code(403);
             return $this->views->render('verify-notice.html.twig', ['projectName' => $this->config['name'], 'csrf' => $_SESSION['csrf']]);
         }
-        return $this->views->render('dashboard.html.twig', ['projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf']]);
+        return $this->views->render('dashboard.html.twig', ['projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf'], 'sessionInvitation' => isset($_SESSION['pending_invitation'])]);
     }
 
     public function logout(): string

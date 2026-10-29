@@ -19,6 +19,10 @@
 - Isolamento por tenant/projeto, políticas por papel e auditoria transacional de alterações.
 - Migration 004 e testes de permissões, integridade, CSRF e rollback.
 
+- Convites por e-mail com aceite autenticado, expiração, reenvio/cancelamento e limites de envio.
+- Gerenciamento de participantes/papéis, transferência de propriedade e auditoria transacional.
+- Migration 005 e testes SMTP, permissões, concorrência e rollback de vínculos e propriedade.
+
 ### Corrigido
 - Configuração local de e-mail direcionada ao Mailpit na rede Docker, preservando suporte a SMTP de produção.
 

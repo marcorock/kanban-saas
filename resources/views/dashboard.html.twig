@@ -3,6 +3,7 @@
 <section class="card card-body">
     <h2 class="h4">Olá, {{ user.name }}</h2>
     <p>Crie e acompanhe seus projetos.</p>
+    {% if sessionInvitation|default(false) %}<a class="btn btn-outline-primary mb-3" href="/invitations/accept">Ver convite pendente</a>{% endif %}
     <a class="btn btn-primary mb-3" href="/projects">Meus projetos</a>
     <form method="post" action="/logout">
         <input type="hidden" name="_token" value="{{ csrf }}">

@@ -49,6 +49,9 @@ final class ProjectController
             return $this->views->render('projects/index.html.twig', $base + ['result' => $repository->page($userId, $archived, $page), 'archived' => $archived]);
         }
         $project = $id === null ? null : $repository->find($userId, (int) $id);
+        if (in_array($action, ['members', 'invite', 'cancel-invitation', 'member-role', 'member-remove', 'transfer'], true)) {
+            return (new ProjectMemberController($this->views, $this->config, $pdo))->dispatch($action, $project, $user, $base);
+        }
         if (in_array($action, ['edit', 'update'], true)) { ProjectPolicy::authorize($project, $userId, 'update'); }
         if ($action === 'show') {
             return $this->views->render('projects/show.html.twig', $base + ['project' => $project, 'canManage' => ProjectPolicy::canManage($project, $userId), 'isOwner' => ProjectPolicy::isOwner($project, $userId)]);

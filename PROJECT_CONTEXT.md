@@ -436,7 +436,7 @@ Todo o desenvolvimento deve ser versionado com Git, com rastreabilidade das alte
 - Criar branches `feature/`, `fix/` e `hotfix/` quando necessário.
 - Manter commits pequenos, objetivos e relacionados a uma única alteração.
 - Utilizar tags com Semantic Versioning (`v0.1.0`, `v0.2.0`, `v1.0.0`).
-- Não executar commits, merges, pushes ou alterações destrutivas sem autorização explícita.
+- A aprovação de um incremento autoriza seu commit e o início automático do próximo, conforme AGENTS.md. Não fazer push, merge, deploy em produção ou alterações destrutivas sem autorização específica.
 
 ### 18.2. Documentação obrigatória
 
@@ -536,7 +536,18 @@ Uma funcionalidade será considerada concluída quando:
 - Migration 004: projects, project_members e activity_logs com integridade composta entre tenants/projetos/usuários.
 - Criação apenas no tenant pessoal; consultas exigem vínculo no tenant e projeto.
 - Testes de projetos: papéis, IDOR, CSRF, datas, FKs, paginação e rollback aprovados em banco descartável.
-- Próximo incremento: convites e gerenciamento de participantes.
+- Convites e participantes implementados: SMTP, hash de token, validade de 7 dias, reenvio/cancelamento, aceite autenticado, papéis e transferência.
+- Migration 005: project_invitations. Aceite cria vínculos tenant/projeto apenas para o e-mail verificado correspondente.
+- Admin gerencia membro/visualizador; somente proprietário gerencia administradores e transfere propriedade.
+- ActivityLogger compartilhado pelos serviços; mutações serializadas por projeto e auditadas na mesma transação.
+- Testes de convites: SMTP, cadastro/aceite, e-mail errado, CSRF, papéis, expiração, limites, concorrência e rollback.
+- Uso e rotas em docs/MEMBERS.md. Próximo incremento: colunas e quadro Kanban.
 - Uso, rotas e limites atuais em docs/PROJECTS.md.
 - Autenticação e testes documentados em docs/AUTHENTICATION.md.
 - Documentação técnica em docs/ARCHITECTURE.md e docs/DATABASE.md.
+
+## Continuidade e aprovação
+
+- Regra permanente em AGENTS.md: aprovação autoriza commit do incremento e avanço automático, exceto pedido explícito de não seguir/parar/interromper.
+- Incremento de convites/participantes aprovado; registrar em commit antes de iniciar Kanban.
+- Próximo trabalho: Fase 3, quadro Kanban com colunas, cards básicos e movimentação persistida.

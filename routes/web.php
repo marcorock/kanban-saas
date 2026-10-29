@@ -36,3 +36,13 @@ SimpleRouter::post('/projects/{id}', static fn (string $id): string => $projects
 SimpleRouter::post('/projects/{id}/archive', static fn (string $id): string => $projects->dispatch('archive', $id));
 SimpleRouter::post('/projects/{id}/restore', static fn (string $id): string => $projects->dispatch('restore', $id));
 SimpleRouter::post('/projects/{id}/delete', static fn (string $id): string => $projects->dispatch('delete', $id));
+
+SimpleRouter::get('/projects/{id}/members', static fn (string $id): string => $projects->dispatch('members', $id));
+SimpleRouter::post('/projects/{id}/invitations', static fn (string $id): string => $projects->dispatch('invite', $id));
+SimpleRouter::post('/projects/{id}/invitations/cancel', static fn (string $id): string => $projects->dispatch('cancel-invitation', $id));
+SimpleRouter::post('/projects/{id}/members/role', static fn (string $id): string => $projects->dispatch('member-role', $id));
+SimpleRouter::post('/projects/{id}/members/remove', static fn (string $id): string => $projects->dispatch('member-remove', $id));
+SimpleRouter::post('/projects/{id}/transfer', static fn (string $id): string => $projects->dispatch('transfer', $id));
+$invitations = new \App\Controllers\InvitationController($views, $config);
+SimpleRouter::get('/invitations/accept', static fn (): string => $invitations->handle(false));
+SimpleRouter::post('/invitations/accept', static fn (): string => $invitations->handle(true));

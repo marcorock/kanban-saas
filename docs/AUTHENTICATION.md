@@ -65,4 +65,4 @@ Os testes criam contas, alteram limites e criam temporariamente triggers para va
 
 ## Próximos módulos
 
-Projetos e autorização por projeto implementados conforme [PROJECTS.md](PROJECTS.md). Edição de perfil, convites e gerenciamento de participantes ainda pendentes.
+Projetos e autorização por projeto implementados conforme [PROJECTS.md](PROJECTS.md). Convites e participantes implementados conforme [MEMBERS.md](MEMBERS.md). Edição de perfil ainda pendente.

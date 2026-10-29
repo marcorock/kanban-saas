@@ -18,6 +18,12 @@ final class ProjectPolicy
         return $project['role'] === 'owner' && (int) $project['owner_id'] === $userId;
     }
 
+    public static function authorizeMembers(array $project, int $userId): void
+    {
+        if (!self::canManage($project, $userId)) { throw new HttpException('Permissão insuficiente.', 403); }
+        if ($project['archived_at'] !== null) { throw new HttpException('Restaure o projeto antes de gerenciar participantes.', 409); }
+    }
+
     public static function authorize(array $project, int $userId, string $action): void
     {
         $allowed = $action === 'update' ? self::canManage($project, $userId) : self::isOwner($project, $userId);
