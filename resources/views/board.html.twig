@@ -1,0 +1,28 @@
+{% extends 'layout.html.twig' %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/board.css">{% endblock %}
+{% block content %}
+<nav class="d-flex gap-3 mb-3" aria-label="Navegação principal"><a href="/projects">Projetos</a><a href="/projects/{{ board.project_id }}">Detalhes do projeto</a><a href="/projects/{{ board.project_id }}/members">Participantes</a></nav>
+<h2 class="h4">{{ board.name }}</h2>
+{% if board.archived %}<p class="alert alert-info">Projeto arquivado. O quadro está disponível somente para consulta.</p>{% elseif not board.can_write %}<p class="alert alert-info">Você possui acesso de leitura a este quadro.</p>{% endif %}
+<div id="board-message" class="alert d-none" role="status" aria-live="polite"></div>
+<div class="d-flex flex-wrap align-items-end gap-3 mb-3">
+    {% if board.can_manage %}
+    <form id="column-create" class="d-flex flex-wrap align-items-end gap-2">
+        <div><label for="new-column-name" class="form-label">Nova coluna</label><input id="new-column-name" name="name" class="form-control" maxlength="80" required></div>
+        <div><div class="form-check mb-2"><input id="new-column-done" name="is_done" type="checkbox" class="form-check-input"><label for="new-column-done" class="form-check-label">Conclui tarefas</label></div><button class="btn btn-primary" type="submit">Adicionar coluna</button></div>
+    </form>
+    {% endif %}
+    <a href="/projects/{{ board.project_id }}/board" class="btn btn-outline-secondary">Atualizar quadro</a>
+</div>
+<noscript><p>Ative o JavaScript para criar ou movimentar tarefas.</p></noscript>
+<div id="kanban" class="kanban" data-endpoint="/projects/{{ board.project_id }}/board" data-csrf="{{ csrf }}">
+{% for column in board.columns %}
+<section class="kanban-column card card-body"><h3 class="h6">{{ column.name }}</h3>{% for task in column.tasks %}<div class="card card-body p-2 mb-2">{{ task.title }}</div>{% endfor %}</section>
+{% endfor %}
+</div>
+<script type="application/json" id="board-state">{{ boardJson|raw }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="/assets/vendor/sortablejs/Sortable.min.js" defer></script>
+<script src="/assets/js/board.js" defer></script>
+{% endblock %}

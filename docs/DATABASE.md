@@ -13,6 +13,8 @@ MariaDB 11+, InnoDB, utf8mb4 e datas em UTC.
 | password_reset_tokens | PK/FK user_id; token_hash único; índice expires_at; validade de 30 minutos |
 | projects | PK id; único (tenant_id, id); FK composta para o proprietário em tenant_users; índice de tenant/estado/id; restrição de datas |
 | project_members | PK (project_id, user_id); FKs compostas impedem misturar tenant/projeto/usuário; índice por usuário/tenant/projeto |
+| kanban_columns | FK composta para tenant/projeto; índice de ordem; flag is_done independente do nome |
+| tasks | FK composta para tenant/projeto/coluna; criador, título, posição e completed_at; índice de ordenação |
 | project_invitations | Únicos (project_id, email) e token_hash; FK composta para tenant/projeto; remetente, papel, validade e datas de aceite/cancelamento |
 | activity_logs | FKs para projeto/tenant e autor; índices por projeto e autor; snapshots JSON |
 | auth_rate_limits | PK bucket (hash do escopo e identidade); índice de expiração; contagem atômica |
@@ -38,4 +40,4 @@ A migration 004 cria projetos, participantes e auditoria de projetos. Datas prev
 
 A migration 005 cria `project_invitations`. Vínculos ao tenant/projeto são criados somente no aceite, em uma transação com consumo do token e auditoria. Transferência altera o proprietário do projeto e os papéis, preservando o tenant.
 
-Tabelas de colunas e tarefas e referências de auditoria a tarefas serão adicionadas nos incrementos correspondentes.
+A migration 006 cria colunas e tarefas básicas, acrescenta `projects.board_version` e `activity_logs.task_id` (FK composta e índice). Colunas iniciais são criadas para projetos existentes não excluídos; novos projetos inicializam o quadro na transação de criação. Posições são normalizadas pelo serviço com bloqueio do projeto e controle de versão. Demais campos de tarefas e tabelas de responsáveis/checklists/comentários serão adicionados na Fase 4.

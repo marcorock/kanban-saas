@@ -27,6 +27,7 @@ final class ProjectService
             $id = (int) $this->pdo->lastInsertId();
             $this->pdo->prepare("INSERT INTO project_members (tenant_id, project_id, user_id, role) VALUES (?, ?, ?, 'owner')")->execute([$tenantId, $id, $userId]);
             $project = (new ProjectRepository($this->pdo))->find($userId, $id);
+            BoardService::initialize($this->pdo, $project, $userId);
             (new ActivityLogger($this->pdo))->record($project, $userId, 'project.created', null, $this->snapshot($project));
             $this->pdo->commit();
             return $id;

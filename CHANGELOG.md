@@ -23,6 +23,11 @@
 - Gerenciamento de participantes/papéis, transferência de propriedade e auditoria transacional.
 - Migration 005 e testes SMTP, permissões, concorrência e rollback de vínculos e propriedade.
 
+- Quadro Kanban com colunas personalizáveis, criação/edição de títulos e drag and drop de tarefas e colunas.
+- Conclusão configurável por coluna, reabertura, controle de versão e restauração visual em erro.
+- Migration 006, SortableJS local, auditoria por tarefa e testes de concorrência e navegador.
+- Regra permanente de aprovação → commit → próximo incremento registrada em AGENTS.md e histórico consolidado em docs/DEVELOPMENT.md.
+
 ### Corrigido
 - Configuração local de e-mail direcionada ao Mailpit na rede Docker, preservando suporte a SMTP de produção.
 

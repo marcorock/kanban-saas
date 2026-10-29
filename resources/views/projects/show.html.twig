@@ -11,6 +11,7 @@
         <dt class="col-sm-4">Previsão de término</dt><dd class="col-sm-8">{{ project.due_on ? project.due_on|date('d/m/Y') : 'Não definida' }}</dd>
     </dl>
     <div class="d-flex flex-wrap gap-2">
+        <a href="/projects/{{ project.id }}/board" class="btn btn-primary">Abrir quadro Kanban</a>
         <a href="/projects/{{ project.id }}/members" class="btn btn-outline-primary">Participantes</a>
         {% if canManage and not project.archived_at %}<a href="/projects/{{ project.id }}/edit" class="btn btn-primary">Editar projeto</a>{% endif %}
         {% if isOwner %}

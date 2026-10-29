@@ -90,7 +90,7 @@ check(request('/projects/' . $id . '/delete', ['_token' => $csrf])[0] === 422, '
 check(request('/projects/' . $id . '/delete', ['_token' => $csrf, 'confirm' => 'delete'])[0] === 303, 'Exclusão lógica');
 check(request('/projects/' . $id)[0] === 404, 'Excluído indisponível');
 check((int) $pdo->query("SELECT COUNT(*) FROM projects WHERE id = {$id} AND deleted_at IS NOT NULL")->fetchColumn() === 1, 'Preservar registro excluído');
-$events = $pdo->query("SELECT action FROM activity_logs WHERE project_id = {$id} ORDER BY id")->fetchAll(PDO::FETCH_COLUMN);
+$events = $pdo->query("SELECT action FROM activity_logs WHERE project_id = {$id} AND action LIKE 'project.%' ORDER BY id")->fetchAll(PDO::FETCH_COLUMN);
 check($events === ['project.created', 'project.updated', 'project.archived', 'project.restored', 'project.deleted'], 'Auditoria de todo ciclo sem duplicação');
 $statement = $pdo->query("SELECT tenant_id, actor_id, before_data, after_data FROM activity_logs WHERE project_id = {$id} AND action = 'project.updated'");
 $event = $statement->fetch();

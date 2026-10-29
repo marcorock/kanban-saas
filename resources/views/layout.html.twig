@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ projectName }}</title>
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    {% block styles %}{% endblock %}
 </head>
 <body class="bg-body-tertiary">
     <main class="container py-5" style="max-width: {{ wide|default(false) ? '1100px' : '640px' }}">
         <h1 class="h3 mb-4">{{ projectName }}</h1>
         {% block content %}{% endblock %}
     </main>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

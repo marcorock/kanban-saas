@@ -46,3 +46,7 @@ SimpleRouter::post('/projects/{id}/transfer', static fn (string $id): string => 
 $invitations = new \App\Controllers\InvitationController($views, $config);
 SimpleRouter::get('/invitations/accept', static fn (): string => $invitations->handle(false));
 SimpleRouter::post('/invitations/accept', static fn (): string => $invitations->handle(true));
+
+$board = new \App\Controllers\BoardController($views, $config);
+SimpleRouter::get('/projects/{id}/board', static fn (string $id): string => $board->handle($id, false));
+SimpleRouter::post('/projects/{id}/board', static fn (string $id): string => $board->handle($id, true));

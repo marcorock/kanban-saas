@@ -20,6 +20,27 @@ try {
         'autoescape' => 'html',
         'strict_variables' => true,
     ]);
+    // Pecee 5 tenta interpretar o corpo antes do controller; valide JSON antes do roteador.
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
+        && strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0])) === 'application/json') {
+        $raw = file_get_contents('php://input', false, null, 0, 65537);
+        $status = 0;
+        $message = '';
+        if (strlen($raw) > 65536) {
+            $status = 413; $message = 'Solicitação muito grande.';
+        } else {
+            try {
+                $decoded = json_decode($raw, false, 32, JSON_THROW_ON_ERROR);
+                if (!$decoded instanceof \stdClass) { $status = 422; $message = 'Envie um objeto JSON válido.'; }
+            } catch (\JsonException) { $status = 422; $message = 'JSON inválido.'; }
+        }
+        if ($status) {
+            http_response_code($status);
+            header('Content-Type: application/json; charset=UTF-8');
+            echo json_encode(['ok' => false, 'message' => $message], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
     require dirname(__DIR__) . '/routes/web.php';
     SimpleRouter::start();
 } catch (Throwable $exception) {
