@@ -4,7 +4,7 @@ Sistema de projetos e tarefas com PHP, MariaDB e arquitetura multi-tenant. Requi
 
 ## Estado atual
 
-Base da Fase 1: bootstrap, configuração, roteamento Pecee, controller, Twig e PDO MariaDB em UTC. Migration inicial de usuários e tenants com executor CLI. Cadastro, login/logout e dashboard protegido implementados. Funcionalidades Kanban ainda pendentes.
+Base da Fase 1: bootstrap, configuração, roteamento Pecee, controller, Twig e PDO MariaDB em UTC. Migration inicial de usuários e tenants com executor CLI. Cadastro, login/logout, verificação de e-mail, recuperação de senha e dashboard protegido implementados. Funcionalidades Kanban ainda pendentes.
 
 Requisitos: PHP ^8.3 com PDO MySQL, Composer, MariaDB 11+ e Apache com mod_rewrite (ou servidor PHP para desenvolvimento).
 
@@ -24,7 +24,7 @@ Copie o exemplo somente se ainda não possuir `.env`. No Apache, configure o Doc
 
 ## Autenticação
 
-Após instalar as dependências e aplicar as migrations, acesse `/register` ou `/login`. Veja [segurança, testes e pendências](docs/AUTHENTICATION.md).
+Após instalar as dependências e aplicar as migrations, configure SMTP (`MAIL_*`) e APP_URL no `.env`; acesse `/register` ou `/login`. O painel exige confirmação do e-mail. Veja [segurança, testes e pendências](docs/AUTHENTICATION.md).
 
 ## Banco e arquitetura
 

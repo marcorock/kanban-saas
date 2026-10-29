@@ -67,12 +67,16 @@ final class AuthController
             return $this->form($register, $errors, $data);
         }
         $auth = new AuthService($pdo);
-        $id = $register ? $auth->register($data['name'], $data['email'], $data['password']) : $auth->authenticate($data['email'], $data['password']);
+        $authenticated = $register ? null : $auth->authenticate($data['email'], $data['password']);
+        $id = $register ? $auth->register($data['name'], $data['email'], $data['password']) : ($authenticated['id'] ?? null);
         if ($id === null) {
             http_response_code($register ? 422 : 401);
             return $this->form($register, [$register ? 'Não foi possível criar a conta com os dados informados.' : 'E-mail ou senha inválidos.'], $data);
         }
-        Session::login($id);
+        Session::login($id, $authenticated['session_version'] ?? 1);
+        if ($register) {
+            (new \App\Services\AccountTokenService($pdo, new \App\Services\Mailer($this->config['mail']), $this->config['url']))->request($data['email'], 'verify');
+        }
         return $this->redirect('/dashboard');
     }
 
@@ -83,9 +87,13 @@ final class AuthController
         }
         $auth = new AuthService(Database::connect($this->config['database']));
         $user = $auth->user((int) $_SESSION['user_id']);
-        if (!$user) {
+        if (!$user || (int) $user['session_version'] !== ($_SESSION['session_version'] ?? null)) {
             Session::clear();
             return $this->redirect('/login');
+        }
+        if ($user['email_verified_at'] === null) {
+            http_response_code(403);
+            return $this->views->render('verify-notice.html.twig', ['projectName' => $this->config['name'], 'csrf' => $_SESSION['csrf']]);
         }
         return $this->views->render('dashboard.html.twig', ['projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf']]);
     }

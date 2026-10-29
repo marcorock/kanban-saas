@@ -15,3 +15,13 @@ SimpleRouter::get('/login', static fn (): string => $auth->form(false));
 SimpleRouter::post('/login', static fn (): string => $auth->submit(false));
 SimpleRouter::post('/logout', static fn (): string => $auth->logout());
 SimpleRouter::get('/dashboard', static fn (): string => $auth->dashboard());
+
+$account = new \App\Controllers\AccountController($views, $config);
+SimpleRouter::get('/password/forgot', static fn (): string => $account->page('forgot'));
+SimpleRouter::post('/password/forgot', static fn (): string => $account->submit('forgot'));
+SimpleRouter::get('/password/reset', static fn (): string => $account->page('reset'));
+SimpleRouter::post('/password/reset', static fn (): string => $account->submit('reset'));
+SimpleRouter::get('/email/resend', static fn (): string => $account->page('resend'));
+SimpleRouter::post('/email/resend', static fn (): string => $account->submit('resend'));
+SimpleRouter::get('/email/verify', static fn (): string => $account->page('verify'));
+SimpleRouter::post('/email/verify', static fn (): string => $account->submit('verify'));

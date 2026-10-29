@@ -33,9 +33,9 @@ final class AuthService
         }
     }
 
-    public function authenticate(string $email, string $password): ?int
+    public function authenticate(string $email, string $password): ?array
     {
-        $statement = $this->pdo->prepare('SELECT id, password_hash FROM users WHERE email = ?');
+        $statement = $this->pdo->prepare('SELECT id, password_hash, session_version FROM users WHERE email = ?');
         $statement->execute([$email]);
         $user = $statement->fetch();
         // Hash válido de custo padrão para reduzir diferenças em contas inexistentes.
@@ -45,14 +45,14 @@ final class AuthService
             return null;
         }
         if (password_needs_rehash($hash, PASSWORD_DEFAULT)) {
-            $this->pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?')->execute([password_hash($password, PASSWORD_DEFAULT), $user['id']]);
+            $this->pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ? AND password_hash = ?')->execute([password_hash($password, PASSWORD_DEFAULT), $user['id'], $hash]);
         }
-        return (int) $user['id'];
+        return ['id' => (int) $user['id'], 'session_version' => (int) $user['session_version']];
     }
 
     public function user(int $id): array|false
     {
-        $statement = $this->pdo->prepare('SELECT id, name, email FROM users WHERE id = ?');
+        $statement = $this->pdo->prepare('SELECT id, name, email, email_verified_at, session_version FROM users WHERE id = ?');
         $statement->execute([$id]);
         return $statement->fetch();
     }

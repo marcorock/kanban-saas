@@ -20,6 +20,7 @@
         {% endif %}
         <button class="btn btn-primary" type="submit">{{ register ? 'Criar conta' : 'Entrar' }}</button>
     </form>
+    {% if not register %}<a class="mt-3" href="/password/forgot">Esqueci minha senha</a>{% endif %}
     <a class="mt-3" href="{{ register ? '/login' : '/register' }}">{{ register ? 'Já tenho uma conta' : 'Criar uma conta' }}</a>
 </section>
 {% endblock %}

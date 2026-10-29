@@ -527,6 +527,11 @@ Uma funcionalidade será considerada concluída quando:
 - Migration inicial: users, tenants e tenant_users; executor CLI com controle de versões e bloqueio.
 - Cadastro/login/logout, tenant pessoal transacional, sessões seguras, CSRF, Rakit e rate limit implementados.
 - Testes executados em PHP 8.3.32 e MariaDB 11.8.8 descartável; testes HTTP, rollback e expiração aprovados.
-- Próximo incremento: verificação de e-mail e recuperação de senha; demais módulos pendentes.
+- Verificação de e-mail e recuperação de senha implementadas: PHPMailer SMTP, tokens SHA-256 de uso único, reenvio e rate limit.
+- Migration 003: tabelas de tokens e users.session_version; redefinição revoga sessões anteriores.
+- Painel exige e-mail confirmado, inclusive de usuários preexistentes. Configurar MAIL_* e APP_URL antes de usar.
+- Testes com Mailpit isolado: SMTP, expiração, uso único concorrente, rollback e falha de envio aprovados.
+- Ambiente local configurado para Mailpit: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; SMTP de produção segue via MAIL_*.
+- Próximo módulo: projetos e permissões multi-tenant.
 - Autenticação e testes documentados em docs/AUTHENTICATION.md.
 - Documentação técnica em docs/ARCHITECTURE.md e docs/DATABASE.md.

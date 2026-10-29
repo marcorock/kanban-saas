@@ -10,4 +10,4 @@ Datas e conexão SQL usam UTC. PDO usa prepared statements nativos e exceções;
 
 Banco compartilhado por tenant; acesso aos projetos exigirá também vínculo e permissão no projeto. Cadastro deverá criar usuário, tenant pessoal e vínculo em uma transação. A autenticação está implementada; consultas de projetos ainda não existem.
 
-Cadastro, login/logout, validação Rakit, sessões, CSRF e limites implementados; detalhes em [AUTHENTICATION.md](AUTHENTICATION.md). Próximos passos da Fase 1: verificação de e-mail e recuperação de senha. SortableJS fica para a fase Kanban.
+Cadastro, login/logout, validação Rakit, sessões, CSRF e limites implementados; detalhes em [AUTHENTICATION.md](AUTHENTICATION.md). Verificação de e-mail e recuperação de senha implementadas com tokens transacionais, SMTP e revogação de sessões. Próximo módulo: projetos e permissões multi-tenant. SortableJS fica para a fase Kanban.

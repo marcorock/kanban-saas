@@ -17,6 +17,19 @@ final class AuthValidator
         } else {
             $rules['password'] = 'required|max:72';
         }
+        return self::validate($data, $rules);
+    }
+
+    public static function passwordErrors(string $password, string $confirmation): array
+    {
+        return self::validate(['password' => $password, 'password_confirmation' => $confirmation], [
+            'password' => 'required|min:12|max:72',
+            'password_confirmation' => 'required|same:password',
+        ]);
+    }
+
+    private static function validate(array $data, array $rules): array
+    {
         $validator = new Validator([
             'required' => 'Preencha :attribute.', 'email' => 'Informe um e-mail válido.',
             'min' => ':attribute deve ter pelo menos :min caracteres.',

@@ -23,10 +23,11 @@ final class Session
         $_SESSION['csrf'] ??= bin2hex(random_bytes(32));
     }
 
-    public static function login(int $userId): void
+    public static function login(int $userId, int $version = 1): void
     {
         self::clear();
         $_SESSION['user_id'] = $userId;
+        $_SESSION['session_version'] = $version;
         $_SESSION['authenticated_at'] = time();
         $_SESSION['last_seen'] = time();
     }
