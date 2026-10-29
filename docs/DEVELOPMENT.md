@@ -20,6 +20,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 75927a9 | Dashboard, Minhas Tarefas e históricos consolidados |
 | aba013c | Perfil, troca de senha e encerramento das demais sessões |
 | 58c0e2a | Validação, segurança, desempenho e preparação de instalação |
+| 2f0fd5c | Design system Fluxo Claro e telas de acesso |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -42,3 +43,11 @@ Após adiar a homologação operacional, o usuário solicitou uma identidade ori
 HTML/Twig, CSS e JavaScript permanecem em arquivos separados, sem inline nas novas telas; regra adicionada ao AGENTS.md por pedido explícito. Sem nova migration ou alteração de credenciais. Testes PHP de autenticação/conta/segurança/preflight e Chromium/axe dos fluxos migrados aprovados. Preview mobile e desktop verificado visualmente; testes automatizados não substituem validação em aparelhos físicos e leitores de tela.
 
 Incremento aprovado e incluído no commit `feat: define design system e redesenha telas de acesso`. Próximo incremento autorizado: shell autenticado (header, menus responsivos e footer), seguido da adaptação de cada módulo. Não iniciar todos os módulos de uma vez; homologação operacional continua adiada.
+
+## UI/UX — segundo incremento: estrutura autenticada
+
+Implementado após aprovação das telas de acesso. Header contextual, sidebar desktop, navegação inferior mobile/tablet, diálogo Mais e footer; estado ativo por módulo e atalhos de perfil. Logout mantém POST/CSRF, e Mais tem fallback nativo sem JavaScript. NavigationContext prepara apenas apresentação; não substitui autorização. Convites autenticados recebem o shell sem alterar a lógica do aceite.
+
+Regressão PHP completa aprovada, incluindo testes novos de shell. Chromium/axe dos componentes novos aprovado em 320–1440px, com foco, Escape, resize e coexistência do offcanvas; regressões de tarefas, relatórios e perfil também aprovadas. Preflight local somente de leitura aprovado; nenhuma migration nova, mudança do .env ou publicação. CSS/JS/Twig permanecem separados. Previews em storage/previews, fora do Git.
+
+Aprovado pelo usuário e incluído no commit `feat: redesenha navegação da área autenticada`. Próximo incremento autorizado: dashboard; componentes dos demais módulos continuam nas versões anteriores e serão migrados um por vez. Homologação operacional permanece adiada.

@@ -19,7 +19,7 @@
 - Ambiente local usa containers Coruja; PHP não está no PATH do host. Executar PHP no container web em /var/www/projects/kanbansaas.
 - Banco local configurado no .env (não versionado). Migrations 001–008 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
 - Mailpit local: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; interface http://mail.localhost. Produção segue configurável por MAIL_*.
-- Branch de trabalho atual: perfil-config. Não mudar/mesclar branches automaticamente.
+- Branch de trabalho atual: Design-system. Não mudar/mesclar branches automaticamente.
 
 ## Incrementos aprovados e commitados
 
@@ -33,6 +33,7 @@
 - 75927a9 — dashboard, Minhas Tarefas e históricos consolidados.
 - aba013c — perfil, troca de senha e encerramento das demais sessões.
 - 58c0e2a — validação de segurança/desempenho e preparação para instalação.
+- 2f0fd5c — design system Fluxo Claro e telas de acesso.
 
 ## Entrega anterior — dashboard e históricos (Fase 5)
 
@@ -76,7 +77,7 @@
 - Não houve deploy, teste do SMTP/HTTPS de produção ou ensaio de carga HTTP concorrente.
 - Homologação operacional adiada por solicitação explícita do usuário. Após o commit, o usuário definiu UI/UX como prioridade, conforme incremento abaixo. Publicação requer autorização explícita.
 
-## Última entrega aprovada — UI/UX: telas de acesso
+## Entrega anterior — UI/UX: telas de acesso
 
 - Solicitado pelo usuário: design system original, mobile first e pequenos incrementos; primeiro login, cadastro e recuperação/reset.
 - Fluxo Claro: verde profundo, lima, superfícies claras e hierarquia tipográfica própria. APP_NAME permanece o nome do produto.
@@ -86,8 +87,22 @@
 - Testes PHP de autenticação, conta/SMTP, segurança e preflight aprovados. Chromium/axe: 320/390/768/1024/1440px, sem overflow, acessibilidade automatizada A/AA, fluxos de conta e fallback sem JS aprovados.
 - Previews mobile/desktop em storage/previews (ignorados no Git), verificados visualmente; sem teste em dispositivos físicos/leitores de tela.
 - Design system, menus internos planejados, componentes e limites: docs/DESIGN_SYSTEM.md. Preflight local aprovado com novos assets; nenhuma migration ou alteração no .env.
-- Incremento aprovado pelo usuário; commit de fechamento: `feat: define design system e redesenha telas de acesso`. Próximo incremento autorizado: shell autenticado (header, menus responsivos e footer); adaptar módulos depois, um por vez.
+- Incremento aprovado pelo usuário; commit de fechamento: `2f0fd5c` — `feat: define design system e redesenha telas de acesso`. Próximo incremento autorizado: shell autenticado (header, menus responsivos e footer); adaptar módulos depois, um por vez.
 - Homologação operacional permanece adiada; nenhuma publicação realizada.
+
+## Última entrega aprovada — UI/UX: estrutura autenticada
+
+- Segundo incremento visual aprovado pelo usuário; commit de fechamento: `feat: redesenha navegação da área autenticada`. Não incluído no commit das telas de acesso.
+- Header contextual com perfil, sidebar desktop a partir de 1024px, barra inferior em celular/tablet e footer discreto.
+- Mais: histórico, configurações e saída; diálogo com foco contido, Escape/botão/backdrop, retorno de foco e fechamento ao mudar para desktop. Details/summary como alternativa sem JS.
+- Estado ativo por módulo: páginas internas de projeto mantêm Projetos ativo; histórico próprio e histórico do projeto não se confundem.
+- NavigationContext prepara somente contexto visual; permissões, rotas e consultas de escopo permanecem existentes. Convites autenticados integram a navegação.
+- Twig, CSS e JS externos separados; dimensões antigas da página pública preservadas em legacy-layout.css. Conteúdo dos módulos ainda usa seus componentes anteriores.
+- Regressão PHP completa aprovada, incluindo teste de shell, convites, CSRF/XSS, transações, concorrência e isolamento. Migrations idempotentes no banco descartável; nenhuma migration nova.
+- Chromium: shell em 320/390/768/1024/1440px, axe A/AA restrito aos componentes novos, foco/resize, navegação/logout sem JS, offcanvas, tarefas, relatórios e perfil aprovados.
+- Preflight local aprovado somente em leitura. Previews em storage/previews/shell-390.png, shell-1440.png e shell-menu-390.png; verificados visualmente e ignorados no Git.
+- Limitações: conteúdo dos módulos não foi redesenhado; sem testes em aparelhos físicos/leitores de tela. Homologação operacional permanece adiada, sem deploy ou alteração do .env.
+- Próximo incremento após aprovação: redesenho do dashboard com os componentes e tokens definidos; depois módulos, um por vez.
 
 ## Documentação por módulo
 

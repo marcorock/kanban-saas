@@ -1,0 +1,6 @@
+{% import 'ui/icons.html.twig' as ui %}
+<nav class="app-secondary-nav" aria-label="Mais destinos">
+    <a href="/history" {% if navigation.section == 'history' %}aria-current="page"{% endif %}>{{ ui.icon('history') }}<span>Meu Histórico</span>{{ ui.icon('chevron-right') }}</a>
+    <a href="/settings" {% if navigation.section == 'settings' %}aria-current="page"{% endif %}>{{ ui.icon('settings') }}<span>Configurações</span>{{ ui.icon('chevron-right') }}</a>
+    <form method="post" action="/logout"><input type="hidden" name="_token" value="{{ csrf }}"><button type="submit">{{ ui.icon('arrow-right') }}<span>Sair</span></button></form>
+</nav>

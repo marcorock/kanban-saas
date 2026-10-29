@@ -1,18 +1,38 @@
+{% set appAuthenticated = user is defined and user and user.email_verified_at %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ projectName }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{% if appAuthenticated %}{{ navigation.title }} · {% endif %}{{ projectName }}</title>
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    {% if appAuthenticated %}
+    <meta name="theme-color" content="#194f43">
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/mark.svg">
+    <link rel="stylesheet" href="/assets/css/design-tokens.css">
+    <link rel="stylesheet" href="/assets/css/app-shell.css">
+    <script src="/assets/js/app-shell.js" defer></script>
+    {% else %}<link rel="stylesheet" href="/assets/css/legacy-layout.css">
+    {% endif %}
     {% block styles %}{% endblock %}
 </head>
-<body class="bg-body-tertiary">
-    <main class="container py-5" style="max-width: {{ wide|default(false) ? '1100px' : '640px' }}">
-        <h1 class="h3 mb-4">{{ projectName }}</h1>
-        {% if user is defined and user.email_verified_at %}{% include 'navigation.html.twig' %}{% endif %}
+<body class="{{ appAuthenticated ? 'app-page' : 'bg-body-tertiary' }}">
+    {% if appAuthenticated %}
+    <a class="app-skip-link" href="#app-content">Pular para o conteúdo</a>
+    {% include 'navigation.html.twig' %}
+    <div class="app-workspace">
+        {% include 'app/header.html.twig' %}
+        <main id="app-content" class="app-content {{ wide|default(false) ? 'app-content-wide' : 'app-content-reading' }}" tabindex="-1">
+    {% else %}
+        <main class="container py-5 legacy-content {{ wide|default(false) ? 'legacy-content-wide' : '' }}"><h1 class="h3 mb-4">{{ projectName }}</h1>
+    {% endif %}
         {% block content %}{% endblock %}
-    </main>
+        </main>
+    {% if appAuthenticated %}
+        <footer class="app-footer"><p>Seu trabalho, no seu ritmo.</p><span>{{ projectName }}</span></footer>
+    </div>
+    {% include 'app/mobile-navigation.html.twig' %}
+    {% endif %}
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,4 +1,14 @@
-<nav class="d-flex flex-wrap align-items-center gap-3 mb-4" aria-label="Navegação principal">
-    <a href="/dashboard">Dashboard</a><a href="/projects">Projetos</a><a href="/tasks">Minhas Tarefas</a><a href="/history">Meu Histórico</a><a href="/settings">Configurações</a>
-    <form method="post" action="/logout" class="ms-auto"><input type="hidden" name="_token" value="{{ csrf }}"><button type="submit" class="btn btn-sm btn-outline-secondary">Sair</button></form>
-</nav>
+{% import 'ui/icons.html.twig' as ui %}
+{% set destinations = [{key: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: 'home'}, {key: 'projects', href: '/projects', label: 'Projetos', icon: 'projects'}, {key: 'tasks', href: '/tasks', label: 'Minhas Tarefas', icon: 'tasks'}, {key: 'history', href: '/history', label: 'Meu Histórico', icon: 'history'}, {key: 'settings', href: '/settings', label: 'Configurações', icon: 'settings'}] %}
+<aside class="app-sidebar" aria-label="Seu espaço de trabalho">
+    <a class="app-brand" href="/dashboard"><img src="/assets/brand/mark.svg" width="32" height="32" alt=""><span>{{ projectName }}</span></a>
+    <p class="app-nav-heading">SEU ESPAÇO</p>
+    <nav class="app-nav" aria-label="Navegação principal">
+    {% for item in destinations %}<a href="{{ item.href }}" {% if navigation.section == item.key %}aria-current="{{ navigation.path == item.href ? 'page' : 'location' }}"{% endif %}>{{ ui.icon(item.icon) }}<span>{{ item.label }}</span></a>{% endfor %}
+    </nav>
+    <div class="app-sidebar-note"><span class="app-note-line"></span><p>Planeje com clareza.<br>Avance no seu ritmo.</p></div>
+    <div class="app-sidebar-footer">
+        <a class="app-account" href="/settings"><span class="app-avatar" aria-hidden="true">{{ user.name|slice(0, 1)|upper }}</span><span><strong>{{ user.name }}</strong><small>Meu perfil</small></span>{{ ui.icon('chevron-right') }}</a>
+        <form method="post" action="/logout"><input type="hidden" name="_token" value="{{ csrf }}"><button class="app-logout" type="submit">{{ ui.icon('arrow-right') }}<span>Sair</span></button></form>
+    </div>
+</aside>

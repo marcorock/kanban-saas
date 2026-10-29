@@ -1,0 +1,5 @@
+<header class="app-header">
+    <a class="app-mobile-brand" href="/dashboard" aria-label="{{ projectName }} — início"><img src="/assets/brand/mark.svg" width="28" height="32" alt=""></a>
+    <div class="app-page-context"><p>{{ navigation.caption }}</p><h1>{{ navigation.title }}</h1></div>
+    <a class="app-profile-link" href="/settings" aria-label="Abrir configurações de {{ user.name }}"><span class="app-avatar" aria-hidden="true">{{ user.name|slice(0, 1)|upper }}</span><span class="app-profile-name">{{ user.name }}</span></a>
+</header>

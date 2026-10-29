@@ -73,6 +73,6 @@ final class InvitationController
         }
         $invitation = $service->preview((int) $user['id'], $raw);
         if (!$invitation && !$errors) { $errors[] = 'Convite indisponível para esta conta. Entre com o e-mail convidado ou solicite um novo link.'; }
-        return $this->views->render('invitation.html.twig', $base + ['signedIn' => true, 'invitation' => $invitation, 'errors' => $errors]);
+        return $this->views->render('invitation.html.twig', $base + ['user' => $user, 'signedIn' => true, 'invitation' => $invitation, 'errors' => $errors]);
     }
 }

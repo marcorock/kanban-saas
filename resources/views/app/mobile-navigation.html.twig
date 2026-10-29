@@ -1,0 +1,13 @@
+{% import 'ui/icons.html.twig' as ui %}
+<nav class="app-bottom-nav" aria-label="Navegação principal">
+    <a class="app-bottom-link" href="/dashboard" {% if navigation.section == 'dashboard' %}aria-current="page"{% endif %}>{{ ui.icon('home') }}<span>Início</span></a>
+    <a class="app-bottom-link" href="/projects" {% if navigation.section == 'projects' %}aria-current="{{ navigation.path == '/projects' ? 'page' : 'location' }}"{% endif %}>{{ ui.icon('projects') }}<span>Projetos</span></a>
+    <a class="app-bottom-link" href="/tasks" {% if navigation.section == 'tasks' %}aria-current="page"{% endif %}>{{ ui.icon('tasks') }}<span>Tarefas</span></a>
+    <button class="app-bottom-link" type="button" aria-haspopup="dialog" aria-controls="app-more-dialog" aria-expanded="false" data-more-open data-active="{{ navigation.section in ['history', 'settings'] ? 'true' : 'false' }}" hidden>{{ ui.icon('more') }}<span>Mais</span></button>
+    <details class="app-more-fallback"><summary class="app-bottom-link" data-active="{{ navigation.section in ['history', 'settings'] ? 'true' : 'false' }}">{{ ui.icon('more') }}<span>Mais</span></summary><div class="app-fallback-panel"><p>Mais opções</p>{% include 'app/secondary-links.html.twig' %}</div></details>
+</nav>
+<dialog id="app-more-dialog" class="app-more-dialog" aria-labelledby="app-more-title">
+    <div class="app-more-header"><div><p>SEU ESPAÇO</p><h2 id="app-more-title">Mais opções</h2></div><button class="app-close" type="button" data-more-close aria-label="Fechar mais opções">{{ ui.icon('close') }}</button></div>
+    <div class="app-more-account"><span class="app-avatar" aria-hidden="true">{{ user.name|slice(0, 1)|upper }}</span><div><strong>{{ user.name }}</strong><span>{{ user.email }}</span></div></div>
+    {% include 'app/secondary-links.html.twig' %}
+</dialog>

@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Adicionado
+- Shell autenticado Fluxo Claro com header contextual, sidebar desktop, navegação inferior mobile/tablet, painel Mais e footer.
+- Navegação com estado ativo por módulo, foco/Escape, alternativa sem JavaScript e saída por POST/CSRF; convites autenticados integrados.
+- Testes de shell HTTP/Chromium e preflight dos novos assets; layout público legado sem style inline na largura do container.
 - Design system Fluxo Claro: identidade, tokens, componentes e especificação de navegação mobile/tablet/desktop.
 - Novo layout de login/cadastro, recuperação/reset e confirmação de e-mail; header/footer próprios e melhorias de mostrar senha, foco e estado de envio.
 - Arquivos Twig, CSS e JavaScript separados, com regra permanente de UI registrada no AGENTS.md; preflight verifica os novos assets locais.

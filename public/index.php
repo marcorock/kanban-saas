@@ -27,6 +27,8 @@ try {
         'autoescape' => 'html',
         'strict_variables' => true,
     ]);
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $views->addGlobal('navigation', \App\Services\NavigationContext::forPath(is_string($path) ? $path : '/'));
     // Pecee 5 tenta interpretar o corpo antes do controller; valide JSON antes do roteador.
     if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
         && strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0])) === 'application/json') {

@@ -4,7 +4,7 @@ Direção visual original para o Kanban SaaS: clareza, ritmo e foco no próximo 
 
 ## Escopo e evolução
 
-Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout próprio em `auth/layout.html.twig`; páginas internas e página inicial `/` continuam com seu layout atual. Próximo incremento proposto: shell autenticado (header, navegação e footer), mantendo o conteúdo dos módulos para entregas posteriores. Homologação operacional continua adiada.
+Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. Próximo incremento proposto: dashboard. Homologação operacional continua adiada.
 
 O desenho deve servir às funções existentes. Não exibir busca global, notificações, calendário, assinatura, login social ou links de políticas sem a funcionalidade/conteúdo correspondente. Não há biblioteca de componentes remota, fonte externa, imagens geradas ou etapa de build.
 
@@ -42,7 +42,7 @@ Prioridades, conclusão e arquivamento continuarão com seus nomes funcionais. A
 
 ## Mobile first e estrutura responsiva
 
-| Faixa | Acesso implementado | Shell interno planejado |
+| Faixa | Acesso implementado | Shell interno implementado |
 |---|---|---|
 | Até 639px | Coluna única, superfície branca, margens de 24px, sem painel decorativo | Header compacto e navegação inferior com rótulos |
 | 640–1023px | Formulário central em superfície de até 620px; sem painel decorativo | Mesma navegação principal, conteúdo com largura confortável para tablet |
@@ -58,22 +58,22 @@ Header com marca à esquerda e uma navegação de acesso à direita. Login ofere
 
 Footer leve, após o conteúdo: “Seu trabalho, no seu ritmo.” e ano/nome do projeto. Não contém links vazios de termos, privacidade ou suporte. Em celular os textos ficam em coluna; no desktop em linha. A ilustração de fluxo é decorativa e não simula botões clicáveis.
 
-### Área autenticada — especificação para o próximo incremento
+### Área autenticada — implementada no segundo incremento
 
 | Item | Rota | Função |
 |---|---|---|
-| Início | /dashboard | Visão geral e próximos prazos |
+| Dashboard (Início no celular) | /dashboard | Visão geral e próximos prazos |
 | Projetos | /projects | Projetos acessíveis |
 | Minhas tarefas (Tarefas no celular) | /tasks | Atribuições próprias |
 | Meu histórico | /history | Atividades próprias |
 | Configurações | /settings | Perfil e segurança |
 | Sair | POST /logout | Encerrar sessão com CSRF |
 
-No celular/tablet, navegação inferior com Início, Projetos, Tarefas e Mais. Mais abre navegação secundária para Meu histórico, Configurações e Sair. Garantir padding de conteúdo e safe-area para a barra não cobrir ações; menu deve funcionar por teclado, fechar com Escape e devolver foco ao acionador. Não depender de hover. No desktop os cinco destinos ficam na sidebar, com Sair no rodapé; header mostra contexto da página e ação relevante quando existir. Estado ativo deve usar `aria-current="page"`, texto e indicador visual.
+No celular/tablet, navegação inferior com Início, Projetos, Tarefas e Mais. Mais abre navegação secundária para Meu histórico, Configurações e Sair. Há padding de conteúdo e safe-area para a barra não cobrir as últimas ações. Mais usa diálogo nativo, circulação de foco por Tab/Shift+Tab, fechamento por Escape/botão/backdrop e devolução de foco ao acionador. Ao mudar para desktop o diálogo fecha e o foco retorna à navegação visível. Não depender de hover. No desktop os cinco destinos ficam na sidebar, com perfil/Sair no rodapé; o header mostra o contexto da página e acesso ao perfil. As ações específicas permanecem no conteúdo do módulo, sem duplicá-las no header. Destino atual usa `aria-current="page"`; páginas internas de projeto mantêm Projetos com `aria-current="location"`. Mais sinaliza o módulo secundário ativo sem se declarar uma página.
 
-Navegação de projeto será contextual: visão geral, quadro, participantes e histórico. A exibição de ações acompanha as permissões existentes; UI não substitui autorização no backend. Não transformar todos os destinos em ícones sem legenda.
+A navegação de projeto continua contextual, com os links existentes: visão geral, quadro, participantes e histórico. A exibição de ações acompanha as permissões existentes; UI não substitui autorização no backend. Não transformar todos os destinos em ícones sem legenda.
 
-Footer interno deve ser discreto, sem consumir a área de trabalho com conteúdo promocional. Identificação da conta/saída pode ocupar o rodapé da sidebar; não criar uma segunda barra fixa no celular.
+Footer interno é discreto, sem consumir a área de trabalho com conteúdo promocional. Perfil e saída ocupam o rodapé da sidebar; não há uma segunda barra fixa no celular.
 
 ## Componentes de acesso — implementados
 
@@ -98,9 +98,21 @@ Sem JavaScript, os formulários continuam usando POST/CSRF e a validação do se
 - `public/assets/css/design-tokens.css`: variáveis de identidade, cores, espaçamento, tipografia e dimensões.
 - `public/assets/css/auth.css`: layout e componentes das telas de acesso, incluindo todos os breakpoints/estados.
 - `public/assets/js/auth.js`: melhorias de senha, envio e foco. Somente arquivo externo; sem handlers em atributos HTML.
-- Novos templates sem style inline, blocos style ou scripts inline. Bootstrap permanece nas telas antigas até sua migração planejada; não recebe overrides globais deste incremento.
+- Novos templates sem style inline, blocos style ou scripts inline. Bootstrap permanece nos componentes dos módulos até sua migração planejada. O shell tem classes próprias `app-*`, sem redesenhar cards/tabelas/formulários neste incremento.
 
 Os assets são locais e compatíveis com a CSP existente. O preflight verifica sua presença. Previews de teste em `storage/previews/` são ignorados pelo Git, não contêm dados reais e não são dependência da aplicação.
+
+## Estrutura autenticada — implementação
+
+- `app/Services/NavigationContext.php`: seção/título a partir de rotas conhecidas, sem expor o caminho bruto nem conceder permissão. `public/index.php` disponibiliza o contexto ao Twig.
+- `resources/views/navigation.html.twig` e `resources/views/app/`: sidebar, header, navegação inferior, links secundários e diálogo. Dados de perfil continuam escapados pelo Twig.
+- `public/assets/css/app-shell.css`: layout, breakpoints, safe-area, estados, foco e todas as dimensões do shell. `app-shell.js`: somente comportamento de diálogo/foco; sem CSS inline.
+- `public/assets/css/legacy-layout.css`: preserva em arquivo externo as larguras anteriores das páginas públicas ainda não migradas.
+- Sem JavaScript, Mais usa details/summary nativo e logout continua sendo POST com CSRF. A navegação desktop funciona por links comuns.
+- Diálogo e navegação ficam abaixo da camada de interação apropriada: dialog usa top layer nativa; o offcanvas Bootstrap de tarefas permanece sobre a barra inferior.
+- Header/sidebar/menu têm foco e textos legíveis; a barra inferior respeita safe-area e o conteúdo reserva espaço inferior. Não foram feitos testes em teclado virtual/aparelhos físicos.
+- O shell aparece somente com usuário autenticado e e-mail confirmado; rotas e políticas existentes permanecem no backend. Convite autenticado recebe o mesmo contexto; visitantes continuam no fluxo público.
+- Os estilos inline e o JSON de dados preexistentes dentro de módulos serão tratados na migração de cada componente; nenhum estilo ou script executável inline foi introduzido no shell.
 
 ## Acessibilidade e validação
 
@@ -109,3 +121,7 @@ Objetivo: WCAG 2.2 AA nos fluxos migrados, com foco visível, labels, teclado, m
 `tests/auth-ui-browser.cjs` usa Chromium, Playwright e axe em ambiente descartável. Verifica largura sem overflow, ausência de CSS/JS inline, controles, contraste/regras automatizadas A/AA, teclado, interação da senha, mensagens, cadastro/confirmação, recuperação/reset e funcionamento sem JS. Para executá-lo, instale playwright-core e @axe-core/playwright apenas no ambiente de teste; defina AUTH_TEST_DATABASE=disposable, NODE_PATH e, se necessário, AUTH_TEST_URL/MAILPIT_TEST_URL/CHROMIUM_PATH/UI_PREVIEW_DIR. Expire limites de tentativas no banco descartável ao reutilizar um ambiente após testes de rate limit.
 
 Referências de acessibilidade: [contraste](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html), [tamanho mínimo de alvos](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) e [mensagens em formulários](https://www.w3.org/WAI/tutorials/forms/notifications/).
+
+`tests/shell.php` verifica o contexto HTTP, estado ativo, escape, convite autenticado e saída protegida. `tests/shell-browser.cjs` reutiliza o fluxo de Kanban e verifica 320–1440px, menus, foco, Escape/resize, offcanvas e navegação/saída sem JavaScript. Axe neste teste é restrito aos componentes do shell; não representa auditoria dos módulos legados. Instalar playwright-core e @axe-core/playwright somente no ambiente de testes, como no teste de acesso. Previews: storage/previews/shell-390.png, shell-1440.png e shell-menu-390.png.
+
+Validação do segundo incremento: regressão PHP completa aprovada; Chromium aprovado para o shell e para tarefas, relatórios e perfil. Preflight local somente de leitura aprovado, sem migrations novas ou alteração de credenciais. A leitura visual foi feita em previews de celular/desktop; aparelhos físicos e leitores de tela permanecem pendentes. O conteúdo interno do dashboard é o próximo incremento proposto.
