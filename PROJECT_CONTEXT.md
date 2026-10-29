@@ -19,7 +19,7 @@
 - Ambiente local usa containers Coruja; PHP não está no PATH do host. Executar PHP no container web em /var/www/projects/kanbansaas.
 - Banco local configurado no .env (não versionado). Migrations 001–008 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
 - Mailpit local: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; interface http://mail.localhost. Produção segue configurável por MAIL_*.
-- Branch de trabalho atual: Authentication. Não mudar/mesclar branches automaticamente.
+- Branch de trabalho atual: perfil-config. Não mudar/mesclar branches automaticamente.
 
 ## Incrementos aprovados e commitados
 
@@ -31,8 +31,9 @@
 - b39e005 — quadro Kanban, colunas/cards, drag and drop, conclusão e controle de concorrência.
 - 7d170fe — detalhes das tarefas, responsáveis, prioridades/datas, checklists, comentários e filtros.
 - 75927a9 — dashboard, Minhas Tarefas e históricos consolidados.
+- aba013c — perfil, troca de senha e encerramento das demais sessões.
 
-## Última entrega aprovada — dashboard e históricos (Fase 5)
+## Entrega anterior — dashboard e históricos (Fase 5)
 
 - Dashboard, Minhas Tarefas e históricos aprovados pelo usuário; incluídos no commit `75927a9` — `feat: adiciona dashboard e históricos consolidados`.
 - Migration 008: índices de período de activity_logs por tenant/projeto e por autor.
@@ -48,18 +49,31 @@
 - Chromium aprovado: Kanban, navegação, métricas, filtros, snapshots seguros, links diretos e layout móvel.
 - Testes somente em PHP 8.3.32/MariaDB 11.8.8/Mailpit descartáveis; ambiente local recebe apenas migrations verificadas.
 
-## Última entrega aprovada — perfil e configurações pessoais
+## Entrega anterior — perfil e configurações pessoais
 
-- Retomada solicitada em 29/10/2026. Incremento aprovado pelo usuário; commit de fechamento: `feat: adiciona perfil e configurações pessoais`. Próxima etapa autorizada: Fase 6.
+- Retomada solicitada em 29/10/2026. Incremento aprovado pelo usuário; commit de fechamento: `aba013c` — `feat: adiciona perfil e configurações pessoais`. Próxima etapa autorizada: Fase 6.
 - `/settings`: edição do nome, e-mail confirmado para consulta, troca de senha e encerramento das demais sessões.
 - Troca exige senha atual e confirmação; invalida tokens de recuperação, incrementa session_version e regenera a sessão atual/CSRF.
 - ProfileService bloqueia o usuário e revalida a versão na transação; rollback preserva senha/tokens/versão. Identidade vem apenas da sessão.
 - Formulários protegidos por CSRF, limites por usuário/ação e escape Twig. Sem nova migration; schema local 001–008 permanece suficiente.
 - Teste descartável de perfil aprovado: autorização, validação, campos protegidos, XSS, senha, rollback, tokens, revogação e concorrência entre processos.
-- Regressão PHP aprovada: sessões, autenticação, contas/SMTP, projetos, membros, Kanban, tarefas e relatórios; migrations idempotentes e sintaxe PHP verificadas. Não houve teste visual em navegador neste incremento.
+- Regressão PHP aprovada: sessões, autenticação, contas/SMTP, projetos, membros, Kanban, tarefas e relatórios; migrations idempotentes e sintaxe PHP verificadas. Teste visual original não executado; Chromium do perfil concluído e aprovado durante a Fase 6.
 - Limitações: sem alteração de e-mail, avatar, tema/fuso ou listagem individual de dispositivos; conta não altera nome do tenant.
-- Próximo incremento após aprovação: revisão final de segurança/desempenho, instalação e preparação para produção (Fase 6).
+- Aprovação do perfil autorizou a Fase 6, implementada abaixo.
 - Gerenciamento de organizações segue pendente de expansão; sem cobrança/pagamentos no MVP.
+
+## Última entrega aprovada — Fase 6: validação e preparação para produção
+
+- Incremento aprovado pelo usuário; commit de fechamento: `chore: prepara validação e instalação em produção`. O commit do perfil não contém esta fase.
+- Preflight `php bin/check.php [--production]`: runtime/extensões, configuração segura, assets, MariaDB/UTC e migrations; somente leitura e sem exposição de segredos.
+- CSP, proteção de frames e Permissions-Policy em respostas dinâmicas, inclusive erros; HSTS na configuração de produção com APP_URL HTTPS.
+- Composer explicita extensões; lock sincronizado sem alterar versões. Audit sem avisos conhecidos; validate mantém aviso preexistente de licença não definida.
+- Quadro consulta apenas campos dos cards; descrições continuam no detalhe. Carga de 1.000 tarefas: 5 consultas e pico adicional de 1,64 MiB; amostra local, sem SLA.
+- Regressão PHP, preflight com usuário SQL somente leitura, concorrência e Chromium (perfil, tarefas, relatórios e Kanban) aprovados. Runner sequencial em tests/run.php.
+- Check local aprovado em leitura; nenhuma migration nova ou alteração no .env. Ambiente de teste descartável separado do banco de uso diário.
+- Roteiro de instalação, backup, permissões, SMTP, HTTPS e reversão: docs/PRODUCTION.md. Evidências e limitações: docs/VALIDATION.md.
+- Não houve deploy, teste do SMTP/HTTPS de produção ou ensaio de carga HTTP concorrente.
+- Homologação operacional adiada por solicitação explícita do usuário. Após o commit, aguardar a descrição dos próximos detalhes a implementar; não iniciar novo incremento antes dessa orientação. Publicação requer autorização explícita.
 
 ## Documentação por módulo
 
@@ -69,3 +83,4 @@
 - Kanban e protocolo JSON: docs/KANBAN.md. Detalhes, limites e testes de tarefas: docs/TASKS.md.
 - Relatórios, regras de contagem e históricos: docs/REPORTS.md.
 - Evolução funcional: CHANGELOG.md. Histórico de commits e continuidade: docs/DEVELOPMENT.md.
+- Preparação para produção: docs/PRODUCTION.md. Registro de validação: docs/VALIDATION.md.

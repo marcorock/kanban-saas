@@ -18,6 +18,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | b39e005 | Kanban com colunas/cards, drag and drop e controle de versão |
 | 7d170fe | Detalhes das tarefas, responsáveis, datas, checklists, comentários e filtros |
 | 75927a9 | Dashboard, Minhas Tarefas e históricos consolidados |
+| aba013c | Perfil, troca de senha e encerramento das demais sessões |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -28,3 +29,7 @@ Dashboard, Minhas Tarefas e históricos aprovados e registrados no commit `feat:
 ## Retomada em 29/10/2026
 
 Usuário solicitou continuar com perfil e configurações pessoais. Perfil implementado em `/settings`, com edição do nome, troca de senha e revogação das demais sessões, sem nova migration. Teste de perfil em banco descartável aprovado, incluindo rollback e concorrência. Regressão PHP dos oito módulos anteriores e migrations idempotentes aprovadas; sem teste visual em navegador neste incremento. Aprovado pelo usuário e incluído no commit `feat: adiciona perfil e configurações pessoais`; próximo incremento: revisão de segurança/desempenho e preparação para produção (Fase 6).
+
+## Fase 6 — validação e preparação para produção
+
+Iniciada após aprovação do perfil. Preflight CLI somente de leitura, requisitos PHP explícitos, cabeçalhos de segurança, redução de memória do snapshot e runner sequencial implementados. Regressão PHP, preflight com usuário SQL somente leitura, carga sintética de 1.000 tarefas e Chromium aprovados. Evidências em [VALIDATION.md](VALIDATION.md), instalação em [PRODUCTION.md](PRODUCTION.md). Sem migrations novas, sem mudança de credenciais locais, sem publicação. Incremento aprovado pelo usuário e registrado no commit `chore: prepara validação e instalação em produção`. A pedido do usuário, a homologação operacional foi adiada: após este commit, aguardar sua descrição dos próximos detalhes antes de iniciar nova implementação.

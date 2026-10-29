@@ -7,13 +7,20 @@ use Pecee\SimpleRouter\SimpleRouter;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
+header('Cache-Control: no-store');
+header('Content-Type: text/html; charset=UTF-8');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('X-Frame-Options: DENY');
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'");
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+
 try {
     $config = require dirname(__DIR__) . '/bootstrap/app.php';
     \App\Security\Session::start(($config['secure_cookies']) || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'));
-    header('Cache-Control: no-store');
-    header('Content-Type: text/html; charset=UTF-8');
-    header('X-Content-Type-Options: nosniff');
-    header('Referrer-Policy: strict-origin-when-cross-origin');
+    if ($config['environment'] === 'production' && $config['secure_cookies']) {
+        header('Strict-Transport-Security: max-age=31536000');
+    }
     $views = new Environment(new FilesystemLoader(dirname(__DIR__) . '/resources/views'), [
         'cache' => false,
         'debug' => false,

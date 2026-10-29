@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Adicionado
+- Fase 6: preflight CLI somente de leitura para instalação/produção, runner sequencial de testes e roteiro operacional com registro de validação.
+- CSP, proteção contra frames, Permissions-Policy e HSTS na configuração de produção HTTPS; extensões PHP explícitas no Composer.
+- Regressão HTTP/Chromium de segurança e perfil, validação de preflight e carga sintética de 1.000 tarefas.
+
 - Perfil e configurações pessoais: edição do nome, troca autenticada de senha e encerramento das demais sessões; invalidação de links de recuperação na troca de senha.
 - Base PHP 8.3 com configuração, rotas Pecee, controller e templates Twig.
 - Conexão PDO MariaDB em UTC e executor CLI de migrations.
@@ -38,6 +42,9 @@
 - Minhas Tarefas e históricos pessoal/por projeto com filtros, paginação e valores anteriores/novos.
 - Navegação unificada, links diretos para tarefas, privacidade de convites nos históricos e índices de consulta (migration 008).
 - Testes de relatórios, isolamento, contagens, XSS, filtros e navegação no navegador.
+
+### Melhorado
+- Snapshot do Kanban consulta apenas campos dos cards, evitando carregar descrições completas a cada leitura/mutação.
 
 ### Corrigido
 - Configuração local de e-mail direcionada ao Mailpit na rede Docker, preservando suporte a SMTP de produção.

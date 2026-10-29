@@ -76,3 +76,7 @@ Troca de senha exige senha atual, nova senha de 12 caracteres até 72 bytes e co
 Todos os formulários exigem CSRF. Limites por usuário e ação: 30 alterações de nome ou 10 tentativas de senha/sessões por 15 minutos. Senhas nunca retornam ao HTML. Nome é escapado por Twig. Falhas no banco revertem a operação inteira. Nenhuma migration adicional é necessária; o nome do tenant pessoal não é alterado junto ao nome do usuário.
 
 Teste em banco descartável com servidor HTTP no mesmo ambiente: `AUTH_TEST_DATABASE=disposable php tests/profile.php`. Cobre autorização, validação, CSRF, campos protegidos, XSS, senha atual, revogação, tokens e rollback. Não há alteração de e-mail, avatar, preferências de tema/fuso ou listagem individual de dispositivos neste incremento.
+
+## Validação de segurança e instalação
+
+Cabeçalhos e configuração de produção verificados na Fase 6: [roteiro](PRODUCTION.md) e [evidências/limitações](VALIDATION.md). `tests/profile-browser.cjs` cobre agora o perfil em Chromium, incluindo troca de senha e revogação entre navegadores; `tests/security.php` cobre respostas e cookies da política HTTPS em instância descartável. A aplicação não ativa debug Twig nem exibe exceções por APP_DEBUG.

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 return [
     'name' => $_ENV['APP_NAME'] ?? 'Kanban SaaS',
+    'environment' => $_ENV['APP_ENV'] ?? 'local',
+    'debug' => filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE),
     'secure_cookies' => strtolower((string) parse_url($_ENV['APP_URL'] ?? '', PHP_URL_SCHEME)) === 'https',
     'url' => $_ENV['APP_URL'] ?? 'http://localhost:8000',
     'mail' => [

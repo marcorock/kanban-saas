@@ -57,7 +57,10 @@ final class BoardService
     private function snapshot(array $project, int $userId): array
     {
         $columns = $this->rows('kanban_columns', $project, 'position, id');
-        $tasks = $this->rows('tasks', $project, 'column_id, position, id');
+        // O quadro não precisa carregar descrições e outros campos do painel de detalhes.
+        $statement = $this->pdo->prepare('SELECT id, column_id, title, position, completed_at, priority, due_on FROM tasks WHERE tenant_id = ? AND project_id = ? ORDER BY column_id, position, id');
+        $statement->execute([$project['tenant_id'], $project['id']]);
+        $tasks = $statement->fetchAll();
         $statement = $this->pdo->prepare('SELECT a.task_id, a.user_id, u.name FROM task_assignees a JOIN users u ON u.id = a.user_id WHERE a.tenant_id = ? AND a.project_id = ? ORDER BY a.task_id, u.name');
         $statement->execute([$project['tenant_id'], $project['id']]);
         $assigned = [];
