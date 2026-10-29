@@ -9,6 +9,7 @@ MariaDB 11+, InnoDB, utf8mb4 e datas em UTC.
 | users | PK id; e-mail único; hash de senha e data de verificação |
 | tenants | PK id; owner_id referencia users, com índice; tipo pessoal ou organização |
 | tenant_users | PK (tenant_id, user_id); FKs para tenants/users; índice (user_id, tenant_id) |
+| auth_rate_limits | PK bucket (hash do escopo e identidade); índice de expiração; contagem atômica |
 | schema_migrations | Versão única e data de aplicação |
 
 O vínculo ao tenant não representará autorização automática aos projetos.

@@ -525,5 +525,8 @@ Uma funcionalidade será considerada concluída quando:
 - PHP ^8.3 confirmado para acompanhar produção.
 - Base iniciada: bootstrap, configuração, MVC com Pecee/Twig, tratamento de erros e PDO em UTC.
 - Migration inicial: users, tenants e tenant_users; executor CLI com controle de versões e bloqueio.
-- Autenticação, sessões, CSRF, validação e demais módulos ainda pendentes.
+- Cadastro/login/logout, tenant pessoal transacional, sessões seguras, CSRF, Rakit e rate limit implementados.
+- Testes executados em PHP 8.3.32 e MariaDB 11.8.8 descartável; testes HTTP, rollback e expiração aprovados.
+- Próximo incremento: verificação de e-mail e recuperação de senha; demais módulos pendentes.
+- Autenticação e testes documentados em docs/AUTHENTICATION.md.
 - Documentação técnica em docs/ARCHITECTURE.md e docs/DATABASE.md.

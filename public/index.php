@@ -9,6 +9,8 @@ use Twig\Loader\FilesystemLoader;
 
 try {
     $config = require dirname(__DIR__) . '/bootstrap/app.php';
+    \App\Security\Session::start(($config['secure_cookies']) || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'));
+    header('Cache-Control: no-store');
     header('Content-Type: text/html; charset=UTF-8');
     header('X-Content-Type-Options: nosniff');
     header('Referrer-Policy: strict-origin-when-cross-origin');

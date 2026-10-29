@@ -1,14 +1,6 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ projectName }}</title>
-</head>
-<body>
-    <main>
-        <h1>{{ projectName }}</h1>
-        <p>Base do projeto preparada. As funcionalidades do Kanban serão implementadas por etapas.</p>
-    </main>
-</body>
-</html>
+{% extends 'layout.html.twig' %}
+{% block content %}
+<p>Organize seus projetos e tarefas em um só lugar.</p>
+<a href="/login" class="btn btn-primary">Entrar</a>
+<a href="/register" class="btn btn-outline-primary">Criar conta</a>
+{% endblock %}

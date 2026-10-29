@@ -8,6 +8,6 @@ Datas e conexão SQL usam UTC. PDO usa prepared statements nativos e exceções;
 
 ## Decisões para os próximos incrementos
 
-Banco compartilhado por tenant; acesso aos projetos exigirá também vínculo e permissão no projeto. Cadastro deverá criar usuário, tenant pessoal e vínculo em uma transação. A base atual ainda não oferece autenticação ou consultas de projetos.
+Banco compartilhado por tenant; acesso aos projetos exigirá também vínculo e permissão no projeto. Cadastro deverá criar usuário, tenant pessoal e vínculo em uma transação. A autenticação está implementada; consultas de projetos ainda não existem.
 
-Próximos passos da Fase 1: validação, sessões seguras, CSRF, cadastro, login/logout, limitação de tentativas, verificação de e-mail e recuperação de senha. Rakit Validation será instalado e validado nesse incremento. SortableJS fica para a fase Kanban.
+Cadastro, login/logout, validação Rakit, sessões, CSRF e limites implementados; detalhes em [AUTHENTICATION.md](AUTHENTICATION.md). Próximos passos da Fase 1: verificação de e-mail e recuperação de senha. SortableJS fica para a fase Kanban.

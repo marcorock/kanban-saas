@@ -1,0 +1,25 @@
+{% extends 'layout.html.twig' %}
+{% block content %}
+<section class="card card-body shadow-sm">
+    <h2 class="h4">{{ register ? 'Criar conta' : 'Entrar' }}</h2>
+    {% for error in errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
+    <form method="post" action="{{ register ? '/register' : '/login' }}">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        {% if register %}
+        <div class="mb-3"><label for="name" class="form-label">Nome</label>
+            <input id="name" name="name" class="form-control" value="{{ old.name|default('') }}" required minlength="2" maxlength="120" autocomplete="name"></div>
+        {% endif %}
+        <div class="mb-3"><label for="email" class="form-label">E-mail</label>
+            <input id="email" name="email" type="email" class="form-control" value="{{ old.email|default('') }}" required maxlength="254" autocomplete="email"></div>
+        <div class="mb-3"><label for="password" class="form-label">Senha</label>
+            <input id="password" name="password" type="password" class="form-control" required {% if register %}minlength="12"{% endif %} maxlength="72" autocomplete="{{ register ? 'new-password' : 'current-password' }}">
+            {% if register %}<div class="form-text">Use pelo menos 12 caracteres e no máximo 72 bytes.</div>{% endif %}</div>
+        {% if register %}
+        <div class="mb-3"><label for="confirmation" class="form-label">Confirmar senha</label>
+            <input id="confirmation" name="password_confirmation" type="password" class="form-control" required maxlength="72" autocomplete="new-password"></div>
+        {% endif %}
+        <button class="btn btn-primary" type="submit">{{ register ? 'Criar conta' : 'Entrar' }}</button>
+    </form>
+    <a class="mt-3" href="{{ register ? '/login' : '/register' }}">{{ register ? 'Já tenho uma conta' : 'Criar uma conta' }}</a>
+</section>
+{% endblock %}

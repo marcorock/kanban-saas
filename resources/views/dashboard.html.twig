@@ -1,0 +1,11 @@
+{% extends 'layout.html.twig' %}
+{% block content %}
+<section class="card card-body">
+    <h2 class="h4">Olá, {{ user.name }}</h2>
+    <p>Você está conectado. A gestão de projetos será disponibilizada no próximo módulo.</p>
+    <form method="post" action="/logout">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <button class="btn btn-outline-secondary" type="submit">Sair</button>
+    </form>
+</section>
+{% endblock %}
