@@ -1,0 +1,6 @@
+{% import 'ui/icons.html.twig' as ui %}
+{% if errors|default([]) %}
+<div class="ds-feedback ds-feedback-error" id="auth-errors" role="alert" tabindex="-1" data-error-summary>
+    {{ ui.icon('alert') }}<div><h2>Vamos conferir os dados?</h2><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
+</div>
+{% endif %}

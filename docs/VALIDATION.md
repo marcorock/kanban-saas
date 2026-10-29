@@ -50,4 +50,4 @@ São amostras únicas no ambiente local, sujeitas a aquecimento/cache; não demo
 - A aplicação mantém o envio SMTP síncrono; filas e virtualização de grandes quadros são evoluções futuras.
 - Gestão de organizações permanece uma expansão pendente; não há cobrança no MVP.
 
-A homologação operacional foi adiada a pedido do usuário. Próximo passo: aguardar a definição dos detalhes adicionais a implementar antes de retomar o roteiro de [produção](PRODUCTION.md). Push, merge e deploy continuam dependendo de autorização explícita.
+A homologação operacional foi adiada a pedido do usuário. O usuário definiu a evolução de UI/UX como prioridade anterior à homologação, começando pelos fluxos de acesso. A implementação e validação deste incremento visual estão registradas em [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md); o roteiro de [produção](PRODUCTION.md) permanece pendente de execução operacional. Push, merge e deploy continuam dependendo de autorização explícita.

@@ -19,6 +19,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 7d170fe | Detalhes das tarefas, responsáveis, datas, checklists, comentários e filtros |
 | 75927a9 | Dashboard, Minhas Tarefas e históricos consolidados |
 | aba013c | Perfil, troca de senha e encerramento das demais sessões |
+| 58c0e2a | Validação, segurança, desempenho e preparação de instalação |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -33,3 +34,11 @@ Usuário solicitou continuar com perfil e configurações pessoais. Perfil imple
 ## Fase 6 — validação e preparação para produção
 
 Iniciada após aprovação do perfil. Preflight CLI somente de leitura, requisitos PHP explícitos, cabeçalhos de segurança, redução de memória do snapshot e runner sequencial implementados. Regressão PHP, preflight com usuário SQL somente leitura, carga sintética de 1.000 tarefas e Chromium aprovados. Evidências em [VALIDATION.md](VALIDATION.md), instalação em [PRODUCTION.md](PRODUCTION.md). Sem migrations novas, sem mudança de credenciais locais, sem publicação. Incremento aprovado pelo usuário e registrado no commit `chore: prepara validação e instalação em produção`. A pedido do usuário, a homologação operacional foi adiada: após este commit, aguardar sua descrição dos próximos detalhes antes de iniciar nova implementação.
+
+## UI/UX — primeiro incremento: acesso
+
+Após adiar a homologação operacional, o usuário solicitou uma identidade original com base mobile first e entregas pequenas, começando por login, cadastro e reset. Fluxo Claro define cores, tipografia, componentes, header/footer e evolução dos menus em [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md). Implementação inclui continuidade do cadastro com confirmação/reenvio de e-mail; telas internas e página inicial ainda usam o layout anterior.
+
+HTML/Twig, CSS e JavaScript permanecem em arquivos separados, sem inline nas novas telas; regra adicionada ao AGENTS.md por pedido explícito. Sem nova migration ou alteração de credenciais. Testes PHP de autenticação/conta/segurança/preflight e Chromium/axe dos fluxos migrados aprovados. Preview mobile e desktop verificado visualmente; testes automatizados não substituem validação em aparelhos físicos e leitores de tela.
+
+Incremento aprovado e incluído no commit `feat: define design system e redesenha telas de acesso`. Próximo incremento autorizado: shell autenticado (header, menus responsivos e footer), seguido da adaptação de cada módulo. Não iniciar todos os módulos de uma vez; homologação operacional continua adiada.

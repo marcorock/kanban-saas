@@ -1,0 +1,31 @@
+{% import 'ui/icons.html.twig' as ui %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#194f43">
+    <title>{% block page_title %}Acesso{% endblock %} · {{ projectName }}</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/brand/mark.svg">
+    <link rel="stylesheet" href="/assets/css/design-tokens.css">
+    <link rel="stylesheet" href="/assets/css/auth.css">
+    <script src="/assets/js/auth.js" defer></script>
+</head>
+<body class="auth-page">
+<a class="ds-skip-link" href="#auth-title">Pular para o conteúdo</a>
+<header class="auth-header">
+    <a class="auth-brand" href="/login" aria-label="{{ projectName }} — página de acesso">
+        <span class="auth-brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>{{ projectName }}</span>
+    </a>
+    <nav aria-label="Navegação de acesso">{% block header_action %}<a class="ds-button ds-button-quiet" href="/login">Entrar {{ ui.icon('arrow-right') }}</a>{% endblock %}</nav>
+</header>
+<main class="auth-main">
+    {% include 'auth/visual.html.twig' %}
+    <section class="auth-pane" aria-labelledby="auth-title">
+        <div class="auth-content">{% block content %}{% endblock %}</div>
+    </section>
+</main>
+<footer class="auth-footer"><p>Seu trabalho, no seu ritmo.</p><p>© {{ 'now'|date('Y') }} {{ projectName }}</p></footer>
+</body>
+</html>

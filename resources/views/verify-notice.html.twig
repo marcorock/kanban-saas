@@ -1,9 +1,10 @@
-{% extends 'layout.html.twig' %}
+{% extends 'auth/layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block page_title %}Confirme seu e-mail{% endblock %}
+{% block header_action %}<form method="post" action="/logout"><input type="hidden" name="_token" value="{{ csrf }}"><button class="ds-button ds-button-quiet" type="submit">Sair {{ ui.icon('arrow-right') }}</button></form>{% endblock %}
 {% block content %}
-<div class="alert alert-info">Confirme seu e-mail para acessar o painel. Confira sua caixa de entrada ou solicite um novo link.</div>
-<a href="/email/resend" class="btn btn-primary">Reenviar confirmação</a>
-<form class="mt-3" method="post" action="/logout">
-    <input type="hidden" name="_token" value="{{ csrf }}">
-    <button class="btn btn-outline-secondary" type="submit">Sair</button>
-</form>
+<div class="auth-intro"><span class="auth-state-icon">{{ ui.icon('mail') }}</span><p class="ds-eyebrow">SÓ MAIS UM PASSO</p><h1 id="auth-title">Seu espaço está quase pronto.</h1><p>Confirme seu e-mail para acessar seus projetos. Procure a mensagem de confirmação na sua caixa de entrada.</p></div>
+<div class="ds-feedback ds-feedback-neutral"><p>Não encontrou a mensagem? Confira o spam ou peça um novo link.</p></div>
+<a class="ds-button ds-button-primary" href="/email/resend">Reenviar confirmação {{ ui.icon('arrow-right') }}</a>
+<p class="auth-reassurance">{{ ui.icon('mail') }} Abra o link recebido para concluir seu cadastro.</p>
 {% endblock %}

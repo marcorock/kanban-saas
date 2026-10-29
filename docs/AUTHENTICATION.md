@@ -80,3 +80,9 @@ Teste em banco descartável com servidor HTTP no mesmo ambiente: `AUTH_TEST_DATA
 ## Validação de segurança e instalação
 
 Cabeçalhos e configuração de produção verificados na Fase 6: [roteiro](PRODUCTION.md) e [evidências/limitações](VALIDATION.md). `tests/profile-browser.cjs` cobre agora o perfil em Chromium, incluindo troca de senha e revogação entre navegadores; `tests/security.php` cobre respostas e cookies da política HTTPS em instância descartável. A aplicação não ativa debug Twig nem exibe exceções por APP_DEBUG.
+
+## Interface de acesso — Fluxo Claro
+
+Login, cadastro, recuperação/reset, confirmação/reenvio e aviso de e-mail usam `auth/layout.html.twig`. Estilos e tokens estão em CSS externo e interações em `auth.js`; sem alterar o layout dos módulos internos. Mensagens de sessão expirada mantêm status 419 com formulário e CSRF atual. Botões de senha têm nome acessível, envio tem estado de progresso e os formulários funcionam sem JavaScript. Veja [design system e teste visual](DESIGN_SYSTEM.md).
+
+Testes Chromium com axe A/AA verificam 320/390/768/1024/1440px, teclado, foco de erro, contraste, cadastro/SMTP/confirmação, recuperação/reset e login sem JS. Previews descartáveis ficam em storage/previews (fora do Git); não contêm dados reais. Não foi realizado teste com leitor de tela ou teclado virtual de aparelhos físicos.

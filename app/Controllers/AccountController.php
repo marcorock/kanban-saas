@@ -34,7 +34,7 @@ final class AccountController
         header('Referrer-Policy: no-referrer');
         if (!Session::verifyCsrf($_POST['_token'] ?? null)) {
             http_response_code(419);
-            return 'Sessão do formulário expirada. Recarregue a página.';
+            return $this->page($mode, ['Sua sessão expirou. Tente novamente para continuar.'], '', is_string($_POST['token'] ?? null) ? $_POST['token'] : '');
         }
         $pdo = Database::connect($this->config['database']);
         $limiter = new RateLimiter($pdo);

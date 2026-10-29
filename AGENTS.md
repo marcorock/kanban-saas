@@ -8,3 +8,4 @@
 - Manter README, CHANGELOG e documentação afetada coerentes com o implementado. PROJECT_CONTEXT.md deve indicar o último incremento aprovado, o trabalho atual e o próximo passo; Git mantém os hashes exatos das mudanças.
 - Não fazer push, merge, deploy em produção ou alterações destrutivas apenas por aprovação de um incremento. Preservar credenciais e configurações locais fora do Git.
 - Testar mudanças de autorização, isolamento de tenant, transações e concorrência em banco descartável; aplicar migrations verificadas ao ambiente local para permitir testes do usuário.
+- Nas novas telas e revisões de UI, manter HTML em Twig, estilos em CSS externo e comportamento em JavaScript externo; não introduzir estilos ou scripts inline.

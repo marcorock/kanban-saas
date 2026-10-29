@@ -1,26 +1,23 @@
-{% extends 'layout.html.twig' %}
+{% extends 'auth/layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block page_title %}{{ register ? 'Criar conta' : 'Entrar' }}{% endblock %}
+{% block header_action %}<a class="ds-button ds-button-quiet" href="{{ register ? '/login' : '/register' }}">{{ register ? 'Entrar' : 'Criar conta' }} {{ ui.icon('arrow-right') }}</a>{% endblock %}
 {% block content %}
-<section class="card card-body shadow-sm">
-    <h2 class="h4">{{ register ? 'Criar conta' : 'Entrar' }}</h2>
-    {% for error in errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
-    <form method="post" action="{{ register ? '/register' : '/login' }}">
-        <input type="hidden" name="_token" value="{{ csrf }}">
-        {% if register %}
-        <div class="mb-3"><label for="name" class="form-label">Nome</label>
-            <input id="name" name="name" class="form-control" value="{{ old.name|default('') }}" required minlength="2" maxlength="120" autocomplete="name"></div>
-        {% endif %}
-        <div class="mb-3"><label for="email" class="form-label">E-mail</label>
-            <input id="email" name="email" type="email" class="form-control" value="{{ old.email|default('') }}" required maxlength="254" autocomplete="email"></div>
-        <div class="mb-3"><label for="password" class="form-label">Senha</label>
-            <input id="password" name="password" type="password" class="form-control" required {% if register %}minlength="12"{% endif %} maxlength="72" autocomplete="{{ register ? 'new-password' : 'current-password' }}">
-            {% if register %}<div class="form-text">Use pelo menos 12 caracteres e no máximo 72 bytes.</div>{% endif %}</div>
-        {% if register %}
-        <div class="mb-3"><label for="confirmation" class="form-label">Confirmar senha</label>
-            <input id="confirmation" name="password_confirmation" type="password" class="form-control" required maxlength="72" autocomplete="new-password"></div>
-        {% endif %}
-        <button class="btn btn-primary" type="submit">{{ register ? 'Criar conta' : 'Entrar' }}</button>
-    </form>
-    {% if not register %}<a class="mt-3" href="/password/forgot">Esqueci minha senha</a>{% endif %}
-    <a class="mt-3" href="{{ register ? '/login' : '/register' }}">{{ register ? 'Já tenho uma conta' : 'Criar uma conta' }}</a>
-</section>
+<div class="auth-intro">
+    <p class="ds-eyebrow">{{ register ? 'SEU PRÓXIMO COMEÇO' : 'BOM TER VOCÊ POR AQUI' }}</p>
+    <h1 id="auth-title">{{ register ? 'Dê espaço às suas ideias.' : 'Entre no seu ritmo.' }}</h1>
+    <p>{{ register ? 'Crie sua conta e organize os próximos passos dos seus projetos.' : 'Seus projetos, sua equipe e o que vem a seguir. Tudo no seu lugar.' }}</p>
+</div>
+{% include 'auth/feedback.html.twig' %}
+<form class="auth-form" method="post" action="{{ register ? '/register' : '/login' }}" data-auth-form>
+    <input type="hidden" name="_token" value="{{ csrf }}">
+    {% if register %}<div class="ds-field"><label for="name">Seu nome</label><input id="name" name="name" value="{{ old.name|default('') }}" required minlength="2" maxlength="120" autocomplete="name" placeholder="Como podemos chamar você?"></div>{% endif %}
+    <div class="ds-field"><label for="email">E-mail</label><input id="email" name="email" type="email" value="{{ old.email|default('') }}" required maxlength="254" autocomplete="{{ register ? 'email' : 'username' }}" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="voce@exemplo.com"></div>
+    {% include 'auth/password.html.twig' with {id: 'password', name: 'password', label: 'Senha', autocomplete: register ? 'new-password' : 'current-password', minimum: register, hint: register} only %}
+    {% if register %}{% include 'auth/password.html.twig' with {id: 'confirmation', name: 'password_confirmation', label: 'Confirmar senha', autocomplete: 'new-password', minimum: true} only %}
+    {% else %}<a class="auth-forgot" href="/password/forgot">Esqueci minha senha</a>{% endif %}
+    <button class="ds-button ds-button-primary" type="submit" data-submit data-pending-label="{{ register ? 'Criando sua conta…' : 'Entrando…' }}"><span data-submit-label>{{ register ? 'Criar conta' : 'Entrar' }}</span>{{ ui.icon('arrow-right') }}</button>
+</form>
+<p class="auth-switch">{{ register ? 'Já tem uma conta?' : 'Primeira vez por aqui?' }} <a href="{{ register ? '/login' : '/register' }}">{{ register ? 'Entrar' : 'Criar uma conta' }}</a></p>
+<p class="auth-reassurance">{{ ui.icon('lock') }} {{ register ? 'Depois do cadastro, vamos confirmar seu e-mail.' : 'Um espaço para focar no que importa.' }}</p>
 {% endblock %}

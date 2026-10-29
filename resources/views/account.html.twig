@@ -1,28 +1,36 @@
-{% extends 'layout.html.twig' %}
+{% extends 'auth/layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% set title = mode == 'forgot' ? 'Recuperar senha' : (mode == 'reset' ? 'Redefinir senha' : (mode == 'resend' ? 'Reenviar confirmação' : 'Confirmar e-mail')) %}
+{% block page_title %}{{ title }}{% endblock %}
 {% block content %}
-<section class="card card-body shadow-sm">
-    <h2 class="h4">{% if mode == 'forgot' %}Recuperar senha{% elseif mode == 'reset' %}Redefinir senha{% elseif mode == 'resend' %}Reenviar confirmação{% else %}Confirmar e-mail{% endif %}</h2>
-    {% for error in errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
-    {% if message %}<div class="alert alert-success" role="status">{{ message }}</div>{% endif %}
-    {% if not message %}
-    <form method="post" action="{% if mode == 'forgot' %}/password/forgot{% elseif mode == 'reset' %}/password/reset{% elseif mode == 'resend' %}/email/resend{% else %}/email/verify{% endif %}">
-        <input type="hidden" name="_token" value="{{ csrf }}">
-        {% if mode == 'forgot' or mode == 'resend' %}
-        <label for="email" class="form-label">E-mail</label>
-        <input id="email" type="email" name="email" class="form-control mb-3" autocomplete="email" maxlength="254" required>
-        {% else %}
-        <input type="hidden" name="token" value="{{ token }}">
-        {% if mode == 'reset' %}
-        <label for="password" class="form-label">Nova senha</label>
-        <input id="password" type="password" name="password" class="form-control mb-3" autocomplete="new-password" minlength="12" maxlength="72" required>
-        <p class="form-text">Use pelo menos 12 caracteres e no máximo 72 bytes.</p>
-        <label for="confirmation" class="form-label">Confirmar nova senha</label>
-        <input id="confirmation" type="password" name="password_confirmation" class="form-control mb-3" autocomplete="new-password" maxlength="72" required>
-        {% else %}<p>Confirme seu endereço de e-mail para acessar o painel.</p>{% endif %}
-        {% endif %}
-        <button class="btn btn-primary" type="submit">{% if mode == 'forgot' or mode == 'resend' %}Enviar link{% elseif mode == 'reset' %}Salvar nova senha{% else %}Confirmar e-mail{% endif %}</button>
-    </form>
+<div class="auth-intro">
+    <span class="auth-state-icon">{{ ui.icon(message and mode != 'forgot' and mode != 'resend' ? 'check' : (mode == 'reset' ? 'lock' : 'mail')) }}</span>
+    <p class="ds-eyebrow">{{ mode == 'forgot' or mode == 'reset' ? 'VAMOS CUIDAR DO SEU ACESSO' : 'SÓ MAIS UM PASSO' }}</p>
+    <h1 id="auth-title">{% if message %}{{ mode == 'forgot' or mode == 'resend' ? 'Confira seu e-mail.' : (mode == 'reset' ? 'Senha atualizada.' : 'Tudo confirmado.') }}{% else %}{{ mode == 'forgot' ? 'Esqueceu a senha?' : (mode == 'reset' ? 'Crie sua nova senha.' : (mode == 'resend' ? 'Vamos enviar outro link.' : 'Confirme seu e-mail.')) }}{% endif %}</h1>
+    {% if not message %}<p>{{ mode == 'forgot' ? 'Acontece. Informe o e-mail da sua conta para receber um link de recuperação.' : (mode == 'reset' ? 'Escolha uma senha nova para voltar aos seus projetos.' : (mode == 'resend' ? 'Informe o e-mail do cadastro para receber um novo link de confirmação.' : 'Está quase tudo pronto. Confirme seu endereço para acessar seu espaço de trabalho.')) }}</p>{% endif %}
+</div>
+{% include 'auth/feedback.html.twig' %}
+{% if message %}
+<div class="ds-feedback ds-feedback-success" role="status">{{ ui.icon('check') }}<p>{{ message }}</p></div>
+<a class="ds-button ds-button-primary" href="{{ mode == 'verify' ? '/dashboard' : '/login' }}">{{ mode == 'verify' ? 'Ir para meu painel' : 'Voltar para entrar' }} {{ ui.icon('arrow-right') }}</a>
+{% if mode == 'forgot' or mode == 'resend' %}<p class="auth-switch">Não encontrou? Confira o spam ou <a href="{{ mode == 'forgot' ? '/password/forgot' : '/email/resend' }}">solicite outro link</a>.</p>{% endif %}
+{% else %}
+<form class="auth-form" method="post" action="{{ mode == 'forgot' ? '/password/forgot' : (mode == 'reset' ? '/password/reset' : (mode == 'resend' ? '/email/resend' : '/email/verify')) }}" data-auth-form>
+    <input type="hidden" name="_token" value="{{ csrf }}">
+    {% if mode == 'forgot' or mode == 'resend' %}
+    <div class="ds-field"><label for="email">E-mail da sua conta</label><input id="email" type="email" name="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="voce@exemplo.com" maxlength="254" required></div>
+    {% else %}
+    <input type="hidden" name="token" value="{{ token }}">
+    {% if mode == 'reset' %}
+    {% include 'auth/password.html.twig' with {id: 'password', name: 'password', label: 'Nova senha', autocomplete: 'new-password', minimum: true, hint: true} only %}
+    {% include 'auth/password.html.twig' with {id: 'confirmation', name: 'password_confirmation', label: 'Confirmar nova senha', autocomplete: 'new-password', minimum: true} only %}
     {% endif %}
-    <div class="mt-3"><a href="/login">Entrar</a> · <a href="/dashboard">Painel</a> · <a href="/email/resend">Reenviar confirmação</a> · <a href="/password/forgot">Recuperar senha</a></div>
-</section>
+    {% endif %}
+    <button class="ds-button ds-button-primary" type="submit" data-submit data-pending-label="{{ mode == 'reset' ? 'Salvando…' : 'Enviando…' }}"><span data-submit-label>{{ mode == 'forgot' or mode == 'resend' ? 'Enviar link' : (mode == 'reset' ? 'Salvar nova senha' : 'Confirmar e-mail') }}</span>{{ ui.icon('arrow-right') }}</button>
+</form>
+{% endif %}
+<div class="auth-account-links">
+{% if not message %}<a class="ds-back-link" href="/login">{{ ui.icon('arrow-left') }} Voltar para entrar</a>{% endif %}
+{% if mode == 'reset' %}<a href="/password/forgot">Solicitar novo link de recuperação</a>{% elseif mode == 'verify' %}<a href="/email/resend">Reenviar confirmação</a>{% endif %}
+</div>
 {% endblock %}

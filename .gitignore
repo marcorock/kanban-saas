@@ -3,3 +3,5 @@
 /storage/logs/*
 !/storage/logs/.gitkeep
 .DS_Store
+
+/storage/previews/

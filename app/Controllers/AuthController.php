@@ -26,6 +26,11 @@ final class AuthController
         if (isset($_SESSION['user_id'])) {
             return $this->redirect('/dashboard');
         }
+        return $this->renderForm($register, $errors, $old);
+    }
+
+    private function renderForm(bool $register, array $errors, array $old = []): string
+    {
         return $this->views->render('auth.html.twig', [
             'projectName' => $this->config['name'], 'register' => $register,
             'errors' => $errors, 'old' => array_intersect_key($old, array_flip(['name', 'email'])), 'csrf' => $_SESSION['csrf'],
@@ -36,7 +41,7 @@ final class AuthController
     {
         if (!Session::verifyCsrf($_POST['_token'] ?? null)) {
             http_response_code(419);
-            return 'Sessão do formulário expirada. Recarregue a página.';
+            return $this->renderForm($register, ['Sua sessão expirou. Preencha o formulário novamente para continuar.']);
         }
         if (isset($_SESSION['user_id'])) {
             return $this->redirect('/dashboard');

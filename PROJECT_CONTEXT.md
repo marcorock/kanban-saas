@@ -32,6 +32,7 @@
 - 7d170fe — detalhes das tarefas, responsáveis, prioridades/datas, checklists, comentários e filtros.
 - 75927a9 — dashboard, Minhas Tarefas e históricos consolidados.
 - aba013c — perfil, troca de senha e encerramento das demais sessões.
+- 58c0e2a — validação de segurança/desempenho e preparação para instalação.
 
 ## Entrega anterior — dashboard e históricos (Fase 5)
 
@@ -62,9 +63,9 @@
 - Aprovação do perfil autorizou a Fase 6, implementada abaixo.
 - Gerenciamento de organizações segue pendente de expansão; sem cobrança/pagamentos no MVP.
 
-## Última entrega aprovada — Fase 6: validação e preparação para produção
+## Entrega anterior — Fase 6: validação e preparação para produção
 
-- Incremento aprovado pelo usuário; commit de fechamento: `chore: prepara validação e instalação em produção`. O commit do perfil não contém esta fase.
+- Incremento aprovado pelo usuário; commit de fechamento: `58c0e2a` — `chore: prepara validação e instalação em produção`. O commit do perfil não contém esta fase.
 - Preflight `php bin/check.php [--production]`: runtime/extensões, configuração segura, assets, MariaDB/UTC e migrations; somente leitura e sem exposição de segredos.
 - CSP, proteção de frames e Permissions-Policy em respostas dinâmicas, inclusive erros; HSTS na configuração de produção com APP_URL HTTPS.
 - Composer explicita extensões; lock sincronizado sem alterar versões. Audit sem avisos conhecidos; validate mantém aviso preexistente de licença não definida.
@@ -73,7 +74,20 @@
 - Check local aprovado em leitura; nenhuma migration nova ou alteração no .env. Ambiente de teste descartável separado do banco de uso diário.
 - Roteiro de instalação, backup, permissões, SMTP, HTTPS e reversão: docs/PRODUCTION.md. Evidências e limitações: docs/VALIDATION.md.
 - Não houve deploy, teste do SMTP/HTTPS de produção ou ensaio de carga HTTP concorrente.
-- Homologação operacional adiada por solicitação explícita do usuário. Após o commit, aguardar a descrição dos próximos detalhes a implementar; não iniciar novo incremento antes dessa orientação. Publicação requer autorização explícita.
+- Homologação operacional adiada por solicitação explícita do usuário. Após o commit, o usuário definiu UI/UX como prioridade, conforme incremento abaixo. Publicação requer autorização explícita.
+
+## Última entrega aprovada — UI/UX: telas de acesso
+
+- Solicitado pelo usuário: design system original, mobile first e pequenos incrementos; primeiro login, cadastro e recuperação/reset.
+- Fluxo Claro: verde profundo, lima, superfícies claras e hierarquia tipográfica própria. APP_NAME permanece o nome do produto.
+- Implementados header/footer de acesso, formulários, confirmação/reenvio/aviso de e-mail e estados de erro/sucesso/envio. Sem redesenho das telas internas ou da página inicial `/`.
+- HTML em Twig; tokens/layout em CSS externo; comportamento em JS externo. Nenhum inline nos novos templates; separação registrada no AGENTS.md.
+- Melhorias progressivas: mostrar senha, foco no resumo de erros, bloqueio de envio repetido; POST/CSRF e login funcionam sem JS.
+- Testes PHP de autenticação, conta/SMTP, segurança e preflight aprovados. Chromium/axe: 320/390/768/1024/1440px, sem overflow, acessibilidade automatizada A/AA, fluxos de conta e fallback sem JS aprovados.
+- Previews mobile/desktop em storage/previews (ignorados no Git), verificados visualmente; sem teste em dispositivos físicos/leitores de tela.
+- Design system, menus internos planejados, componentes e limites: docs/DESIGN_SYSTEM.md. Preflight local aprovado com novos assets; nenhuma migration ou alteração no .env.
+- Incremento aprovado pelo usuário; commit de fechamento: `feat: define design system e redesenha telas de acesso`. Próximo incremento autorizado: shell autenticado (header, menus responsivos e footer); adaptar módulos depois, um por vez.
+- Homologação operacional permanece adiada; nenhuma publicação realizada.
 
 ## Documentação por módulo
 
@@ -84,3 +98,4 @@
 - Relatórios, regras de contagem e históricos: docs/REPORTS.md.
 - Evolução funcional: CHANGELOG.md. Histórico de commits e continuidade: docs/DEVELOPMENT.md.
 - Preparação para produção: docs/PRODUCTION.md. Registro de validação: docs/VALIDATION.md.
+- UI/UX, componentes e navegação: docs/DESIGN_SYSTEM.md.

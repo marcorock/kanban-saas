@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Adicionado
+- Design system Fluxo Claro: identidade, tokens, componentes e especificação de navegação mobile/tablet/desktop.
+- Novo layout de login/cadastro, recuperação/reset e confirmação de e-mail; header/footer próprios e melhorias de mostrar senha, foco e estado de envio.
+- Arquivos Twig, CSS e JavaScript separados, com regra permanente de UI registrada no AGENTS.md; preflight verifica os novos assets locais.
+- Teste Chromium/axe das telas de acesso, fluxos SMTP, tamanhos de 320 a 1440px e fallback sem JavaScript.
 - Fase 6: preflight CLI somente de leitura para instalação/produção, runner sequencial de testes e roteiro operacional com registro de validação.
 - CSP, proteção contra frames, Permissions-Policy e HSTS na configuração de produção HTTPS; extensões PHP explícitas no Composer.
 - Regressão HTTP/Chromium de segurança e perfil, validação de preflight e carga sintética de 1.000 tarefas.
