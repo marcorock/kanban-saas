@@ -14,15 +14,24 @@
     {% endif %}
     <a href="/projects/{{ board.project_id }}/board" class="btn btn-outline-secondary">Atualizar quadro</a>
 </div>
+<div class="row g-2 mb-3" aria-label="Filtros de tarefas">
+    <div class="col-sm-3"><label for="filter-priority" class="form-label">Prioridade</label><select id="filter-priority" class="form-select"><option value="">Todas as prioridades</option><option value="low">Baixa</option><option value="normal">Normal</option><option value="high">Alta</option><option value="urgent">Urgente</option></select></div>
+    <div class="col-sm-3"><label for="filter-assignee" class="form-label">Responsável</label><select id="filter-assignee" class="form-select"><option value="">Todos os responsáveis</option></select></div>
+    <div class="col-sm-3"><label for="filter-column" class="form-label">Coluna</label><select id="filter-column" class="form-select"><option value="">Todas as colunas</option></select></div>
+    <div class="col-sm-3"><label for="filter-due" class="form-label">Prazo</label><select id="filter-due" class="form-select"><option value="">Todos os prazos</option><option value="overdue">Atrasadas</option><option value="upcoming">Próximos 7 dias</option><option value="none">Sem prazo</option></select></div>
+</div>
+<p id="filter-note" class="small text-body-secondary d-none">Limpe os filtros para arrastar tarefas e colunas. Você pode continuar usando os formulários para mover.</p>
 <noscript><p>Ative o JavaScript para criar ou movimentar tarefas.</p></noscript>
 <div id="kanban" class="kanban" data-endpoint="/projects/{{ board.project_id }}/board" data-csrf="{{ csrf }}">
 {% for column in board.columns %}
 <section class="kanban-column card card-body"><h3 class="h6">{{ column.name }}</h3>{% for task in column.tasks %}<div class="card card-body p-2 mb-2">{{ task.title }}</div>{% endfor %}</section>
 {% endfor %}
 </div>
+{% include 'task-panel.html.twig' %}
 <script type="application/json" id="board-state">{{ boardJson|raw }}</script>
 {% endblock %}
 {% block scripts %}
 <script src="/assets/vendor/sortablejs/Sortable.min.js" defer></script>
+<script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
 <script src="/assets/js/board.js" defer></script>
 {% endblock %}

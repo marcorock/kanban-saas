@@ -28,6 +28,11 @@
 - Migration 006, SortableJS local, auditoria por tarefa e testes de concorrência e navegador.
 - Regra permanente de aprovação → commit → próximo incremento registrada em AGENTS.md e histórico consolidado em docs/DEVELOPMENT.md.
 
+- Painel lateral de tarefas com descrição, prioridades, datas e múltiplos responsáveis.
+- Checklists/subtarefas simples, comentários com autorização por autor e histórico paginado.
+- Filtros por responsável, prioridade, coluna e prazo; indicadores de atraso.
+- Migration 007, limpeza auditada de atribuições na remoção de participante e testes de backend/navegador.
+
 ### Corrigido
 - Configuração local de e-mail direcionada ao Mailpit na rede Docker, preservando suporte a SMTP de produção.
 

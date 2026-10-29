@@ -64,4 +64,4 @@ Ele usa cadastro real no ambiente descartável e Mailpit para confirmar a conta,
 
 ## Próximo incremento
 
-Detalhes de tarefa em modal/offcanvas, descrição, múltiplos responsáveis, prioridades, datas, checklists e comentários serão tratados na Fase 4. Neste incremento os cards possuem título, ordenação e conclusão real.
+Detalhes em painel lateral, descrição, responsáveis, prioridades, datas, checklists, comentários e filtros estão disponíveis conforme [TASKS.md](TASKS.md). Próximo incremento: dashboard e histórico consolidado.

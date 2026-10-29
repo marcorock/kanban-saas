@@ -6,6 +6,30 @@
     let board = JSON.parse(document.getElementById('board-state').textContent);
     let sortables = [];
     let saving = false;
+    const panel = document.getElementById('task-panel');
+    const panelContent = document.getElementById('task-content');
+    const taskMessage = document.getElementById('task-message');
+    const dirtyForms = new Set();
+    let taskId = null;
+    let taskDetails = null;
+    let taskRequest = 0;
+    const priorities = {low: 'Baixa', normal: 'Normal', high: 'Alta', urgent: 'Urgente'};
+    const filters = {priority: document.getElementById('filter-priority'), assignee: document.getElementById('filter-assignee'), column: document.getElementById('filter-column'), due: document.getElementById('filter-due')};
+    function fillFilter(select, options) {
+        const value = select.value;
+        select.replaceChildren();
+        for (const [id, text] of options) { const option = element('option', '', text); option.value = String(id); select.append(option); }
+        if (Array.from(select.options).some(option => option.value === value)) select.value = value;
+    }
+    function matches(task) {
+        const today = new Date().toISOString().slice(0, 10);
+        const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+        return (!filters.priority.value || task.priority === filters.priority.value)
+            && (!filters.assignee.value || task.assignees.some(member => member.id === Number(filters.assignee.value)))
+            && (!filters.due.value || (filters.due.value === 'overdue' && task.overdue)
+                || (filters.due.value === 'upcoming' && !task.completed_at && task.due_on && task.due_on >= today && task.due_on <= nextWeek)
+                || (filters.due.value === 'none' && !task.due_on));
+    }
     function element(tag, className = '', text = '') {
         const item = document.createElement(tag);
         item.className = className;
@@ -41,8 +65,13 @@
     function render() {
         sortables.forEach(sortable => sortable.destroy());
         sortables = [];
+        fillFilter(filters.assignee, [['', 'Todos os responsáveis'], ...(board.members || []).map(member => [member.id, member.name])]);
+        fillFilter(filters.column, [['', 'Todas as colunas'], ...board.columns.map(column => [column.id, column.name])]);
+        const filtered = Object.values(filters).some(field => field.value !== '');
+        document.getElementById('filter-note').classList.toggle('d-none', !filtered);
         root.replaceChildren();
         for (const column of board.columns) {
+            if (filters.column.value && Number(filters.column.value) !== column.id) continue;
             const section = element('section', 'kanban-column card card-body');
             section.dataset.id = String(column.id);
             const heading = element('div', 'd-flex justify-content-between align-items-start gap-2');
@@ -52,10 +81,14 @@
             section.append(element('p', 'small text-body-secondary mb-1', `${column.tasks.length} tarefa(s)${column.is_done ? ' · Conclusão' : ''}`));
             const list = element('div', 'kanban-tasks');
             list.dataset.columnId = String(column.id);
-            for (const task of column.tasks) {
+            for (const task of column.tasks.filter(matches)) {
                 const card = element('article', 'kanban-task card card-body p-2 mb-2');
                 card.dataset.id = String(task.id);
-                card.append(element('div', 'kanban-title', task.title));
+                const title = button(task.title, 'btn btn-link p-0 kanban-title kanban-title-button'); title.type = 'button'; title.dataset.taskOpen = String(task.id); card.append(title);
+                const colors = {low: 'secondary', normal: 'light text-dark', high: 'warning', urgent: 'danger'};
+                card.append(element('span', `badge text-bg-${colors[task.priority]} align-self-start mt-1`, priorities[task.priority]));
+                if (task.due_on) card.append(element('span', `small mt-1 ${task.overdue ? 'text-danger fw-semibold' : 'text-body-secondary'}`, `${task.overdue ? 'Atrasada · ' : ''}Prazo: ${task.due_on.split('-').reverse().join('/')}`));
+                if (task.assignees.length) card.append(element('span', 'small text-body-secondary mt-1', task.assignees.map(member => member.name).join(', ')));
                 if (task.completed_at) card.append(element('span', 'badge text-bg-success align-self-start mt-1', 'Concluída'));
                 if (board.can_write) {
                     card.append(element('span', 'kanban-task-handle kanban-handle small mt-2', '↕ Mover tarefa'));
@@ -93,12 +126,12 @@
                 const removeButton = button('Excluir coluna vazia', 'btn btn-sm btn-outline-danger'); removeButton.disabled = column.tasks.length > 0 || board.columns.length <= 1; remove.append(removeButton); details.append(remove); section.append(details);
             }
             root.append(section);
-            if (board.can_write) sortables.push(Sortable.create(list, {
+            if (board.can_write && !filtered) sortables.push(Sortable.create(list, {
                 group: 'tasks', draggable: '.kanban-task', handle: '.kanban-task-handle', animation: 150, ghostClass: 'kanban-ghost',
                 onEnd: event => save('task.move', {task_id: Number(event.item.dataset.id), column_id: Number(event.to.dataset.columnId), position: event.newDraggableIndex})
             }));
         }
-        if (board.can_manage) sortables.push(Sortable.create(root, {
+        if (board.can_manage && !filtered) sortables.push(Sortable.create(root, {
             draggable: '.kanban-column', handle: '.kanban-column > div > .kanban-handle', animation: 150, direction: 'horizontal', ghostClass: 'kanban-ghost',
             onEnd: () => save('columns.reorder', {column_ids: Array.from(root.children, child => Number(child.dataset.id))})
         }));
@@ -106,9 +139,11 @@
     async function save(action, payload) {
         if (saving) return;
         saving = true;
+        let success = false;
+        document.getElementById('task-panel-close').disabled = true;
         root.setAttribute('aria-busy', 'true');
         sortables.forEach(sortable => sortable.option('disabled', true));
-        document.querySelectorAll('#kanban input, #kanban select, #kanban button, #column-create input, #column-create button').forEach(item => { item.disabled = true; });
+        document.querySelectorAll('#kanban input, #kanban select, #kanban button, #column-create input, #column-create button, #task-content input, #task-content select, #task-content textarea, #task-content button').forEach(item => { item.disabled = true; });
         notify('Salvando…');
         try {
             const response = await fetch(root.dataset.endpoint, {
@@ -118,9 +153,11 @@
             const result = await response.json();
             if (!response.ok || !result.ok) throw new Error(result.message || 'Não foi possível salvar. Atualize o quadro para conferir o estado atual.');
             board = result.board;
+            success = true;
             if (action === 'column.create') document.getElementById('column-create').reset();
             notify('Quadro atualizado.');
         } catch (error) {
+            if (panel.classList.contains('show')) taskNotify(error.message, true);
             notify(error instanceof TypeError ? 'A conexão falhou. Atualize o quadro para conferir o estado atual antes de tentar novamente.' : error.message, true);
         } finally {
             saving = false;
@@ -128,7 +165,10 @@
             render();
             document.querySelectorAll('#column-create input, #column-create button').forEach(item => { item.disabled = false; });
             root.removeAttribute('aria-busy');
+            document.getElementById('task-panel-close').disabled = false;
+            panelContent.querySelectorAll('input,select,textarea,button').forEach(item => { item.disabled = !board.can_write && !item.dataset.page; });
         }
+        return success;
     }
     root.addEventListener('submit', event => {
         event.preventDefault();
@@ -159,6 +199,148 @@
         const data = new FormData(event.target);
         save('column.create', {name: data.get('name'), is_done: data.has('is_done')});
     });
+    function taskNotify(text, error = false) {
+        taskMessage.className = `alert alert-${error ? 'danger' : 'success'}`; taskMessage.textContent = text;
+    }
+    function discard() { return dirtyForms.size === 0 || window.confirm('Descartar as alterações ainda não salvas?'); }
+    function stamp(value) {
+        return value ? new Intl.DateTimeFormat('pt-BR', {timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short'}).format(new Date(value.replace(' ', 'T') + 'Z')) + ' UTC' : 'Não definido';
+    }
+    function field(name, label, value, type = 'text', max = 200) {
+        const wrapper = element('label', 'form-label d-block'); wrapper.append(document.createTextNode(label));
+        const control = element(type === 'textarea' ? 'textarea' : 'input', 'form-control mt-1'); control.name = name;
+        if (type !== 'textarea') control.type = type;
+        control.value = value || '';
+        if (type === 'text' || type === 'textarea') control.maxLength = max;
+        if (type === 'datetime-local') control.step = '1';
+        if (type === 'date') { control.min = '1000-01-01'; control.max = '9999-12-31'; }
+        wrapper.append(control); return wrapper;
+    }
+    function editor(action, data = {}) {
+        const form = element('form', 'mt-3'); form.dataset.taskAction = action;
+        for (const [key, value] of Object.entries(data)) form.dataset[key] = String(value);
+        return form;
+    }
+    function actionButton(action, label, data, danger = true) {
+        const control = button(label, `btn btn-sm btn-outline-${danger ? 'danger' : 'secondary'} mt-2`); control.type = 'button'; control.dataset.taskAction = action;
+        for (const [key, value] of Object.entries(data)) control.dataset[key] = String(value);
+        return control;
+    }
+    function heading(text) { return element('h3', 'h6 mt-4', text); }
+    function pages(parent, result, type) {
+        const nav = element('div', 'd-flex justify-content-between align-items-center mt-2 small');
+        for (const [label, page] of [['Anterior', result.page - 1], ['Próxima', result.page + 1]]) {
+            if (page < 1 || page > result.pages) continue;
+            const control = button(label, 'btn btn-sm btn-outline-secondary'); control.type = 'button'; control.dataset.page = type; control.dataset.number = String(page); nav.append(control);
+        }
+        nav.append(element('span', '', `Página ${result.page} de ${result.pages}`)); parent.append(nav);
+    }
+    function renderTask() {
+        const data = taskDetails; const task = data.task; const writable = board.can_write;
+        panelContent.replaceChildren(); dirtyForms.clear();
+        panelContent.append(element('p', 'small text-body-secondary', `Criada em ${stamp(task.created_at)} · Conclusão: ${task.completed_at ? stamp(task.completed_at) : 'Pendente'}`));
+        const reload = button('Atualizar detalhes', 'btn btn-sm btn-outline-secondary'); reload.type = 'button'; reload.dataset.page = 'reload'; panelContent.append(reload);
+        const edit = editor('task.update'); edit.id = 'task-edit';
+        const fields = element('fieldset'); fields.disabled = !writable;
+        fields.append(field('title', 'Título', task.title), field('description', 'Descrição', task.description, 'textarea', 16000));
+        const priorityLabel = element('label', 'form-label d-block', 'Prioridade'); const priority = element('select', 'form-select'); priority.name = 'priority';
+        for (const [value, title] of Object.entries(priorities)) { const option = element('option', '', title); option.value = value; option.selected = task.priority === value; priority.append(option); }
+        priorityLabel.append(priority); fields.append(priorityLabel);
+        fields.append(field('starts_on', 'Início previsto', task.starts_on, 'date'), field('due_on', 'Prazo previsto', task.due_on, 'date'), field('started_at', 'Início real (UTC)', task.started_at?.replace(' ', 'T'), 'datetime-local'));
+        const assigned = element('fieldset', 'mt-3'); assigned.append(element('legend', 'h6', 'Responsáveis'));
+        const choices = element('div', 'task-assignee-choices');
+        for (const member of data.members) {
+            const label = element('label', 'form-check d-block'); const checkbox = element('input', 'form-check-input'); checkbox.type = 'checkbox'; checkbox.name = 'assignee_ids'; checkbox.value = String(member.id); checkbox.checked = task.assignee_ids.includes(member.id);
+            label.append(checkbox, document.createTextNode(member.name)); choices.append(label);
+        }
+        assigned.append(choices); fields.append(assigned);
+        if (writable) fields.append(button('Salvar detalhes', 'btn btn-primary mt-3')); edit.append(fields); panelContent.append(edit);
+        panelContent.append(heading('Checklists e subtarefas'));
+        for (const checklist of data.checklists) {
+            const section = element('section', 'card card-body mt-3'); section.append(element('h4', 'h6', `${checklist.title} · ${checklist.items.filter(item => item.is_done).length}/${checklist.items.length}`));
+            if (writable) {
+                const settings = element('details'); settings.append(element('summary', 'small', 'Configurar lista'));
+                const rename = editor('checklist.update', {checklistId: checklist.id}); rename.append(field('title', 'Nome da lista', checklist.title, 'text', 120), button('Salvar lista')); settings.append(rename, actionButton('checklist.delete', 'Excluir lista e itens', {checklistId: checklist.id})); section.append(settings);
+            }
+            for (const item of checklist.items) {
+                if (!writable) { section.append(element('p', 'task-note mt-2', `${item.is_done ? '☑' : '☐'} ${item.title}`)); continue; }
+                const entry = editor('item.update', {itemId: item.id}); entry.append(field('title', 'Item / subtarefa', item.title, 'text', 300));
+                const label = element('label', 'form-check d-block'); const done = element('input', 'form-check-input'); done.type = 'checkbox'; done.name = 'is_done'; done.checked = item.is_done; label.append(done, document.createTextNode('Concluído'));
+                entry.append(label, button('Salvar item')); section.append(entry, actionButton('item.delete', 'Excluir item', {itemId: item.id}));
+            }
+            if (writable) { const create = editor('item.create', {checklistId: checklist.id}); create.append(field('title', 'Novo item', '', 'text', 300), button('Adicionar item')); section.append(create); }
+            panelContent.append(section);
+        }
+        if (writable) { const create = editor('checklist.create'); create.append(field('title', 'Nova lista', '', 'text', 120), button('Adicionar lista')); panelContent.append(create); }
+        panelContent.append(heading('Comentários'));
+        if (writable) { const create = editor('comment.create'); create.append(field('body', 'Novo comentário', '', 'textarea', 5000), button('Comentar')); panelContent.append(create); }
+        for (const comment of data.comments.items) {
+            const article = element('article', 'border rounded p-3 mt-3'); article.dataset.commentId = String(comment.id);
+            article.append(element('p', 'small text-body-secondary', `${comment.author} · ${stamp(comment.created_at)}`), element('p', 'task-note', comment.body));
+            const own = Number(comment.author_id) === data.actor_id;
+            if (writable && own) {
+                const details = element('details'); details.append(element('summary', 'small', 'Editar comentário'));
+                const update = editor('comment.update', {commentId: comment.id}); update.append(field('body', 'Comentário', comment.body, 'textarea', 5000), button('Salvar comentário')); details.append(update); article.append(details);
+            }
+            if (writable && (own || board.can_manage)) article.append(actionButton('comment.delete', 'Excluir comentário', {commentId: comment.id}));
+            panelContent.append(article);
+        }
+        pages(panelContent, data.comments, 'comments');
+        panelContent.append(heading('Histórico da tarefa'));
+        const labels = {'task.created': 'Tarefa criada', 'task.updated': 'Detalhes alterados', 'task.moved': 'Tarefa movimentada', 'task.completed': 'Tarefa concluída', 'task.reopened': 'Tarefa reaberta', 'task.assignees_changed': 'Responsáveis alterados', 'checklist.created': 'Lista criada', 'checklist.updated': 'Lista alterada', 'checklist.deleted': 'Lista excluída', 'checklist.item_created': 'Item criado', 'checklist.item_updated': 'Item alterado', 'checklist.item_deleted': 'Item excluído', 'comment.created': 'Comentário adicionado', 'comment.updated': 'Comentário alterado', 'comment.deleted': 'Comentário excluído'};
+        for (const event of data.activity.items) panelContent.append(element('p', 'small mb-2', `${labels[event.action] || 'Atividade registrada'} · ${event.author} · ${stamp(event.created_at)}`));
+        pages(panelContent, data.activity, 'activity');
+    }
+    async function openTask(id, page = {}, force = false) {
+        if (saving || (!force && !discard())) return;
+        taskId = Number(id); const sequence = ++taskRequest;
+        panelContent.replaceChildren(); dirtyForms.clear(); taskDetails = null;
+        bootstrap.Offcanvas.getOrCreateInstance(panel).show(); taskNotify('Carregando detalhes…');
+        try {
+            const query = new URLSearchParams({comments_page: page.comments || 1, activity_page: page.activity || 1});
+            const response = await fetch(`/projects/${board.project_id}/tasks/${taskId}?${query}`, {credentials: 'same-origin', headers: {'Accept': 'application/json'}});
+            const result = await response.json();
+            if (sequence !== taskRequest) return;
+            if (!response.ok || !result.ok) throw new Error(result.message || 'Não foi possível carregar a tarefa.');
+            board = result.board; taskDetails = result.details; render(); renderTask(); taskMessage.className = 'alert d-none';
+        } catch (error) { if (sequence === taskRequest) taskNotify(error.message, true); }
+    }
+    async function taskSave(action, payload, source = null) {
+        if (saving) return;
+        if (Array.from(dirtyForms).some(form => form !== source) && !window.confirm('Há alterações em outros campos. Descartá-las e continuar?')) return;
+        if (action.endsWith('.delete') && !window.confirm('Confirmar a exclusão?')) return;
+        if (action.endsWith('.delete')) payload.confirm = true;
+        if (await save(action, {task_id: taskId, ...payload})) await openTask(taskId, {}, true);
+    }
+    for (const field of Object.values(filters)) field.addEventListener('change', () => { if (!saving) render(); });
+    root.addEventListener('click', event => { const target = event.target.closest('[data-task-open]'); if (target) openTask(target.dataset.taskOpen); });
+    panelContent.addEventListener('input', event => { const form = event.target.closest('form'); if (form) dirtyForms.add(form); });
+    panelContent.addEventListener('change', event => { const form = event.target.closest('form'); if (form) dirtyForms.add(form); });
+    panelContent.addEventListener('submit', event => {
+        event.preventDefault(); const form = event.target; const fields = new FormData(form); const payload = {};
+        for (const key of ['checklistId', 'itemId', 'commentId']) if (form.dataset[key]) payload[key.replace('Id', '_id')] = Number(form.dataset[key]);
+        for (const key of ['title', 'description', 'priority', 'starts_on', 'due_on', 'body']) if (fields.has(key)) payload[key] = fields.get(key);
+        if (fields.has('started_at')) { const value = fields.get('started_at'); payload.started_at = value ? value.replace('T', ' ') + (value.length === 16 ? ':00' : '') : ''; }
+        if (form.dataset.taskAction === 'task.update') payload.assignee_ids = fields.getAll('assignee_ids').map(Number);
+        if (form.dataset.taskAction === 'item.update') payload.is_done = fields.has('is_done');
+        taskSave(form.dataset.taskAction, payload, form);
+    });
+    panelContent.addEventListener('click', event => {
+        const control = event.target.closest('button[type="button"]'); if (!control || saving) return;
+        if (control.dataset.page) {
+            const page = {comments: taskDetails.comments.page, activity: taskDetails.activity.page};
+            if (control.dataset.page !== 'reload') page[control.dataset.page] = Number(control.dataset.number);
+            openTask(taskId, page); return;
+        }
+        const payload = {};
+        for (const key of ['checklistId', 'itemId', 'commentId']) if (control.dataset[key]) payload[key.replace('Id', '_id')] = Number(control.dataset[key]);
+        taskSave(control.dataset.taskAction, payload);
+    });
+    document.getElementById('task-panel-close').addEventListener('click', () => {
+        if (saving || !discard()) return; ++taskRequest; dirtyForms.clear(); bootstrap.Offcanvas.getOrCreateInstance(panel).hide(); taskId = null;
+    });
+    window.addEventListener('beforeunload', event => { if (dirtyForms.size || saving) { event.preventDefault(); event.returnValue = ''; } });
+
     if (typeof Sortable === 'undefined') { notify('Não foi possível carregar o quadro. Atualize a página.', true); return; }
     render();
 })();

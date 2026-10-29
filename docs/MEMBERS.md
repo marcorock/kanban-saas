@@ -63,4 +63,4 @@ AUTH_TEST_DATABASE=disposable MAILPIT_TEST_URL=http://127.0.0.1:8025 php tests/m
 
 O teste cria usuários/projetos, envia somente ao Mailpit, simula expiração, verifica papéis/IDOR/CSRF/limites e usa triggers e processos simultâneos para testar rollback e consumo concorrente. Não execute no banco local de uso diário ou em produção.
 
-Quadro Kanban disponível conforme [KANBAN.md](KANBAN.md). Próximo módulo: gestão detalhada de tarefas. Não há gerenciamento de organizações ou planos neste incremento.
+Quadro Kanban disponível conforme [KANBAN.md](KANBAN.md). Detalhes de tarefa disponíveis conforme [TASKS.md](TASKS.md). Remover um participante também retira suas atribuições das tarefas, com auditoria e atualização da versão do quadro. Não há gerenciamento de organizações ou planos neste incremento.

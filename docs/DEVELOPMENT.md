@@ -15,5 +15,6 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | eaa70ff | Verificação de e-mail, recuperação de senha e SMTP/Mailpit |
 | 0cb3560 | Projetos, isolamento, permissões e auditoria |
 | c26cb49 | Convites, participantes, papéis, transferência e regra de continuidade |
+| b39e005 | Kanban com colunas/cards, drag and drop e controle de versão |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.

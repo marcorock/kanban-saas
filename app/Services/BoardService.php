@@ -34,6 +34,18 @@ final class BoardService
         } catch (Throwable $exception) { $this->pdo->rollBack(); throw $exception; }
     }
 
+    public function task(int $userId, int $projectId, int $taskId, int $commentsPage = 1, int $activityPage = 1): array
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $project = (new ProjectRepository($this->pdo))->find($userId, $projectId, true);
+            $details = (new TaskService($this->pdo))->read($project, $userId, $taskId, $commentsPage, $activityPage);
+            $result = ['board' => $this->snapshot($project, $userId), 'details' => $details];
+            $this->pdo->commit();
+            return $result;
+        } catch (Throwable $exception) { $this->pdo->rollBack(); throw $exception; }
+    }
+
     private function rows(string $table, array $project, string $order): array
     {
         // Identificadores SQL fixos, definidos exclusivamente dentro deste serviço.
@@ -46,9 +58,13 @@ final class BoardService
     {
         $columns = $this->rows('kanban_columns', $project, 'position, id');
         $tasks = $this->rows('tasks', $project, 'column_id, position, id');
+        $statement = $this->pdo->prepare('SELECT a.task_id, a.user_id, u.name FROM task_assignees a JOIN users u ON u.id = a.user_id WHERE a.tenant_id = ? AND a.project_id = ? ORDER BY a.task_id, u.name');
+        $statement->execute([$project['tenant_id'], $project['id']]);
+        $assigned = [];
+        foreach ($statement->fetchAll() as $member) $assigned[$member['task_id']][] = ['id' => (int) $member['user_id'], 'name' => $member['name']];
         $grouped = [];
         foreach ($tasks as $task) {
-            $grouped[$task['column_id']][] = ['id' => (int) $task['id'], 'title' => $task['title'], 'position' => (int) $task['position'], 'completed_at' => $task['completed_at']];
+            $grouped[$task['column_id']][] = ['id' => (int) $task['id'], 'title' => $task['title'], 'position' => (int) $task['position'], 'completed_at' => $task['completed_at'], 'priority' => $task['priority'], 'due_on' => $task['due_on'], 'assignees' => $assigned[$task['id']] ?? [], 'overdue' => $task['completed_at'] === null && $task['due_on'] !== null && $task['due_on'] < gmdate('Y-m-d')];
         }
         $result = [];
         foreach ($columns as $column) {
@@ -58,6 +74,7 @@ final class BoardService
         return [
             'project_id' => (int) $project['id'], 'name' => $project['name'], 'version' => (int) $project['board_version'],
             'archived' => !$active, 'can_manage' => $active && ProjectPolicy::canManage($project, $userId),
+            'members' => (new TaskService($this->pdo))->members($project),
             'can_write' => $active && ($project['role'] === 'member' || ProjectPolicy::canManage($project, $userId)), 'columns' => $result,
         ];
     }
@@ -114,7 +131,7 @@ final class BoardService
     public function mutate(int $userId, int $projectId, int $version, string $action, array $data): array
     {
         $columnAction = in_array($action, ['column.create', 'column.update', 'column.delete', 'columns.reorder'], true);
-        if (!$columnAction && !in_array($action, ['task.create', 'task.rename', 'task.move'], true)) { throw new HttpException('Operação inválida.', 422); }
+        if (!$columnAction && !in_array($action, ['task.create', 'task.rename', 'task.move', ...TaskService::ACTIONS], true)) { throw new HttpException('Operação inválida.', 422); }
         $this->pdo->beginTransaction();
         try {
             $project = (new ProjectRepository($this->pdo))->find($userId, $projectId, true);
@@ -123,7 +140,9 @@ final class BoardService
             if (($columnAction && !$canManage) || (!$columnAction && !$canManage && $project['role'] !== 'member')) { throw new HttpException('Permissão insuficiente.', 403); }
             if ((int) $project['board_version'] !== $version) { throw new HttpException('O quadro foi alterado por outro participante. Atualize a página e tente novamente.', 409); }
             $now = $this->pdo->query('SELECT UTC_TIMESTAMP()')->fetchColumn();
-            if ($action === 'column.create') {
+            if (in_array($action, TaskService::ACTIONS, true)) {
+                (new TaskService($this->pdo))->apply($project, $userId, $action, $data, $now);
+            } elseif ($action === 'column.create') {
                 $name = $this->text($data, 'name', 80); $done = $this->done($data);
                 $columns = $this->rows('kanban_columns', $project, 'position, id');
                 $this->pdo->prepare('INSERT INTO kanban_columns (tenant_id, project_id, name, position, is_done) VALUES (?, ?, ?, ?, ?)')->execute([$project['tenant_id'], $projectId, $name, count($columns), (int) $done]);

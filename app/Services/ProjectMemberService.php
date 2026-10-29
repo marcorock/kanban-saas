@@ -141,6 +141,13 @@ final class ProjectMemberService
                 $this->pdo->prepare("UPDATE project_members SET role = 'owner' WHERE tenant_id = ? AND project_id = ? AND user_id = ?")->execute([$project['tenant_id'], $projectId, $targetId]);
                 $logger->record($project, $actorId, 'project.ownership_transferred', ['owner_id' => $actorId], ['owner_id' => $targetId, 'previous_owner_role' => 'admin']);
             } elseif ($action === 'remove') {
+                $statement = $this->pdo->prepare('SELECT task_id FROM task_assignees WHERE tenant_id = ? AND project_id = ? AND user_id = ? ORDER BY task_id');
+                $statement->execute([$project['tenant_id'], $projectId, $targetId]);
+                foreach ($statement->fetchAll(PDO::FETCH_COLUMN) as $taskId) {
+                    $previous = (new TaskService($this->pdo))->assignees($project, (int) $taskId);
+                    $this->pdo->prepare('DELETE FROM task_assignees WHERE tenant_id = ? AND project_id = ? AND task_id = ? AND user_id = ?')->execute([$project['tenant_id'], $projectId, $taskId, $targetId]);
+                    $logger->record($project, $actorId, 'task.assignees_changed', ['user_ids' => $previous], ['user_ids' => array_values(array_filter($previous, static fn (int $id): bool => $id !== $targetId))], (int) $taskId);
+                }
                 $this->pdo->prepare('DELETE FROM project_members WHERE tenant_id = ? AND project_id = ? AND user_id = ?')->execute([$project['tenant_id'], $projectId, $targetId]);
                 $logger->record($project, $actorId, 'member.removed', $before, null);
             } else {
@@ -150,6 +157,7 @@ final class ProjectMemberService
                     $logger->record($project, $actorId, 'member.role_changed', $before, ['user_id' => $targetId, 'role' => $role]);
                 }
             }
+            $this->pdo->prepare('UPDATE projects SET board_version = board_version + 1 WHERE tenant_id = ? AND id = ?')->execute([$project['tenant_id'], $projectId]);
             // Mantém tenant_users: ele pode sustentar outros projetos ou ser o tenant pessoal.
             $this->pdo->commit();
         } catch (Throwable $exception) { $this->pdo->rollBack(); throw $exception; }
@@ -209,6 +217,7 @@ final class ProjectMemberService
             $logger = new ActivityLogger($this->pdo);
             $logger->record($project, $userId, 'invitation.accepted', null, ['email' => $user['email'], 'role' => $invitation['role']]);
             $logger->record($project, $userId, 'member.added', null, ['user_id' => $userId, 'role' => $invitation['role']]);
+            $this->pdo->prepare('UPDATE projects SET board_version = board_version + 1 WHERE tenant_id = ? AND id = ?')->execute([$project['tenant_id'], $project['id']]);
             $this->pdo->commit();
             return (int) $project['id'];
         } catch (Throwable $exception) { $this->pdo->rollBack(); throw $exception; }

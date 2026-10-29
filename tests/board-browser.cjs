@@ -2,7 +2,7 @@
 const assert = require('node:assert/strict');
 const {chromium} = require('playwright-core');
 
-(async () => {
+async function runBoardBrowser(extra = null) {
     if (process.env.AUTH_TEST_DATABASE !== 'disposable') throw new Error('Use somente ambiente e banco descartáveis.');
     const base = process.env.AUTH_TEST_URL || 'http://127.0.0.1:8000';
     const mailpit = process.env.MAILPIT_TEST_URL || 'http://127.0.0.1:8025';
@@ -71,7 +71,7 @@ const {chromium} = require('playwright-core');
         const move = column(1).locator('form[data-action="task.move"]');
         const doneId = await column(4).getAttribute('data-id');
         await move.locator('select').selectOption(doneId); await save(() => move.getByRole('button').click());
-        assert.equal(await column(4).locator('.kanban-task .badge').innerText(), 'Concluída');
+        assert.equal(await column(4).getByText('Concluída', {exact: true}).innerText(), 'Concluída');
         // Ordenação de colunas via formulário e persistência após reload.
         await column(0).locator(':scope > details > summary').click();
         const originalFirst = await column(0).getAttribute('data-id');
@@ -88,7 +88,11 @@ const {chromium} = require('playwright-core');
         await page.setViewportSize({width: 390, height: 844});
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'Sem overflow horizontal da página no mobile');
         assert.equal(await page.locator('#kanban').evaluate(item => item.scrollWidth > item.clientWidth), true, 'Quadro com rolagem própria');
+        if (extra) await extra({page, context, save, boardUrl});
         assert.deepEqual(errors, [], 'Sem erros de JavaScript');
         console.log('OK: Chromium, cadastro/e-mail, cards, drag and drop, restauração em erro, conflito, conclusão, persistência e mobile.');
     } finally { await browser.close(); }
-})().catch(error => { console.error(error); process.exitCode = 1; });
+}
+
+module.exports = runBoardBrowser;
+if (require.main === module) runBoardBrowser().catch(error => { console.error(error); process.exitCode = 1; });

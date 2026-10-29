@@ -6,3 +6,8 @@
 .kanban-ghost{opacity:.35}
 .kanban-title{white-space:pre-wrap;overflow-wrap:anywhere}
 @media(max-width:575px){.kanban-column{flex-basis:85vw}}
+
+.task-panel{--bs-offcanvas-width:min(620px,100vw)}
+.task-note{white-space:pre-wrap;overflow-wrap:anywhere}
+.kanban-title-button{text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;text-decoration:none}
+.task-assignee-choices{max-height:220px;overflow:auto;padding:.25rem}
