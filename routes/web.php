@@ -25,3 +25,14 @@ SimpleRouter::get('/email/resend', static fn (): string => $account->page('resen
 SimpleRouter::post('/email/resend', static fn (): string => $account->submit('resend'));
 SimpleRouter::get('/email/verify', static fn (): string => $account->page('verify'));
 SimpleRouter::post('/email/verify', static fn (): string => $account->submit('verify'));
+
+$projects = new \App\Controllers\ProjectController($views, $config);
+SimpleRouter::get('/projects', static fn (): string => $projects->dispatch('index'));
+SimpleRouter::get('/projects/new', static fn (): string => $projects->dispatch('new'));
+SimpleRouter::post('/projects', static fn (): string => $projects->dispatch('create'));
+SimpleRouter::get('/projects/{id}/edit', static fn (string $id): string => $projects->dispatch('edit', $id));
+SimpleRouter::get('/projects/{id}', static fn (string $id): string => $projects->dispatch('show', $id));
+SimpleRouter::post('/projects/{id}', static fn (string $id): string => $projects->dispatch('update', $id));
+SimpleRouter::post('/projects/{id}/archive', static fn (string $id): string => $projects->dispatch('archive', $id));
+SimpleRouter::post('/projects/{id}/restore', static fn (string $id): string => $projects->dispatch('restore', $id));
+SimpleRouter::post('/projects/{id}/delete', static fn (string $id): string => $projects->dispatch('delete', $id));

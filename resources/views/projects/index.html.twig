@@ -1,0 +1,22 @@
+{% extends 'projects/layout.html.twig' %}
+{% block projects %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h4 mb-0">Projetos {{ archived ? 'arquivados' : 'ativos' }}</h2>
+    <a href="/projects/new" class="btn btn-primary">Novo projeto</a>
+</div>
+<div class="d-flex gap-3 mb-3"><a href="/projects">Ativos</a><a href="/projects?status=archived">Arquivados</a></div>
+{% set roles = {owner: 'Proprietário', admin: 'Administrador', member: 'Membro', viewer: 'Visualizador'} %}
+<div class="list-group">
+{% for project in result.items %}
+<a class="list-group-item list-group-item-action" href="/projects/{{ project.id }}">
+    <div class="d-flex justify-content-between gap-3"><strong>{{ project.name }}</strong><span class="badge text-bg-secondary">{{ roles[project.role] }}</span></div>
+    <div class="small text-body-secondary mt-1">{{ project.owner_id == user.id ? 'Projeto próprio' : 'Compartilhado comigo' }}{% if project.due_on %} · Previsão: {{ project.due_on|date('d/m/Y') }}{% endif %}</div>
+</a>
+{% else %}<div class="alert alert-info">Nenhum projeto {{ archived ? 'arquivado' : 'ativo' }} disponível.</div>{% endfor %}
+</div>
+<nav class="d-flex justify-content-between mt-3" aria-label="Paginação">
+    {% if result.page > 1 %}<a href="/projects?status={{ archived ? 'archived' : 'active' }}&amp;page={{ result.page - 1 }}">Anterior</a>{% endif %}
+    <span>{{ result.total }} projeto(s) · Página {{ result.page }} de {{ result.pages }}</span>
+    {% if result.page < result.pages %}<a href="/projects?status={{ archived ? 'archived' : 'active' }}&amp;page={{ result.page + 1 }}">Próxima</a>{% endif %}
+</nav>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'projects/layout.html.twig' %}
+{% block projects %}
+<section class="card card-body">
+    <h2 class="h4">{{ project ? 'Editar projeto' : 'Novo projeto' }}</h2>
+    {% for error in errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
+    <form method="post" action="{{ project ? '/projects/' ~ project.id : '/projects' }}">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <label for="name" class="form-label">Nome</label>
+        <input id="name" name="name" class="form-control mb-3" required maxlength="120" value="{{ old.name }}">
+        <label for="description" class="form-label">Descrição</label>
+        <textarea id="description" name="description" class="form-control mb-3" rows="4" maxlength="5000">{{ old.description }}</textarea>
+        <div class="row">
+            <div class="col-sm-6"><label for="starts_on" class="form-label">Data inicial</label><input id="starts_on" name="starts_on" type="date" class="form-control mb-3" value="{{ old.starts_on }}" min="1000-01-01" max="9999-12-31"></div>
+            <div class="col-sm-6"><label for="due_on" class="form-label">Previsão de término</label><input id="due_on" name="due_on" type="date" class="form-control mb-3" value="{{ old.due_on }}" min="1000-01-01" max="9999-12-31"></div>
+        </div>
+        {% if not project %}<p class="form-text">O projeto será criado na sua conta pessoal, com você como proprietário.</p>{% endif %}
+        <button class="btn btn-primary" type="submit">Salvar projeto</button>
+        <a class="btn btn-outline-secondary" href="{{ project ? '/projects/' ~ project.id : '/projects' }}">Cancelar</a>
+    </form>
+</section>
+{% endblock %}

@@ -11,6 +11,9 @@ MariaDB 11+, InnoDB, utf8mb4 e datas em UTC.
 | tenant_users | PK (tenant_id, user_id); FKs para tenants/users; índice (user_id, tenant_id) |
 | email_verification_tokens | PK/FK user_id; token_hash único; índice expires_at; validade de 24 horas |
 | password_reset_tokens | PK/FK user_id; token_hash único; índice expires_at; validade de 30 minutos |
+| projects | PK id; único (tenant_id, id); FK composta para o proprietário em tenant_users; índice de tenant/estado/id; restrição de datas |
+| project_members | PK (project_id, user_id); FKs compostas impedem misturar tenant/projeto/usuário; índice por usuário/tenant/projeto |
+| activity_logs | FKs para projeto/tenant e autor; índices por projeto e autor; snapshots JSON |
 | auth_rate_limits | PK bucket (hash do escopo e identidade); índice de expiração; contagem atômica |
 | schema_migrations | Versão única e data de aplicação |
 
@@ -30,4 +33,6 @@ DDL no MariaDB implica commits automáticos: uma falha pode deixar alterações 
 
 A migration 003 acrescenta `users.session_version` (padrão 1), utilizado para revogar sessões após redefinição de senha, e as tabelas de tokens. Chaves estrangeiras de tokens usam ON DELETE CASCADE.
 
-As tabelas de projetos, tarefas, permissões e auditoria serão adicionadas nos incrementos correspondentes.
+A migration 004 cria projetos, participantes e auditoria de projetos. Datas previstas são DATE; timestamps persistem em UTC. Exclusão de projeto é lógica (`deleted_at`); arquivamento usa `archived_at`.
+
+Tabelas de colunas, tarefas e convites e referências de auditoria a tarefas serão adicionadas nos incrementos correspondentes.

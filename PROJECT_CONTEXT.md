@@ -532,6 +532,11 @@ Uma funcionalidade será considerada concluída quando:
 - Painel exige e-mail confirmado, inclusive de usuários preexistentes. Configurar MAIL_* e APP_URL antes de usar.
 - Testes com Mailpit isolado: SMTP, expiração, uso único concorrente, rollback e falha de envio aprovados.
 - Ambiente local configurado para Mailpit: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; SMTP de produção segue via MAIL_*.
-- Próximo módulo: projetos e permissões multi-tenant.
+- Primeiro incremento de projetos implementado: CRUD, arquivar/restaurar, exclusão lógica, paginação, políticas e auditoria transacional.
+- Migration 004: projects, project_members e activity_logs com integridade composta entre tenants/projetos/usuários.
+- Criação apenas no tenant pessoal; consultas exigem vínculo no tenant e projeto.
+- Testes de projetos: papéis, IDOR, CSRF, datas, FKs, paginação e rollback aprovados em banco descartável.
+- Próximo incremento: convites e gerenciamento de participantes.
+- Uso, rotas e limites atuais em docs/PROJECTS.md.
 - Autenticação e testes documentados em docs/AUTHENTICATION.md.
 - Documentação técnica em docs/ARCHITECTURE.md e docs/DATABASE.md.

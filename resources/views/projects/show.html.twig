@@ -1,0 +1,34 @@
+{% extends 'projects/layout.html.twig' %}
+{% block projects %}
+<section class="card card-body">
+    <div class="d-flex flex-wrap justify-content-between gap-3 mb-3">
+        <h2 class="h4 mb-0">{{ project.name }}</h2>
+        <span class="badge {{ project.archived_at ? 'text-bg-secondary' : 'text-bg-success' }} align-self-start">{{ project.archived_at ? 'Arquivado' : 'Ativo' }}</span>
+    </div>
+    <p style="white-space: pre-wrap">{{ project.description ?: 'Sem descrição.' }}</p>
+    <dl class="row">
+        <dt class="col-sm-4">Data inicial</dt><dd class="col-sm-8">{{ project.starts_on ? project.starts_on|date('d/m/Y') : 'Não definida' }}</dd>
+        <dt class="col-sm-4">Previsão de término</dt><dd class="col-sm-8">{{ project.due_on ? project.due_on|date('d/m/Y') : 'Não definida' }}</dd>
+    </dl>
+    <div class="d-flex flex-wrap gap-2">
+        {% if canManage and not project.archived_at %}<a href="/projects/{{ project.id }}/edit" class="btn btn-primary">Editar projeto</a>{% endif %}
+        {% if isOwner %}
+        <form method="post" action="/projects/{{ project.id }}/{{ project.archived_at ? 'restore' : 'archive' }}">
+            <input type="hidden" name="_token" value="{{ csrf }}">
+            <button class="btn btn-outline-secondary" type="submit">{{ project.archived_at ? 'Restaurar projeto' : 'Arquivar projeto' }}</button>
+        </form>
+        {% endif %}
+    </div>
+</section>
+{% if isOwner %}
+<section class="card card-body mt-4 border-danger">
+    <h3 class="h5">Excluir projeto</h3>
+    <p>O projeto deixará de aparecer nas listagens e ficará indisponível para os participantes.</p>
+    <form method="post" action="/projects/{{ project.id }}/delete">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <div class="form-check mb-3"><input type="checkbox" id="confirm" name="confirm" value="delete" class="form-check-input" required><label for="confirm" class="form-check-label">Confirmo a exclusão deste projeto.</label></div>
+        <button class="btn btn-outline-danger" type="submit">Excluir projeto</button>
+    </form>
+</section>
+{% endif %}
+{% endblock %}

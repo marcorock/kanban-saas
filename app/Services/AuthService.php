@@ -50,6 +50,17 @@ final class AuthService
         return ['id' => (int) $user['id'], 'session_version' => (int) $user['session_version']];
     }
 
+    public function currentUser(): array|false
+    {
+        if (!isset($_SESSION['user_id'])) { return false; }
+        $user = $this->user((int) $_SESSION['user_id']);
+        if (!$user || (int) $user['session_version'] !== ($_SESSION['session_version'] ?? null)) {
+            \App\Security\Session::clear();
+            return false;
+        }
+        return $user;
+    }
+
     public function user(int $id): array|false
     {
         $statement = $this->pdo->prepare('SELECT id, name, email, email_verified_at, session_version FROM users WHERE id = ?');

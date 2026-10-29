@@ -2,7 +2,8 @@
 {% block content %}
 <section class="card card-body">
     <h2 class="h4">Olá, {{ user.name }}</h2>
-    <p>Você está conectado. A gestão de projetos será disponibilizada no próximo módulo.</p>
+    <p>Crie e acompanhe seus projetos.</p>
+    <a class="btn btn-primary mb-3" href="/projects">Meus projetos</a>
     <form method="post" action="/logout">
         <input type="hidden" name="_token" value="{{ csrf }}">
         <button class="btn btn-outline-secondary" type="submit">Sair</button>

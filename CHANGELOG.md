@@ -15,6 +15,10 @@
 - Reenvio de confirmação, limitação de solicitações e revogação das sessões após redefinição de senha.
 - Migration de tokens e testes de envio SMTP, consumo concorrente e rollback.
 
+- Projetos com criação, listagem paginada, consulta, edição, arquivamento/restauração e exclusão lógica.
+- Isolamento por tenant/projeto, políticas por papel e auditoria transacional de alterações.
+- Migration 004 e testes de permissões, integridade, CSRF e rollback.
+
 ### Corrigido
 - Configuração local de e-mail direcionada ao Mailpit na rede Docker, preservando suporte a SMTP de produção.
 

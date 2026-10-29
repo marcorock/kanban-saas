@@ -86,9 +86,8 @@ final class AuthController
             return $this->redirect('/login');
         }
         $auth = new AuthService(Database::connect($this->config['database']));
-        $user = $auth->user((int) $_SESSION['user_id']);
-        if (!$user || (int) $user['session_version'] !== ($_SESSION['session_version'] ?? null)) {
-            Session::clear();
+        $user = $auth->currentUser();
+        if (!$user) {
             return $this->redirect('/login');
         }
         if ($user['email_verified_at'] === null) {

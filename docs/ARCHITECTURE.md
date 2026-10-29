@@ -8,6 +8,6 @@ Datas e conexão SQL usam UTC. PDO usa prepared statements nativos e exceções;
 
 ## Decisões para os próximos incrementos
 
-Banco compartilhado por tenant; acesso aos projetos exigirá também vínculo e permissão no projeto. Cadastro deverá criar usuário, tenant pessoal e vínculo em uma transação. A autenticação está implementada; consultas de projetos ainda não existem.
+Banco compartilhado por tenant; acesso aos projetos exigirá também vínculo e permissão no projeto. Cadastro cria usuário, tenant pessoal e vínculo em uma transação. Projetos usam ProjectRepository para consultas com escopo de tenant/projeto, ProjectPolicy para autorização e ProjectService para transações e auditoria. AuthService::currentUser centraliza a validação da sessão e sua versão.
 
-Cadastro, login/logout, validação Rakit, sessões, CSRF e limites implementados; detalhes em [AUTHENTICATION.md](AUTHENTICATION.md). Verificação de e-mail e recuperação de senha implementadas com tokens transacionais, SMTP e revogação de sessões. Próximo módulo: projetos e permissões multi-tenant. SortableJS fica para a fase Kanban.
+Cadastro, login/logout, validação Rakit, sessões, CSRF e limites implementados; detalhes em [AUTHENTICATION.md](AUTHENTICATION.md). Verificação de e-mail e recuperação de senha implementadas com tokens transacionais, SMTP e revogação de sessões. Projetos implementados conforme [PROJECTS.md](PROJECTS.md). Próximo incremento: convites e gerenciamento de participantes. SortableJS fica para a fase Kanban.

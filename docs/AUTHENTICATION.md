@@ -20,7 +20,7 @@ O cadastro normaliza e-mail e cria usuário, tenant pessoal e vínculo em transa
 
 Cookies HttpOnly e SameSite=Lax, com Secure quando APP_URL usa HTTPS ou a conexão PHP recebe HTTPS. Configure APP_URL com o endereço HTTPS de produção. Cabeçalhos de proxy não são confiados automaticamente; o terminador TLS deve encaminhar corretamente o protocolo ao servidor PHP.
 
-ID e CSRF são renovados no login e logout. Sessões autenticadas expiram após 30 minutos de inatividade ou 12 horas desde o login. Todas as respostas da aplicação usam Cache-Control: no-store. A redefinição incrementa `users.session_version`, invalidando sessões anteriores na próxima consulta ao dashboard; não autentica automaticamente. O login utiliza a versão lida junto com o hash da senha.
+ID e CSRF são renovados no login e logout. Sessões autenticadas expiram após 30 minutos de inatividade ou 12 horas desde o login. Todas as respostas da aplicação usam Cache-Control: no-store. A redefinição incrementa `users.session_version`, invalidando sessões anteriores na próxima consulta ao dashboard ou a projetos; não autentica automaticamente. O login utiliza a versão lida junto com o hash da senha.
 
 Limite fixo de 15 minutos: login permite 30 tentativas por IP e 10 por e-mail; cadastro permite 10 por IP e por e-mail. Tentativas válidas e inválidas contam. O banco armazena apenas hashes das chaves dos limites; não confia em X-Forwarded-For. Em proxy, configure REMOTE_ADDR no servidor para refletir o IP real de forma confiável.
 
@@ -65,4 +65,4 @@ Os testes criam contas, alteram limites e criam temporariamente triggers para va
 
 ## Próximos módulos
 
-Não há edição de perfil, projetos ou autorização por projeto neste incremento. O próximo módulo previsto é gestão de projetos e permissões multi-tenant.
+Projetos e autorização por projeto implementados conforme [PROJECTS.md](PROJECTS.md). Edição de perfil, convites e gerenciamento de participantes ainda pendentes.
