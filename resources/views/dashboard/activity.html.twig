@@ -1,0 +1,6 @@
+{% import 'ui/icons.html.twig' as ui %}
+<div class="dash-activity-list">
+{% for event in recent %}
+<article class="dash-activity-item"><span class="dash-activity-icon">{{ ui.icon(event.action starts with 'task.' ? 'tasks' : (event.action starts with 'project.' ? 'projects' : 'activity')) }}</span><div class="dash-activity-content"><h3>{{ event.label }}</h3><p>{{ event.author }} · <a href="/projects/{{ event.project_id }}">{{ event.project_name }}</a>{% if event.task_id %} · <a href="/projects/{{ event.project_id }}/board?task={{ event.task_id }}">{{ event.task_title ?: 'Ver tarefa' }}</a>{% endif %}</p><time datetime="{{ event.created_at|date('Y-m-d\\TH:i:s', 'UTC') }}Z">{{ event.created_at|date('d/m/Y H:i', 'UTC') }} UTC</time></div></article>
+{% else %}<div class="dash-empty"><span class="dash-empty-icon">{{ ui.icon('activity') }}</span><h3>Cada passo deixa uma história.</h3><p>As atividades dos projetos que você pode acessar aparecerão aqui.</p></div>{% endfor %}
+</div>

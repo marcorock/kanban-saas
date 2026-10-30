@@ -13,6 +13,16 @@ A navegação principal inclui **Dashboard**, **Projetos**, **Minhas Tarefas** e
 
 As consultas do dashboard usam uma transação de leitura para manter as contagens consistentes. Não há gráficos complexos ou atualizações em tempo real.
 
+## UI do dashboard — Fluxo Claro
+
+O terceiro incremento visual mantém as consultas e regras acima. Quatro indicadores pessoais levam aos filtros de pendentes, iniciadas, concluídas e atrasadas. O total de projetos ativos aparece junto de Projetos em movimento; não é uma contagem de projetos criados somente pelo usuário.
+
+No celular/tablet, prazos vêm antes dos projetos e atividades, tanto no DOM quanto na apresentação. Em desktop amplo, prazos e progresso ficam lado a lado. Prazos mantêm links diretos ao painel da tarefa e contexto do projeto. Atividades mostram ações de todos os participantes acessíveis; o atalho Meu histórico leva às ações próprias, sem se apresentar como histórico completo dos projetos.
+
+Progresso usa elemento HTML progress, com valor/limite e nome acessível, funcionando sem JavaScript. A cor e a aparência ficam em dashboard.css, sem style inline. Projeto sem tarefas tem 0%, explicitado como pronto para começar. Nenhum dado é simulado e não há gráfico derivado de contagens que se sobrepõem; iniciadas e atrasadas também contam entre pendentes.
+
+Estado vazio oferece ação de criar projeto e explica ausência de prazos/atividades. A saudação usa a primeira palavra do nome; todos os nomes/títulos permanecem escapados por Twig. O banner de convite continua dependendo do indicador de sessão existente; a elegibilidade é conferida ao abrir/aceitar o convite.
+
 ## Minhas Tarefas
 
 `/tasks` consolida atribuições do usuário em todos os projetos acessíveis. O padrão mostra pendentes em projetos ativos; filtros permitem projeto, prioridade, estado (pendentes/iniciadas/concluídas/todas), prazo, intervalo de vencimento e projetos ativos/arquivados/todos.

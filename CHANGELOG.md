@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Adicionado
+- Dashboard Fluxo Claro: indicadores com filtros, prazos em destaque no celular, progresso nativo, atividades compactas e estados vazios.
+- CSS externo próprio e remoção do estilo inline nas barras do dashboard, sem JavaScript adicional ou alteração de consultas/métricas.
+- Regressão Chromium/axe do dashboard, com progresso sem JS, títulos escapados e conta vazia.
 - Shell autenticado Fluxo Claro com header contextual, sidebar desktop, navegação inferior mobile/tablet, painel Mais e footer.
 - Navegação com estado ativo por módulo, foco/Escape, alternativa sem JavaScript e saída por POST/CSRF; convites autenticados integrados.
 - Testes de shell HTTP/Chromium e preflight dos novos assets; layout público legado sem style inline na largura do container.

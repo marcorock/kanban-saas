@@ -21,6 +21,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | aba013c | Perfil, troca de senha e encerramento das demais sessões |
 | 58c0e2a | Validação, segurança, desempenho e preparação de instalação |
 | 2f0fd5c | Design system Fluxo Claro e telas de acesso |
+| 0460acf | Header, menus responsivos e footer da área autenticada |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -51,3 +52,9 @@ Implementado após aprovação das telas de acesso. Header contextual, sidebar d
 Regressão PHP completa aprovada, incluindo testes novos de shell. Chromium/axe dos componentes novos aprovado em 320–1440px, com foco, Escape, resize e coexistência do offcanvas; regressões de tarefas, relatórios e perfil também aprovadas. Preflight local somente de leitura aprovado; nenhuma migration nova, mudança do .env ou publicação. CSS/JS/Twig permanecem separados. Previews em storage/previews, fora do Git.
 
 Aprovado pelo usuário e incluído no commit `feat: redesenha navegação da área autenticada`. Próximo incremento autorizado: dashboard; componentes dos demais módulos continuam nas versões anteriores e serão migrados um por vez. Homologação operacional permanece adiada.
+
+## UI/UX — terceiro incremento: dashboard
+
+Iniciado após aprovação da navegação. Dashboard redesenhado com quatro indicadores pessoais e atalhos de filtro, prazos priorizados, progresso nativo e atividades compactas. Contagem de projetos ativos junto do progresso. Estados vazios e CTA de projeto, com mesma leitura mobile/desktop. Twig e CSS externos separados; removido o style inline da barra, sem JavaScript novo.
+
+ReportingService e suas regras permanecem iguais. Regressão PHP completa e preflight local aprovados. Chromium/axe da página em 320–1440px, filtros, deep links, progresso sem JS, datas UTC, XSS e conta vazia aprovados; regressões de relatórios e shell também aprovadas. Previews verificados visualmente; sem teste em aparelhos físicos/leitores de tela. Nenhuma migration nova, alteração de .env ou publicação. Homologação operacional continua adiada. Incremento aprovado e incluído no commit `feat: redesenha dashboard com Fluxo Claro`; próximo incremento autorizado: listagem de projetos.

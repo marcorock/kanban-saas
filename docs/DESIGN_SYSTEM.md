@@ -4,7 +4,7 @@ Direção visual original para o Kanban SaaS: clareza, ritmo e foco no próximo 
 
 ## Escopo e evolução
 
-Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. Próximo incremento proposto: dashboard. Homologação operacional continua adiada.
+Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; próximo incremento proposto: listagem de projetos. Homologação operacional continua adiada.
 
 O desenho deve servir às funções existentes. Não exibir busca global, notificações, calendário, assinatura, login social ou links de políticas sem a funcionalidade/conteúdo correspondente. Não há biblioteca de componentes remota, fonte externa, imagens geradas ou etapa de build.
 
@@ -124,4 +124,19 @@ Referências de acessibilidade: [contraste](https://www.w3.org/WAI/WCAG22/Unders
 
 `tests/shell.php` verifica o contexto HTTP, estado ativo, escape, convite autenticado e saída protegida. `tests/shell-browser.cjs` reutiliza o fluxo de Kanban e verifica 320–1440px, menus, foco, Escape/resize, offcanvas e navegação/saída sem JavaScript. Axe neste teste é restrito aos componentes do shell; não representa auditoria dos módulos legados. Instalar playwright-core e @axe-core/playwright somente no ambiente de testes, como no teste de acesso. Previews: storage/previews/shell-390.png, shell-1440.png e shell-menu-390.png.
 
-Validação do segundo incremento: regressão PHP completa aprovada; Chromium aprovado para o shell e para tarefas, relatórios e perfil. Preflight local somente de leitura aprovado, sem migrations novas ou alteração de credenciais. A leitura visual foi feita em previews de celular/desktop; aparelhos físicos e leitores de tela permanecem pendentes. O conteúdo interno do dashboard é o próximo incremento proposto.
+Validação do segundo incremento: regressão PHP completa aprovada; Chromium aprovado para o shell e para tarefas, relatórios e perfil. Preflight local somente de leitura aprovado, sem migrations novas ou alteração de credenciais. A leitura visual foi feita em previews de celular/desktop; aparelhos físicos e leitores de tela permanecem pendentes. O conteúdo interno do dashboard foi tratado no terceiro incremento, abaixo.
+
+## Terceiro incremento — dashboard
+
+- Hero com saudação breve e ações reais Novo projeto/Minhas tarefas. Quatro indicadores pessoais, em duas colunas no celular e quatro no tablet/desktop, levam aos filtros existentes.
+- Pendentes usa destaque verde; atraso positivo ganha cor de atenção e rótulo explícito. Nota explica a sobreposição entre pendentes, iniciadas e atrasadas. Total de projetos ativos acompanha a seção de progresso.
+- Ordem de leitura e de teclado: prazos, projetos e atividades. A partir de 1200px, prazos e progresso ficam lado a lado nessa mesma ordem. Não há reorganização visual contraditória à ordem do DOM.
+- Barras nativas progress, sem dependência de JS, gráficos externos ou style inline. Percentual e contagem são visíveis; projetos sem tarefas recebem orientação para começar, sem inventar progresso.
+- Linha de atividades própria do dashboard, mantendo o componente anterior dos históricos para sua migração futura. Datas explicitamente UTC, com datetime legível por máquina.
+- Estados vazios para projetos, prazos e atividades; convite usa o estado de sessão existente e mantém validação no fluxo de aceite.
+- `resources/views/dashboard.html.twig` e `resources/views/dashboard/activity.html.twig`: estrutura/dados; `public/assets/css/dashboard.css`: apresentação. Não há arquivo JS novo neste incremento.
+- Consultas, permissões, limites (10 projetos, 5 prazos, 10 eventos) e escopos não foram alterados. Preflight verifica o novo CSS. Sem migration nova.
+- Teste de navegador em `tests/dashboard-browser.cjs`: 320–1440px, axe A/AA da página, filtros, links de tarefas, progresso nativo sem JS, datas UTC, XSS, projeto sem tarefas e conta vazia. Previews em storage/previews/dashboard-390.png, dashboard-1440.png e dashboard-empty-390.png, ignorados no Git.
+- Limitações: sem teste em dispositivos físicos/leitores de tela; módulos restantes continuam com seus componentes anteriores. Próxima entrega proposta: listagem de projetos, seguida de formulários/detalhes em incremento próprio.
+
+Validação do terceiro incremento: regressão PHP completa e preflight local aprovados; Chromium aprovado para dashboard, relatórios e shell. Axe sem violações A/AA nos casos de dashboard preenchido e vazio verificados. Previews mobile/desktop inspecionados visualmente; não há certificação de conformidade ou teste em aparelhos físicos.

@@ -1,21 +1,44 @@
 {% extends 'layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/dashboard.css">{% endblock %}
 {% block content %}
-<h2 class="h4">Olá, {{ user.name }}</h2>
-{% if sessionInvitation|default(false) %}<a class="btn btn-outline-primary mb-3" href="/invitations/accept">Ver convite pendente</a>{% endif %}
-<p class="text-body-secondary">Projetos ativos acessíveis e suas tarefas atribuídas nesses projetos.</p>
-<div class="row g-3 mb-4">
-{% for key, label in {active_projects: 'Projetos ativos', pending: 'Minhas tarefas pendentes', in_progress: 'Minhas tarefas iniciadas', completed: 'Minhas tarefas concluídas', overdue: 'Minhas tarefas atrasadas'} %}
-<div class="col-6 col-md"><div class="card card-body h-100"><span class="small">{{ label }}</span><strong class="fs-3" data-metric="{{ key }}">{{ counts[key] }}</strong></div></div>
-{% endfor %}
+<div class="dashboard">
+    <div class="dash-welcome">
+        <div><p class="dash-eyebrow">SEU DIA, COM MAIS CLAREZA</p><h2>Olá, {{ user.name|split(' ')|first }}.</h2><p>Encontre o próximo passo e siga no seu ritmo.</p></div>
+        <div class="dash-actions"><a class="dash-button dash-button-primary" href="/projects/new">{{ ui.icon('plus') }} Novo projeto</a><a class="dash-button dash-button-secondary" href="/tasks">Minhas tarefas {{ ui.icon('arrow-right') }}</a></div>
+    </div>
+    {% if sessionInvitation|default(false) %}<a class="dash-invitation" href="/invitations/accept">{{ ui.icon('mail') }}<span><strong>Ver convite para projeto</strong><span>Confira os detalhes antes de participar.</span></span>{{ ui.icon('arrow-right') }}</a>{% endif %}
+    <section class="dash-overview" aria-labelledby="dash-metrics-title">
+        <h2 id="dash-metrics-title" class="visually-hidden">Suas tarefas em projetos ativos</h2>
+        <div class="dash-metrics">
+        {% set metrics = [{key: 'pending', label: 'Pendentes', icon: 'tasks', href: '/tasks?status=pending'}, {key: 'in_progress', label: 'Iniciadas', icon: 'play', href: '/tasks?status=in_progress'}, {key: 'completed', label: 'Concluídas', icon: 'check', href: '/tasks?status=completed'}, {key: 'overdue', label: 'Atrasadas', icon: 'clock', href: '/tasks?due=overdue'}] %}
+        {% for metric in metrics %}<a class="dash-metric {{ metric.key == 'pending' ? 'dash-metric-featured' : '' }} {{ metric.key == 'overdue' and counts.overdue > 0 ? 'dash-metric-attention' : '' }}" href="{{ metric.href }}"><span class="dash-metric-heading">{{ ui.icon(metric.icon) }}<span>{{ metric.label }}</span></span><strong data-metric="{{ metric.key }}">{{ counts[metric.key] }}</strong><span class="dash-metric-action">Ver tarefas {{ ui.icon('arrow-right') }}</span></a>{% endfor %}
+        </div>
+        <p class="dash-metric-note">Somente suas tarefas em projetos ativos. Iniciadas e atrasadas também contam como pendentes.</p>
+    </section>
+    <div class="dash-work">
+        <section class="dash-panel dash-deadlines" aria-labelledby="dash-deadlines-title">
+            <div class="dash-panel-heading"><div><p class="dash-eyebrow">UM OLHAR ADIANTE</p><h2 id="dash-deadlines-title">Próximos prazos</h2><p class="dash-panel-subtitle">Hoje e nos próximos 7 dias · UTC</p></div><span class="dash-section-icon">{{ ui.icon('calendar') }}</span></div>
+            <div class="dash-deadline-list">
+            {% for task in upcoming %}<a class="dash-deadline" href="/projects/{{ task.project_id }}/board?task={{ task.id }}"><time datetime="{{ task.due_on }}">{{ task.due_on|date('d/m', 'UTC') }}</time><span><strong>{{ task.title }}</strong><small>{{ task.project_name }}</small></span>{{ ui.icon('chevron-right') }}</a>
+            {% else %}<div class="dash-empty"><span class="dash-empty-icon">{{ ui.icon('calendar') }}</span><h3>Um respiro na agenda.</h3><p>Nenhuma tarefa atribuída a você com prazo neste período. Os próximos vencimentos aparecerão aqui.</p></div>{% endfor %}
+            </div><div class="dash-panel-footer"><a href="/tasks?due=upcoming">Ver meus prazos {{ ui.icon('arrow-right') }}</a></div>
+        </section>
+        <section class="dash-panel dash-projects" aria-labelledby="dash-projects-title">
+            <div class="dash-panel-heading"><div><p class="dash-eyebrow">DO PLANO À ENTREGA</p><h2 id="dash-projects-title">Projetos em movimento</h2></div><span class="dash-project-count"><strong data-metric="active_projects">{{ counts.active_projects }}</strong> {{ counts.active_projects == 1 ? 'ativo' : 'ativos' }}</span></div>
+            <div class="dash-project-list">
+            {% for project in projects.items %}
+                <article class="dash-project"><div class="dash-project-heading"><span class="dash-project-icon">{{ ui.icon('projects') }}</span><h3><a href="/projects/{{ project.id }}/board">{{ project.name }}</a></h3><span class="dash-percentage">{{ project.percentage }}<small>%</small></span></div><progress class="dash-progress" value="{{ project.percentage }}" max="100" role="progressbar" aria-label="Conclusão de {{ project.name }}" aria-valuenow="{{ project.percentage }}" aria-valuemin="0" aria-valuemax="100">{{ project.percentage }}%</progress><p>{{ project.completed }} de {{ project.total }} tarefas concluídas{% if project.total == 0 %}<span> · Pronto para começar</span>{% endif %}</p></article>
+            {% else %}<div class="dash-empty"><span class="dash-empty-icon">{{ ui.icon('projects') }}</span><h3>Dê um lugar às suas ideias.</h3><p>Nenhum projeto ativo por aqui. Crie um projeto para organizar os próximos passos.</p><a class="dash-button dash-button-secondary" href="/projects/new">Criar projeto {{ ui.icon('plus') }}</a></div>{% endfor %}
+            </div>
+            {% if projects.pages > 1 %}<nav class="dash-pagination" aria-label="Paginação de projetos">{% if projects.page > 1 %}<a href="?page={{ projects.page - 1 }}">{{ ui.icon('arrow-left') }} Anterior</a>{% endif %}<span>Página {{ projects.page }} de {{ projects.pages }}</span>{% if projects.page < projects.pages %}<a href="?page={{ projects.page + 1 }}">Próxima {{ ui.icon('arrow-right') }}</a>{% endif %}</nav>{% endif %}
+            <div class="dash-panel-footer"><a href="/projects">Ver todos os projetos {{ ui.icon('arrow-right') }}</a></div>
+        </section>
+        <section class="dash-panel dash-activity" aria-labelledby="dash-activity-title">
+            <div class="dash-panel-heading"><div><p class="dash-eyebrow">O TRABALHO ACONTECE</p><h2 id="dash-activity-title">Atividades dos projetos</h2><p class="dash-panel-subtitle">Últimos movimentos nos projetos que você acompanha.</p></div><span class="dash-section-icon">{{ ui.icon('activity') }}</span></div>
+            {% include 'dashboard/activity.html.twig' %}
+            <div class="dash-panel-footer"><a href="/history">Meu histórico {{ ui.icon('arrow-right') }}</a></div>
+        </section>
+    </div>
 </div>
-<section class="mb-4"><h3 class="h5">Progresso dos projetos</h3>
-{% for project in projects.items %}
-<div class="card card-body mb-2"><a class="fw-semibold" href="/projects/{{ project.id }}/board">{{ project.name }}</a><p class="small mb-2">{{ project.completed }} de {{ project.total }} tarefas concluídas · {{ project.percentage }}%</p><div class="progress" role="progressbar" aria-label="Conclusão de {{ project.name }}" aria-valuenow="{{ project.percentage }}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width: {{ project.percentage }}%"></div></div></div>
-{% else %}<p>Nenhum projeto ativo. <a href="/projects/new">Criar projeto</a></p>{% endfor %}
-{% if projects.pages > 1 %}<nav class="d-flex justify-content-between" aria-label="Paginação de projetos">{% if projects.page > 1 %}<a href="?page={{ projects.page - 1 }}">Anterior</a>{% endif %}<span>Página {{ projects.page }} de {{ projects.pages }}</span>{% if projects.page < projects.pages %}<a href="?page={{ projects.page + 1 }}">Próxima</a>{% endif %}</nav>{% endif %}
-<a class="d-inline-block mt-2" href="/projects">Ver todos os projetos</a></section>
-<section class="mb-4"><h3 class="h5">Meus prazos nos próximos 7 dias</h3>
-{% for task in upcoming %}<div class="card card-body mb-2"><a href="/projects/{{ task.project_id }}/board?task={{ task.id }}">{{ task.title }}</a><span class="small">{{ task.project_name }} · {{ task.due_on|date('d/m/Y') }}</span></div>{% else %}<p>Nenhuma tarefa atribuída com prazo próximo.</p>{% endfor %}
-<a href="/tasks?due=upcoming">Ver meus prazos</a></section>
-<section><h3 class="h5">Atividades recentes dos projetos</h3>{% include 'reports/events.html.twig' with {events: recent} %}</section>
 {% endblock %}

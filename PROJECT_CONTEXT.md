@@ -34,6 +34,7 @@
 - aba013c — perfil, troca de senha e encerramento das demais sessões.
 - 58c0e2a — validação de segurança/desempenho e preparação para instalação.
 - 2f0fd5c — design system Fluxo Claro e telas de acesso.
+- 0460acf — estrutura autenticada: header, menus responsivos e footer.
 
 ## Entrega anterior — dashboard e históricos (Fase 5)
 
@@ -90,9 +91,9 @@
 - Incremento aprovado pelo usuário; commit de fechamento: `2f0fd5c` — `feat: define design system e redesenha telas de acesso`. Próximo incremento autorizado: shell autenticado (header, menus responsivos e footer); adaptar módulos depois, um por vez.
 - Homologação operacional permanece adiada; nenhuma publicação realizada.
 
-## Última entrega aprovada — UI/UX: estrutura autenticada
+## Entrega anterior — UI/UX: estrutura autenticada
 
-- Segundo incremento visual aprovado pelo usuário; commit de fechamento: `feat: redesenha navegação da área autenticada`. Não incluído no commit das telas de acesso.
+- Segundo incremento visual aprovado pelo usuário; commit de fechamento: `0460acf` — `feat: redesenha navegação da área autenticada`. Não incluído no commit das telas de acesso.
 - Header contextual com perfil, sidebar desktop a partir de 1024px, barra inferior em celular/tablet e footer discreto.
 - Mais: histórico, configurações e saída; diálogo com foco contido, Escape/botão/backdrop, retorno de foco e fechamento ao mudar para desktop. Details/summary como alternativa sem JS.
 - Estado ativo por módulo: páginas internas de projeto mantêm Projetos ativo; histórico próprio e histórico do projeto não se confundem.
@@ -103,6 +104,17 @@
 - Preflight local aprovado somente em leitura. Previews em storage/previews/shell-390.png, shell-1440.png e shell-menu-390.png; verificados visualmente e ignorados no Git.
 - Limitações: conteúdo dos módulos não foi redesenhado; sem testes em aparelhos físicos/leitores de tela. Homologação operacional permanece adiada, sem deploy ou alteração do .env.
 - Próximo incremento após aprovação: redesenho do dashboard com os componentes e tokens definidos; depois módulos, um por vez.
+
+## Última entrega aprovada — UI/UX: dashboard
+
+- Terceiro incremento visual aprovado; commit de fechamento: `feat: redesenha dashboard com Fluxo Claro`. Próximo incremento autorizado: listagem de projetos.
+- Quatro indicadores pessoais com filtros, prazos priorizados no celular, progresso e atividades compactas. Projetos ativos contam no cabeçalho da seção de progresso.
+- Progress nativo com valor/nome acessível, sem style inline, gráficos externos ou JS novo. CSS em dashboard.css e conteúdo em Twig separado.
+- Ordem prazos/projetos/atividades consistente no DOM e no layout. Estados vazios, projeto sem tarefas, links ao painel e datas UTC preservados.
+- ReportingService, consultas, contagens, políticas e escopos não alterados. Limites/paginação preservados; nenhuma migration nova ou alteração de .env.
+- Regressão PHP completa e preflight local aprovados. Chromium/axe da página em 320–1440px, filtros, prazos, progresso sem JS, UTC, XSS e conta vazia aprovados; regressões de relatórios e shell também aprovadas. Previews verificados visualmente.
+- Limitações: validação automatizada em Chromium, sem aparelhos físicos/leitores de tela. Ambiente descartável separado do banco de uso diário.
+- Próximo incremento após aprovação: listagem de projetos; formulários/detalhes em entrega posterior. Homologação operacional permanece adiada.
 
 ## Documentação por módulo
 
