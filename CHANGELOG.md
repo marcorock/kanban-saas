@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Adicionado
+- Quadro Kanban Fluxo Claro: cards/colunas responsivos, filtros recolhidos com contador/limpeza, navegação horizontal e controles de edição por papel.
+- Templates Twig nativos para o quadro dinâmico, estilos e comportamento externos; foco e posição horizontal preservados após gravações.
+- Teste Chromium/axe do quadro em 320–1440px, alternativas ao arrastar, consulta sem JS e regressão de tarefas/relatórios.
 - Participantes/convites Fluxo Claro, com papéis explicados, gestão recolhida, confirmações de remoção/transferência e privacidade administrativa preservada.
 - Aceite de convite integrado ao layout de acesso e à área autenticada; erros com foco e preservação do e-mail, envio progressivo e CSS/JS externos.
 - Fixture e testes Chromium/axe de equipe, SMTP/reenvio/cancelamento, aceite sem JS, conta incompatível, uso único e transferência.

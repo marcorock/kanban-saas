@@ -38,93 +38,66 @@
     }
     function notify(text, error = false) {
         message.textContent = text;
-        message.className = `alert alert-${error ? 'danger' : 'success'}`;
-    }
-    function input(name, label, value, max, type = 'text') {
-        const wrapper = element('label', 'form-label d-block');
-        wrapper.append(document.createTextNode(label));
-        const field = element('input', type === 'checkbox' ? 'form-check-input ms-2' : 'form-control form-control-sm mt-1');
-        field.name = name;
-        field.type = type;
-        if (type === 'checkbox') field.checked = Boolean(value);
-        else { field.value = value; field.required = true; field.maxLength = max; }
-        wrapper.append(field);
-        return wrapper;
+        message.className = `kb-notice kb-notice-${error ? 'error' : 'success'}`;
     }
     function button(text, className = 'btn btn-sm btn-outline-primary') {
         const item = element('button', className, text);
         item.type = 'submit';
         return item;
     }
-    function form(action, id, idName) {
-        const item = element('form', 'mt-2');
-        item.dataset.action = action;
-        if (idName) item.dataset[idName] = String(id);
-        return item;
+    function cloneTemplate(id) {
+        return document.getElementById(id).content.firstElementChild.cloneNode(true);
+    }
+    function updateColumnNavigation() {
+        document.getElementById('previous-column').disabled = root.scrollLeft <= 1;
+        document.getElementById('next-column').disabled = root.scrollLeft + root.clientWidth >= root.scrollWidth - 1;
     }
     function render() {
-        sortables.forEach(sortable => sortable.destroy());
-        sortables = [];
+        const scrollLeft = root.scrollLeft;
+        sortables.forEach(sortable => sortable.destroy()); sortables = [];
         fillFilter(filters.assignee, [['', 'Todos os responsáveis'], ...(board.members || []).map(member => [member.id, member.name])]);
         fillFilter(filters.column, [['', 'Todas as colunas'], ...board.columns.map(column => [column.id, column.name])]);
-        const filtered = Object.values(filters).some(field => field.value !== '');
+        const filterCount = Object.values(filters).filter(field => field.value !== '').length;
+        const filtered = filterCount > 0;
+        document.getElementById('filter-count').textContent = filtered ? `${filterCount} filtro(s) ativo(s)` : 'Nenhum filtro';
         document.getElementById('filter-note').classList.toggle('d-none', !filtered);
         root.replaceChildren();
         for (const column of board.columns) {
             if (filters.column.value && Number(filters.column.value) !== column.id) continue;
-            const section = element('section', 'kanban-column card card-body');
-            section.dataset.id = String(column.id);
-            const heading = element('div', 'd-flex justify-content-between align-items-start gap-2');
-            heading.append(element('h3', 'h6 kanban-title', column.name));
-            if (board.can_manage) heading.append(element('span', 'kanban-handle', '↔'));
-            section.append(heading);
-            section.append(element('p', 'small text-body-secondary mb-1', `${column.tasks.length} tarefa(s)${column.is_done ? ' · Conclusão' : ''}`));
-            const list = element('div', 'kanban-tasks');
-            list.dataset.columnId = String(column.id);
-            for (const task of column.tasks.filter(matches)) {
-                const card = element('article', 'kanban-task card card-body p-2 mb-2');
-                card.dataset.id = String(task.id);
-                const title = button(task.title, 'btn btn-link p-0 kanban-title kanban-title-button'); title.type = 'button'; title.dataset.taskOpen = String(task.id); card.append(title);
-                const colors = {low: 'secondary', normal: 'light text-dark', high: 'warning', urgent: 'danger'};
-                card.append(element('span', `badge text-bg-${colors[task.priority]} align-self-start mt-1`, priorities[task.priority]));
-                if (task.due_on) card.append(element('span', `small mt-1 ${task.overdue ? 'text-danger fw-semibold' : 'text-body-secondary'}`, `${task.overdue ? 'Atrasada · ' : ''}Prazo: ${task.due_on.split('-').reverse().join('/')}`));
-                if (task.assignees.length) card.append(element('span', 'small text-body-secondary mt-1', task.assignees.map(member => member.name).join(', ')));
-                if (task.completed_at) card.append(element('span', 'badge text-bg-success align-self-start mt-1', 'Concluída'));
+            const section = cloneTemplate('kanban-column-template');
+            section.dataset.id = String(column.id); section.dataset.done = String(column.is_done);
+            section.querySelector('h3').textContent = column.name;
+            const visible = column.tasks.filter(matches);
+            section.querySelector('.kb-column-count').textContent = `${filtered ? visible.length + ' de ' : ''}${column.tasks.length} tarefa(s)${column.is_done ? ' · Conclusão' : ''}`;
+            const list = section.querySelector('.kanban-tasks'); list.dataset.columnId = String(column.id);
+            for (const task of visible) {
+                const card = cloneTemplate('kanban-task-template'); card.dataset.id = String(task.id);
+                const title = card.querySelector('[data-task-open]'); title.textContent = task.title; title.dataset.taskOpen = String(task.id);
+                const priority = card.querySelector('.kb-priority'); priority.textContent = priorities[task.priority]; priority.dataset.priority = task.priority;
+                card.querySelector('.kb-completed').hidden = !task.completed_at;
+                const due = card.querySelector('.kb-task-due'); due.hidden = !task.due_on;
+                if (task.due_on) { due.textContent = `${task.overdue ? 'Atrasada · ' : ''}Prazo: ${task.due_on.split('-').reverse().join('/')}`; due.classList.toggle('kb-overdue', task.overdue); }
+                const assigned = card.querySelector('.kb-task-assignees'); assigned.hidden = !task.assignees.length;
+                assigned.textContent = 'Responsáveis: ' + task.assignees.map(member => member.name).join(', ');
                 if (board.can_write) {
-                    card.append(element('span', 'kanban-task-handle kanban-handle small mt-2', '↕ Mover tarefa'));
-                    const details = element('details', 'mt-2');
-                    details.append(element('summary', 'small', 'Editar título / mover'));
-                    const rename = form('task.rename', task.id, 'taskId');
-                    rename.append(input('title', 'Título', task.title, 200), button('Salvar título'));
-                    details.append(rename);
-                    // Alternativa ao arrastar para teclado e dispositivos de toque.
-                    const move = form('task.move', task.id, 'taskId');
-                    const label = element('label', 'form-label d-block small', 'Mover para o fim da coluna');
-                    const select = element('select', 'form-select form-select-sm mt-1'); select.name = 'column_id';
-                    for (const destination of board.columns) {
-                        const option = element('option', '', destination.name); option.value = String(destination.id); option.selected = destination.id === column.id; select.append(option);
-                    }
-                    label.append(select); move.append(label, button('Mover')); details.append(move); card.append(details);
-                }
+                    card.querySelectorAll('form').forEach(form => { form.dataset.taskId = String(task.id); });
+                    card.querySelector('input[name="title"]').value = task.title;
+                    const select = card.querySelector('select[name="column_id"]');
+                    fillFilter(select, board.columns.map(destination => [destination.id, destination.name])); select.value = String(column.id);
+                } else card.querySelectorAll('[data-write-only]').forEach(node => node.remove());
                 list.append(card);
             }
-            section.append(list);
-            if (board.can_write) {
-                const create = form('task.create', column.id, 'columnId');
-                create.append(input('title', 'Nova tarefa', '', 200), button('Adicionar tarefa')); section.append(create);
-            }
+            const empty = section.querySelector('[data-column-empty]'); empty.hidden = visible.length > 0;
+            empty.textContent = filtered && column.tasks.length ? 'Nenhuma tarefa corresponde aos filtros.' : 'Nenhuma tarefa nesta coluna.';
+            section.querySelectorAll(':scope > form, :scope > details > form').forEach(form => { form.dataset.columnId = String(column.id); });
+            if (!board.can_write) section.querySelectorAll('[data-write-only]').forEach(node => node.remove());
             if (board.can_manage) {
-                const details = element('details', 'mt-3'); details.append(element('summary', 'small', 'Configurar coluna'));
-                const edit = form('column.update', column.id, 'columnId');
-                edit.append(input('name', 'Nome', column.name, 80), input('is_done', 'Conclui tarefas', column.is_done, null, 'checkbox'), button('Salvar coluna')); details.append(edit);
-                const positions = form('column.position', column.id, 'columnId');
-                const label = element('label', 'form-label d-block small mt-2', 'Posição da coluna');
-                const select = element('select', 'form-select form-select-sm mt-1'); select.name = 'position';
-                board.columns.forEach((item, index) => { const option = element('option', '', String(index + 1)); option.value = String(index); option.selected = item.id === column.id; select.append(option); });
-                label.append(select); positions.append(label, button('Salvar posição')); details.append(positions);
-                const remove = form('column.delete', column.id, 'columnId');
-                const removeButton = button('Excluir coluna vazia', 'btn btn-sm btn-outline-danger'); removeButton.disabled = column.tasks.length > 0 || board.columns.length <= 1; remove.append(removeButton); details.append(remove); section.append(details);
-            }
+                section.querySelector('input[name="name"]').value = column.name;
+                section.querySelector('input[name="is_done"]').checked = column.is_done;
+                const select = section.querySelector('select[name="position"]');
+                fillFilter(select, board.columns.map((item, index) => [index, String(index + 1)])); select.value = String(board.columns.findIndex(item => item.id === column.id));
+                section.querySelector('[data-action="column.delete"] button').disabled = column.tasks.length > 0 || board.columns.length <= 1;
+            } else section.querySelectorAll('[data-manage-only]').forEach(node => node.remove());
             root.append(section);
             if (board.can_write && !filtered) sortables.push(Sortable.create(list, {
                 group: 'tasks', draggable: '.kanban-task', handle: '.kanban-task-handle', animation: 150, ghostClass: 'kanban-ghost',
@@ -135,15 +108,32 @@
             draggable: '.kanban-column', handle: '.kanban-column > div > .kanban-handle', animation: 150, direction: 'horizontal', ghostClass: 'kanban-ghost',
             onEnd: () => save('columns.reorder', {column_ids: Array.from(root.children, child => Number(child.dataset.id))})
         }));
+        root.scrollLeft = scrollLeft; updateColumnNavigation();
+    }
+    function focusTarget() {
+        const control = document.activeElement; const form = control?.closest('form');
+        if (!form || (!root.contains(form) && form.id !== 'column-create')) return null;
+        return {action: form.dataset.action, taskId: form.dataset.taskId, columnId: form.dataset.columnId, staticForm: form.id === 'column-create', name: control.name || form.querySelector('input:not([type="checkbox"]), select')?.name};
+    }
+    function restoreFocus(target) {
+        if (!target) return;
+        const form = target.staticForm ? document.getElementById('column-create') : [...root.querySelectorAll('form')].find(form => form.dataset.action === target.action && form.dataset.taskId === target.taskId && form.dataset.columnId === target.columnId);
+        const control = form && [...form.elements].find(control => control.name === target.name);
+        if (control && !control.disabled) {
+            let details = control.closest('details');
+            while (details && root.contains(details)) { details.open = true; details = details.parentElement.closest('details'); }
+            control.focus({preventScroll: true});
+        }
     }
     async function save(action, payload) {
         if (saving) return;
+        const focus = focusTarget();
         saving = true;
         let success = false;
         document.getElementById('task-panel-close').disabled = true;
         root.setAttribute('aria-busy', 'true');
         sortables.forEach(sortable => sortable.option('disabled', true));
-        document.querySelectorAll('#kanban input, #kanban select, #kanban button, #column-create input, #column-create button, #task-content input, #task-content select, #task-content textarea, #task-content button').forEach(item => { item.disabled = true; });
+        document.querySelectorAll('#kanban input, #kanban select, #kanban button, #column-create input, #column-create button, #task-content input, #task-content select, #task-content textarea, #task-content button, #board-filters select, #clear-board-filters').forEach(item => { item.disabled = true; });
         notify('Salvando…');
         try {
             const response = await fetch(root.dataset.endpoint, {
@@ -165,6 +155,8 @@
             render();
             document.querySelectorAll('#column-create input, #column-create button').forEach(item => { item.disabled = false; });
             root.removeAttribute('aria-busy');
+            document.querySelectorAll('#board-filters select, #clear-board-filters').forEach(item => { item.disabled = false; });
+            restoreFocus(focus);
             document.getElementById('task-panel-close').disabled = false;
             panelContent.querySelectorAll('input,select,textarea,button').forEach(item => { item.disabled = !board.can_write && !item.dataset.page; });
         }
@@ -313,6 +305,17 @@
         if (await save(action, {task_id: taskId, ...payload})) await openTask(taskId, {}, true);
     }
     for (const field of Object.values(filters)) field.addEventListener('change', () => { if (!saving) render(); });
+    document.getElementById('clear-board-filters').addEventListener('click', () => {
+        if (saving) return;
+        Object.values(filters).forEach(field => { field.value = ''; }); render();
+    });
+    for (const [id, direction] of [['previous-column', -1], ['next-column', 1]]) document.getElementById(id).addEventListener('click', () => {
+        const column = root.querySelector('.kanban-column'); if (!column) return;
+        const gap = parseFloat(getComputedStyle(root).columnGap) || 0;
+        root.scrollBy({left: direction * (column.getBoundingClientRect().width + gap), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    });
+    root.addEventListener('scroll', updateColumnNavigation, {passive: true});
+    window.addEventListener('resize', updateColumnNavigation);
     root.addEventListener('click', event => { const target = event.target.closest('[data-task-open]'); if (target) openTask(target.dataset.taskOpen); });
     panelContent.addEventListener('input', event => { const form = event.target.closest('form'); if (form) dirtyForms.add(form); });
     panelContent.addEventListener('change', event => { const form = event.target.closest('form'); if (form) dirtyForms.add(form); });
@@ -342,6 +345,7 @@
     window.addEventListener('beforeunload', event => { if (dirtyForms.size || saving) { event.preventDefault(); event.returnValue = ''; } });
 
     if (typeof Sortable === 'undefined') { notify('Não foi possível carregar o quadro. Atualize a página.', true); return; }
+    document.querySelectorAll('[data-board-enhancement]').forEach(node => { node.hidden = false; });
     render();
     const linkedTask = new URLSearchParams(window.location.search).get('task');
     if (linkedTask && /^[0-9]{1,18}$/.test(linkedTask) && Number(linkedTask) > 0) openTask(Number(linkedTask));

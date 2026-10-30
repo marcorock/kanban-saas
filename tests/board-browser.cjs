@@ -60,6 +60,7 @@ async function runBoardBrowser(extra = null) {
         await column(0).locator('.kanban-task details summary').click();
         const rename = column(0).locator('form[data-action="task.rename"]');
         await rename.locator('input').fill('Título persistido'); await save(() => rename.getByRole('button').click());
+        await stale.locator('#column-create').locator('..').locator('summary').click();
         await stale.locator('#new-column-name').fill('Conflito');
         const [conflict] = await Promise.all([stale.waitForResponse(response => response.url() === boardUrl && response.request().method() === 'POST'), stale.getByRole('button', {name: 'Adicionar coluna'}).click()]);
         assert.equal(conflict.status(), 409);

@@ -55,6 +55,7 @@ runBoardBrowser(async ({page, save}) => {
         await page.locator('#task-panel-close').click();
         await page.waitForFunction(() => !document.getElementById('task-panel').classList.contains('show'));
         await page.unroute(detailRoute);
+        await page.locator('#board-filters > summary').click();
         await page.locator('#filter-priority').selectOption('high'); assert.equal(await page.locator('.kanban-task').count(), 0);
         await page.locator('#filter-priority').selectOption('urgent'); assert.equal(await page.locator('.kanban-task').count(), 1);
         await page.locator('#filter-assignee').selectOption(assigneeId); await page.locator('#filter-due').selectOption('overdue');

@@ -4,7 +4,7 @@ Direção visual original para o Kanban SaaS: clareza, ritmo e foco no próximo 
 
 ## Escopo e evolução
 
-Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; o quinto incremento trata os formulários; o sexto incremento trata os detalhes; o sétimo incremento trata participantes e convites; próximo incremento proposto: quadro Kanban. Homologação operacional continua adiada.
+Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; o quinto incremento trata os formulários; o sexto incremento trata os detalhes; o sétimo incremento trata participantes e convites; o oitavo incremento trata o quadro Kanban; próximo incremento proposto: painel de tarefas. Homologação operacional continua adiada.
 
 O desenho deve servir às funções existentes. Não exibir busca global, notificações, calendário, assinatura, login social ou links de políticas sem a funcionalidade/conteúdo correspondente. Não há biblioteca de componentes remota, fonte externa, imagens geradas ou etapa de build.
 
@@ -189,3 +189,16 @@ Validação do sexto incremento: regressão PHP completa e preflight local aprov
 - Próximo incremento: quadro Kanban. Painel de detalhes das tarefas em entrega própria; sem homologação operacional automática.
 
 Validação do sétimo incremento: regressão PHP completa e preflight local aprovados. Chromium/axe de equipe e aceite aprovado, incluindo quatro papéis, privacidade, arquivados, SMTP, remoção/transferência, visitante/conta incompatível, uso único, 419/foco e operação sem JS. Regressões de detalhes e telas de acesso aprovadas. Previews inspecionados visualmente; nenhuma certificação ou validação em aparelhos físicos.
+
+
+## Oitavo incremento — quadro Kanban
+
+- Colunas verde suave e cards brancos, prioridades/conclusão com texto e cor, prazos e responsáveis legíveis. Nome completo do projeto e navegação contextual preservados.
+- Rolagem horizontal isolada; colunas de 85vw até 575px e 288px acima. Botões anterior/próxima com rótulos acessíveis e movimento reduzido; controles compactos no celular para priorizar o quadro.
+- Filtros e criação de coluna em disclosures nativos; contador/limpeza de filtros. Configurações recolhidas, campos de 16px e ações de pelo menos 44px. Formulários oferecem alternativas ao arrastar e mantêm permissões existentes.
+- Templates HTML em Twig, CSS externo e JS externo para preencher estado, sem interpolar HTML do usuário. Restauração de foco e posição horizontal nas gravações; consulta do snapshot sem JS. Painel lateral de tarefas mantém seu visual anterior nesta entrega.
+- Sem alteração em endpoints, políticas, serviços, schema, transações ou protocolo de versão. Estado JSON inerte e estilos de posicionamento em runtime das bibliotecas existentes permanecem.
+- Teste `tests/board-ui-browser.cjs` reutiliza a regressão de drag, falhas, conflito e persistência. Verifica 320–1440px, axe A/AA, foco, navegação, filtros, papéis e fallback. Fixture de equipe e todas as operações somente em banco descartável.
+- Próximo incremento: painel de detalhes das tarefas. Sem homologação operacional, aparelhos físicos ou leitores de tela neste incremento.
+
+Validação do oitavo incremento: regressão PHP completa, preflight local e Chromium do quadro/tarefas/relatórios aprovados. Axe sem violações A/AA nos cenários do quadro verificados, incluindo filtros abertos e modos de leitura. Previews mobile/desktop inspecionados visualmente; testes não equivalem a certificação de acessibilidade ou validação em aparelhos físicos.

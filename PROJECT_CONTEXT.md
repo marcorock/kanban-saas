@@ -39,6 +39,7 @@
 - ace0d17 — listagem de projetos Fluxo Claro.
 - 39f7edc — formulários de criação/edição de projetos.
 - 47d88da — detalhes do projeto Fluxo Claro.
+- b8f5fdb — participantes, convites e aceite Fluxo Claro.
 
 ## Módulos consolidados
 
@@ -47,7 +48,7 @@
 - Kanban transacional com board_version, tarefas, responsáveis, checklists e comentários: docs/KANBAN.md e docs/TASKS.md.
 - Dashboard, Minhas Tarefas e históricos com escopo de tenant/projeto: docs/REPORTS.md.
 - Fase 6 aprovada: preflight somente leitura, segurança, regressão e roteiro operacional em docs/PRODUCTION.md e docs/VALIDATION.md.
-- Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem, formulários e detalhes. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
+- Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem, formulários, detalhes, equipe e quadro. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
 - Homologação operacional adiada pelo usuário para trabalhar UI/UX em incrementos pequenos. Sem publicação autorizada. Organizações seguem expansão pendente; sem cobrança no MVP.
 
 ## Entrega anterior — UI/UX: listagem de projetos
@@ -80,9 +81,9 @@
 - Previews project-details-390.png/project-details-1440.png e archived-* em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em dispositivos físicos/leitores de tela. Próximo incremento após aprovação: participantes e convites.
 - Homologação operacional permanece adiada; sem publicação.
 
-## Última entrega aprovada — UI/UX: participantes e convites
+## Entrega anterior — UI/UX: participantes e convites
 
-- Sétimo incremento aprovado; commit de fechamento: `feat: redesenha participantes e convites`. Próximo incremento autorizado: quadro Kanban.
+- Sétimo incremento aprovado; commit de fechamento: `b8f5fdb` — `feat: redesenha participantes e convites`. Próximo incremento autorizado: quadro Kanban.
 - Equipe com papéis e guia, atalho de convite, controles recolhidos, confirmações nativas de remoção/transferência, pendências e consulta de arquivados.
 - Privacidade mantida no serviço/HTML: e-mails e convites só para administração, opções admin só para proprietário. Contagens da página, mesma paginação de 25 por seção.
 - Aceite usa layout de acesso para visitante e shell para autenticado; prévia apenas para conta elegível, sem conceder acesso na abertura. POST/CSRF funciona sem JS.
@@ -91,6 +92,18 @@
 - Previews members-390.png/members-1440.png e invitation-guest-390.png/invitation-accept-390.png em storage/previews, ignorados no Git e inspecionados visualmente; sem aparelhos físicos/leitores de tela.
 - Fixtures somente em banco/Mailpit descartáveis, sem migration ou alteração do .env. Homologação operacional continua adiada.
 - Próximo incremento após aprovação: quadro Kanban; painel de tarefas em entrega própria.
+
+## Última entrega aprovada — UI/UX: quadro Kanban
+
+- Oitavo incremento aprovado; commit de fechamento: `feat: redesenha quadro Kanban com Fluxo Claro` (hash no Git).
+- Colunas/cards Fluxo Claro, filtros recolhidos com contador/limpeza, navegação horizontal, controles mobile e gestão por papel. Formulários continuam como alternativa ao arrastar.
+- HTML em Twig/templates nativos; CSS/JS externos. Preenchimento seguro de texto/valores, restauração de foco e rolagem nas gravações; snapshot para consulta sem JS.
+- Endpoints, autorização, serviços, versão concorrente, transações e schema preservados. Painel de tarefas mantém visual anterior, para próximo incremento próprio.
+- Nenhuma migration nova, alteração do .env ou publicação; homologação operacional adiada. Fixtures somente em banco/Mailpit descartáveis.
+- Regressão PHP completa e preflight local aprovados. Chromium/axe do quadro aprovado em 320–1440px, com arrastar, erro/409, persistência, foco/rolagem, filtros, papéis, arquivados e consulta sem JS; regressões de tarefas e relatórios aprovadas.
+- Previews kanban-390.png/kanban-1440.png em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em dispositivos físicos/leitores de tela.
+- Desenvolvimento pausado a pedido do usuário após aprovação e commit do Kanban. Não iniciar outro incremento durante a pausa.
+- Na retomada, próximo incremento: UI/UX do painel de detalhes das tarefas.
 
 ## Documentação por módulo
 

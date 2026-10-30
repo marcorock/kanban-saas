@@ -26,6 +26,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | ace0d17 | Listagem de projetos com filtros, cards e atalhos |
 | 39f7edc | Formulários de criação/edição com validação e retorno contextual |
 | 47d88da | Detalhes do projeto, planejamento e gerenciamento por papel |
+| b8f5fdb | Participantes, convites e aceite Fluxo Claro |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -90,3 +91,17 @@ Iniciado após aprovação dos detalhes. Equipe em cards, atalho para convidar, 
 CSS/JS externos; formulários continuam com POST/CSRF e uso sem JS. Retorno 419 agora usa resumo de erro; convite preserva e-mail/papel quando aplicável, sem reter confirmações sensíveis. Serviços, consultas, limites, tokens e transações não alterados. Regressão PHP e preflight local aprovados; Chromium/axe de equipe e aceite, detalhes e telas de acesso aprovados. Papéis, privacidade, SMTP, confirmações, CSRF, transferência e XSS verificados; previews inspecionados visualmente. Sem teste em aparelhos físicos/leitores de tela. Fixtures só em banco descartável.
 
 Incremento aprovado e incluído no commit `feat: redesenha participantes e convites`. Próximo incremento autorizado: quadro Kanban; painel de tarefas em entrega posterior. Homologação operacional permanece adiada, sem migration nova ou alteração do .env.
+
+
+## UI/UX — oitavo incremento: quadro Kanban
+
+Iniciado após aprovação de participantes/convites, registrados no commit `b8f5fdb`. Quadro com colunas/cards Fluxo Claro, filtros recolhidos com contador/limpeza, navegação horizontal e gestão por papel. Controles mobile compactos; edição por formulários preserva alternativa ao arrastar. Renderização do quadro clona templates Twig e preenche texto/valores, com CSS e JS externos. Gravações restauram foco/posição horizontal; consulta sem JS continua disponível. Painel de tarefas permanece para entrega própria.
+
+Endpoints, autorização, serviços, controle de versão, transações e banco preservados. Nenhuma migration nova, alteração do .env ou publicação. Homologação operacional permanece adiada. Próximo incremento após aprovação: painel de detalhes das tarefas.
+
+Validação: regressão PHP completa e preflight local aprovados. Chromium/axe do quadro em 320–1440px aprovado para papéis, arquivados, filtros, navegação, foco/rolagem e consulta sem JS, além da regressão de arrastar, falha, conflito e persistência. Regressões de tarefas e relatórios aprovadas. Previews kanban-390.png/kanban-1440.png inspecionados visualmente, fora do Git. Sem testes em aparelhos físicos/leitores de tela. Incremento aprovado e incluído no commit `feat: redesenha quadro Kanban com Fluxo Claro` (hash no Git).
+
+
+## Pausa após o oitavo incremento de UI/UX
+
+A pedido do usuário, o desenvolvimento foi pausado após aprovação e commit do quadro Kanban. O próximo incremento não foi iniciado. Na retomada, continuar pelo visual do painel de detalhes das tarefas, mantendo Twig, CSS e JavaScript separados. Validações e limitações do Kanban estão registradas acima e no PROJECT_CONTEXT.md. Homologação operacional permanece adiada.

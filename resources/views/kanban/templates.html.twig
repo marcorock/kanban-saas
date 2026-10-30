@@ -1,0 +1,25 @@
+<template id="kanban-column-template">
+    <section class="kanban-column">
+        <div class="kb-column-heading"><h3 class="kanban-title"></h3><span class="kanban-handle" data-manage-only aria-hidden="true" title="Arrastar coluna">↔</span></div>
+        <p class="kb-column-count"></p>
+        <div class="kanban-tasks"></div><p class="kb-empty" data-column-empty hidden></p>
+        <form data-action="task.create" data-write-only class="kb-create-task"><label class="kb-field">Nova tarefa<input name="title" maxlength="200" required placeholder="O próximo passo…"></label><button class="kb-button kb-secondary" type="submit">Adicionar tarefa</button></form>
+        <details class="kb-column-settings" data-manage-only><summary>Configurar coluna</summary>
+            <form data-action="column.update"><label class="kb-field">Nome<input name="name" maxlength="80" required></label><label class="kb-check"><input name="is_done" type="checkbox"><span>Conclui tarefas</span></label><button class="kb-button kb-secondary" type="submit">Salvar coluna</button></form>
+            <form data-action="column.position"><label class="kb-field">Posição da coluna<select name="position"></select></label><button class="kb-button kb-secondary" type="submit">Salvar posição</button></form>
+            <form data-action="column.delete"><button class="kb-button kb-danger" type="submit">Excluir coluna vazia</button></form>
+        </details>
+    </section>
+</template>
+<template id="kanban-task-template">
+    <article class="kanban-task">
+        <button type="button" class="kanban-title kanban-title-button" data-task-open></button>
+        <div class="kb-task-badges"><span class="kb-priority"></span><span class="kb-completed" hidden>Concluída</span></div>
+        <span class="kb-task-due" hidden></span><span class="kb-task-assignees" hidden></span>
+        <span class="kanban-task-handle kanban-handle" data-write-only aria-hidden="true">↕ Mover tarefa</span>
+        <details class="kb-task-settings" data-write-only><summary>Editar título / mover</summary>
+            <form data-action="task.rename"><label class="kb-field">Título<input name="title" maxlength="200" required></label><button class="kb-button kb-secondary" type="submit">Salvar título</button></form>
+            <form data-action="task.move"><label class="kb-field">Mover para o fim da coluna<select name="column_id"></select></label><button class="kb-button kb-secondary" type="submit">Mover</button></form>
+        </details>
+    </article>
+</template>
