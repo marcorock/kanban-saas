@@ -40,6 +40,7 @@
 - 39f7edc — formulários de criação/edição de projetos.
 - 47d88da — detalhes do projeto Fluxo Claro.
 - b8f5fdb — participantes, convites e aceite Fluxo Claro.
+- 01eb9ea — quadro Kanban Fluxo Claro.
 
 ## Módulos consolidados
 
@@ -93,17 +94,28 @@
 - Fixtures somente em banco/Mailpit descartáveis, sem migration ou alteração do .env. Homologação operacional continua adiada.
 - Próximo incremento após aprovação: quadro Kanban; painel de tarefas em entrega própria.
 
-## Última entrega aprovada — UI/UX: quadro Kanban
+## Entrega anterior — UI/UX: quadro Kanban
 
-- Oitavo incremento aprovado; commit de fechamento: `feat: redesenha quadro Kanban com Fluxo Claro` (hash no Git).
+- Oitavo incremento aprovado; commit de fechamento: `01eb9ea` — `feat: redesenha quadro Kanban com Fluxo Claro`.
 - Colunas/cards Fluxo Claro, filtros recolhidos com contador/limpeza, navegação horizontal, controles mobile e gestão por papel. Formulários continuam como alternativa ao arrastar.
 - HTML em Twig/templates nativos; CSS/JS externos. Preenchimento seguro de texto/valores, restauração de foco e rolagem nas gravações; snapshot para consulta sem JS.
 - Endpoints, autorização, serviços, versão concorrente, transações e schema preservados. Painel de tarefas mantém visual anterior, para próximo incremento próprio.
 - Nenhuma migration nova, alteração do .env ou publicação; homologação operacional adiada. Fixtures somente em banco/Mailpit descartáveis.
 - Regressão PHP completa e preflight local aprovados. Chromium/axe do quadro aprovado em 320–1440px, com arrastar, erro/409, persistência, foco/rolagem, filtros, papéis, arquivados e consulta sem JS; regressões de tarefas e relatórios aprovadas.
 - Previews kanban-390.png/kanban-1440.png em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em dispositivos físicos/leitores de tela.
-- Desenvolvimento pausado a pedido do usuário após aprovação e commit do Kanban. Não iniciar outro incremento durante a pausa.
-- Na retomada, próximo incremento: UI/UX do painel de detalhes das tarefas.
+- Desenvolvimento retomado em 30/10/2026 a pedido do usuário, pelo UI/UX do painel de detalhes das tarefas.
+
+## Última entrega aprovada — UI/UX: painel de tarefas e checklist compacto
+
+- Nono incremento aprovado; commit de fechamento: `feat: redesenha painel de tarefas e checklist compacto` (hash no Git).
+- Revisão substitui o primeiro desenho não aprovado: fundo branco, resumo da tarefa e abas Subtarefas (inicial), Comentários e Detalhes; histórico em Detalhes. Tela cheia abaixo de 640px e lateral de até 680px acima.
+- Subtarefas com checkbox de gravação direta, título editável, editar/excluir na mesma linha; confirmação/cancelamento inline. Adição de item em linha única e gestão de lista no menu. Ações permanecem na linha inclusive no celular.
+- Resumo agregado no painel/card: concluídas/total de todas as listas e percentual arredondado. Sem itens mostra Sem subtarefas no painel e omite barra/card. Progresso não muda conclusão por coluna.
+- BoardService inclui contagens por tarefa com agregação SQL limitada ao tenant/projeto; mantém 5 consultas no snapshot, sem N+1. Sem alteração de autorização, endpoints, transações ou schema; sem migrations novas ou alteração do .env.
+- HTML em Twig/templates, CSS e JS externos. Texto inserido por textContent/valores. Descarte, confirmação de exclusão, retry, rascunhos em erro, foco e posição preservados; checkbox com falha retorna ao estado confirmado.
+- Regressão PHP completa, teste ampliado de progresso e preflight local aprovados. Snapshot mantém 5 consultas em carga de 100/1.000 tarefas. Chromium/axe 320–1440px aprovado para alinhamento, marcação/edição/cancelamento, falhas/rascunhos, abas, foco/Escape, exclusão, retry, paginação, quatro papéis e arquivados; regressões de relatórios, shell e dashboard aprovadas.
+- Previews reais task-panel-390.png/task-panel-1440.png e task-inline-edit-390.png em storage/previews, ignorados no Git e inspecionados visualmente. Fixtures só em banco/Mailpit descartáveis; sem aparelhos físicos/leitores de tela. Homologação operacional adiada.
+- Próximo incremento autorizado: UI/UX de Minhas Tarefas; históricos e configurações em entregas próprias.
 
 ## Documentação por módulo
 

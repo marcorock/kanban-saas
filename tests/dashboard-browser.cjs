@@ -10,6 +10,7 @@ runBoardBrowser(async ({page, context, save, boardUrl}) => {
     await fs.mkdir(preview, {recursive: true});
     await page.setViewportSize({width: 1280, height: 1000});
     await page.getByRole('button', {name: 'Título persistido', exact: true}).click();
+    await page.getByRole('tab', {name: 'Detalhes', exact: true}).click();
     const edit = page.locator('#task-edit'); await edit.waitFor();
     const due = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
     await edit.locator('[name="title"]').fill('Preparar a próxima entrega');
@@ -48,7 +49,7 @@ runBoardBrowser(async ({page, context, save, boardUrl}) => {
         await page.waitForURL(base + '/tasks?' + query);
     }
     await page.goto(base + '/dashboard'); await page.locator('.dash-deadline').click();
-    await page.waitForURL(/\/board\?task=\d+/); await edit.waitFor();
+    await page.waitForURL(/\/board\?task=\d+/); await page.getByRole('tab', {name: 'Detalhes', exact: true}).click(); await edit.waitFor();
     assert.equal(await edit.locator('[name="title"]').inputValue(), 'Preparar a próxima entrega', 'Prazo abre tarefa correta');
     await edit.locator('[name="title"]').fill('<script>window.dashboardXss=true</script>');
     const saved = page.waitForResponse(response => response.request().method() === 'POST');

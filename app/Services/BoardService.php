@@ -58,8 +58,14 @@ final class BoardService
     {
         $columns = $this->rows('kanban_columns', $project, 'position, id');
         // O quadro não precisa carregar descrições e outros campos do painel de detalhes.
-        $statement = $this->pdo->prepare('SELECT id, column_id, title, position, completed_at, priority, due_on FROM tasks WHERE tenant_id = ? AND project_id = ? ORDER BY column_id, position, id');
-        $statement->execute([$project['tenant_id'], $project['id']]);
+        $statement = $this->pdo->prepare('SELECT t.id, t.column_id, t.title, t.position, t.completed_at, t.priority, t.due_on,
+            COALESCE(i.item_total, 0) AS subtask_total, COALESCE(i.item_done, 0) AS subtask_done
+            FROM tasks t LEFT JOIN (
+                SELECT task_id, COUNT(*) AS item_total, SUM(is_done) AS item_done FROM task_checklist_items
+                WHERE tenant_id = ? AND project_id = ? GROUP BY task_id
+            ) i ON i.task_id = t.id
+            WHERE t.tenant_id = ? AND t.project_id = ? ORDER BY t.column_id, t.position, t.id');
+        $statement->execute([$project['tenant_id'], $project['id'], $project['tenant_id'], $project['id']]);
         $tasks = $statement->fetchAll();
         $statement = $this->pdo->prepare('SELECT a.task_id, a.user_id, u.name FROM task_assignees a JOIN users u ON u.id = a.user_id WHERE a.tenant_id = ? AND a.project_id = ? ORDER BY a.task_id, u.name');
         $statement->execute([$project['tenant_id'], $project['id']]);
@@ -67,7 +73,7 @@ final class BoardService
         foreach ($statement->fetchAll() as $member) $assigned[$member['task_id']][] = ['id' => (int) $member['user_id'], 'name' => $member['name']];
         $grouped = [];
         foreach ($tasks as $task) {
-            $grouped[$task['column_id']][] = ['id' => (int) $task['id'], 'title' => $task['title'], 'position' => (int) $task['position'], 'completed_at' => $task['completed_at'], 'priority' => $task['priority'], 'due_on' => $task['due_on'], 'assignees' => $assigned[$task['id']] ?? [], 'overdue' => $task['completed_at'] === null && $task['due_on'] !== null && $task['due_on'] < gmdate('Y-m-d')];
+            $grouped[$task['column_id']][] = ['id' => (int) $task['id'], 'title' => $task['title'], 'position' => (int) $task['position'], 'completed_at' => $task['completed_at'], 'priority' => $task['priority'], 'subtask_total' => (int) $task['subtask_total'], 'subtask_done' => (int) $task['subtask_done'], 'due_on' => $task['due_on'], 'assignees' => $assigned[$task['id']] ?? [], 'overdue' => $task['completed_at'] === null && $task['due_on'] !== null && $task['due_on'] < gmdate('Y-m-d')];
         }
         $result = [];
         foreach ($columns as $column) {

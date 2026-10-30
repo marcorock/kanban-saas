@@ -4,7 +4,7 @@ Direção visual original para o Kanban SaaS: clareza, ritmo e foco no próximo 
 
 ## Escopo e evolução
 
-Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; o quinto incremento trata os formulários; o sexto incremento trata os detalhes; o sétimo incremento trata participantes e convites; o oitavo incremento trata o quadro Kanban; próximo incremento proposto: painel de tarefas. Homologação operacional continua adiada.
+Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; o quinto incremento trata os formulários; o sexto incremento trata os detalhes; o sétimo incremento trata participantes e convites; o oitavo incremento trata o quadro Kanban; o nono incremento trata o painel de tarefas; próximo incremento proposto: Minhas Tarefas. Homologação operacional continua adiada.
 
 O desenho deve servir às funções existentes. Não exibir busca global, notificações, calendário, assinatura, login social ou links de políticas sem a funcionalidade/conteúdo correspondente. Não há biblioteca de componentes remota, fonte externa, imagens geradas ou etapa de build.
 
@@ -202,3 +202,17 @@ Validação do sétimo incremento: regressão PHP completa e preflight local apr
 - Próximo incremento: painel de detalhes das tarefas. Sem homologação operacional, aparelhos físicos ou leitores de tela neste incremento.
 
 Validação do oitavo incremento: regressão PHP completa, preflight local e Chromium do quadro/tarefas/relatórios aprovados. Axe sem violações A/AA nos cenários do quadro verificados, incluindo filtros abertos e modos de leitura. Previews mobile/desktop inspecionados visualmente; testes não equivalem a certificação de acessibilidade ou validação em aparelhos físicos.
+
+
+## Nono incremento — painel de tarefas e checklist compacto
+
+A primeira proposta não foi aprovada. A revisão segue o preview visual validado pelo usuário, com fundo branco, separadores discretos e ações compactas. Mockup aprovado autoriza implementação; a entrega funcional ainda exige sua própria aprovação para commit.
+
+- Resumo do título/coluna/prazo/responsáveis e progresso agregado das subtarefas. Contagem e percentual também no card; barra nativa, sem estilos inline. Progresso não conclui automaticamente a tarefa.
+- Abas Subtarefas (inicial), Comentários e Detalhes; histórico em Detalhes. Navegação com setas/Home/End, painéis identificados e rascunhos preservados ao trocar de aba.
+- Lista contínua, checkbox com gravação direta, texto e ações editar/excluir na mesma linha. Edição inline substitui texto/ações por campo e confirmar/cancelar. Enter salva; Escape cancela a edição antes de fechar o painel. Ações de 44px; textos longos quebram sem levar ações para outra linha.
+- Adicionar item em linha única; nome/configuração/exclusão da lista em menu. Sem botão Salvar item separado abaixo de cada subtarefa. Campos de detalhes continuam com 16px e seções simples.
+- Tela cheia abaixo de 640px e lateral de até 680px acima. Header com Fechar; corpo com rolagem própria. Texto preenchido em templates Twig, estilos/JS externos. Foco ao fechar/salvar, retry, confirmação de exclusão e rascunhos em erro preservados.
+- BoardService agrega contagens no snapshot com escopo de tenant/projeto e consultas constantes. Sem migration nova, alteração de autoridade ou conclusão. Próximo incremento após aprovação da entrega: Minhas Tarefas; homologação operacional adiada.
+
+Validação da revisão: regressão PHP e preflight local aprovados. Chromium verifica 320, 390, 768, 1024 e 1440px, incluindo alinhamento de checkbox/texto/ações e foco nas abas; axe sem violações A/AA nos cenários auditados. Marcação direta, edição/cancelamento, rascunhos/falhas e progresso 3/5/60% aprovados, assim como papéis, arquivados e regressões de relatórios/shell/dashboard. Previews reais em storage/previews inspecionados visualmente; sem validação em aparelhos físicos/leitores de tela.

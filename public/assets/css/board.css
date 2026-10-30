@@ -87,7 +87,9 @@
 }
 @media (min-width: 640px) { .kb-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: start; } .kb-disclosure[open] { grid-column: 1 / -1; } .kb-filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .kanban { scroll-behavior: auto; } }
-/* Painel de tarefas existente: visual será migrado em incremento próprio. */
-.task-panel { --bs-offcanvas-width: min(620px,100vw); }
-.task-note { white-space: pre-wrap; overflow-wrap: anywhere; }
-.task-assignee-choices { max-height: 220px; overflow: auto; padding: .25rem; }
+.kb-subtasks { margin: .75rem 0; }
+.kb-subtasks > div { display: flex; justify-content: space-between; gap: .5rem; color: var(--ds-color-muted); font-size: .75rem; }
+.kb-subtasks progress { display: block; width: 100%; height: 5px; margin-top: .5rem; border: 0; border-radius: 3px; overflow: hidden; background: #e8edde; accent-color: var(--ds-color-primary); }
+.kb-subtasks progress::-webkit-progress-bar { background: #e8edde; }
+.kb-subtasks progress::-webkit-progress-value { background: var(--ds-color-primary); }
+.kb-subtasks progress::-moz-progress-bar { background: var(--ds-color-primary); }

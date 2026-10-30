@@ -2,6 +2,18 @@
 
 Clique no título de um card para abrir o painel lateral. Proprietário, administrador e membro podem editar; visualizadores e projetos arquivados ficam em modo de consulta.
 
+## Interface Fluxo Claro
+
+O painel ocupa a tela abaixo de 640px e a lateral (até 680px) nas demais larguras. O resumo mostra título, coluna atual, prazo, responsáveis e progresso das subtarefas. Abas **Subtarefas** (inicial), **Comentários** e **Detalhes** organizam o conteúdo; planejamento, responsáveis, formulário principal e histórico ficam em Detalhes. Setas, Home e End navegam pelas abas. Trocar de aba preserva os rascunhos.
+
+O progresso soma os itens de todas as listas da tarefa: concluídos/total e percentual arredondado, também no card do Kanban. Não é média dos percentuais das listas. Sem itens, o painel mostra **Sem subtarefas** e omite percentual/barra; o card omite o resumo. Isso não altera a conclusão da tarefa principal, que continua sendo definida pela coluna. O snapshot agrega as contagens no SQL com escopo de tenant/projeto e conserva o número constante de consultas.
+
+Cada subtarefa tem checkbox, título, editar e excluir na mesma linha. O checkbox grava diretamente; falha/cancelamento restaura o estado confirmado. Clicar no título ou lápis abre a edição na própria linha, com confirmar/cancelar; Enter salva e Escape cancela. Editar o título mantém a marcação existente. Textos longos podem quebrar dentro da área de texto, mantendo as ações alinhadas na mesma linha. Adicionar item usa campo/ação compactos; menu da lista concentra renomear/excluir. Exclusões continuam exigindo confirmação.
+
+Fechar ou pressionar Escape solicita confirmação quando existem rascunhos e fica bloqueado durante gravação. O foco retorna ao card. Gravações restauram posição/foco e erros mantêm o texto digitado; falha de leitura remove editor anterior e oferece **Tentar novamente**. Visualizadores/arquivados têm aviso e consulta sem escrita. Comentários e histórico mantêm paginação independente de 20 itens. Horários continuam em UTC.
+
+HTML em `resources/views/task-panel.html.twig` e `tasks/templates.html.twig`, CSS em `public/assets/css/task-panel.css`, JS externo em `public/assets/js/board.js`. Templates recebem texto/valores, sem interpretar HTML dos usuários. O painel depende de JS; sem ele, o quadro continua consultável por snapshot. Bootstrap mantém modalização/foco e posicionamento em runtime.
+
 ## Campos e filtros
 
 - Título (até 200 caracteres) e descrição em texto simples (até 16.000).
@@ -64,3 +76,6 @@ Os testes cobrem datas, responsáveis inválidos, autoria de comentários, IDOR 
 Para o navegador, use Chromium e playwright-core no ambiente externo de testes descrito em KANBAN.md, executando `node tests/tasks-browser.cjs` com as mesmas variáveis. Ele reutiliza os testes do Kanban e acrescenta painel, responsáveis, datas, checklists, comentários, conteúdo HTML literal, preservação de rascunho e filtros no desktop/mobile.
 
 Dashboard, Minhas Tarefas e históricos estão disponíveis conforme [REPORTS.md](REPORTS.md). Links com `/projects/{id}/board?task={taskId}` abrem o painel da tarefa; o backend revalida seu escopo.
+
+
+O teste `tests/task-panel-ui-browser.cjs` requer também `@axe-core/playwright` e a fixture descartável de `tests/members-ui.php` (ou runner PHP completo). Reutiliza a regressão de tarefas e acrescenta validação visual/acessibilidade, alinhamento das ações, edição/cancelamento inline, marcação direta, agregação 3/5 e 60%, falhas/rascunhos, navegação de abas, foco/Escape, retry, exclusão, paginação, quatro papéis e arquivados. Muda o projeto ativo da fixture para arquivado ao final; recrie a fixture antes de outros testes que precisem dele ativo. Previews em storage/previews/task-panel-390.png/task-panel-1440.png e task-checklists-*.png, ignorados no Git.

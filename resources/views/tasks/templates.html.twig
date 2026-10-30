@@ -1,0 +1,45 @@
+{% import 'ui/icons.html.twig' as ui %}
+<template id="task-details-template">
+    <div class="tp-details">
+        <div class="tp-overview"><div class="tp-task-heading"><h3 data-task-heading></h3><button type="button" class="tp-icon" data-page="reload" aria-label="Atualizar detalhes" title="Atualizar detalhes">{{ ui.icon('refresh') }}</button></div><p class="tp-task-meta" data-task-meta></p><div class="tp-total"><div><span data-total-count></span><strong data-total-percent></strong></div><progress class="tp-progress" data-total-progress max="1" value="0" aria-label="Progresso das subtarefas"></progress></div><p class="tp-notice" data-readonly hidden>Você possui acesso de leitura. Este quadro está disponível para consulta.</p></div>
+        <div class="tp-tabs" role="tablist" aria-label="Seções da tarefa"><button type="button" id="task-tab-subtasks" role="tab" aria-selected="true" aria-controls="task-pane-subtasks" data-task-tab="subtasks">Subtarefas</button><button type="button" id="task-tab-comments" role="tab" aria-selected="false" aria-controls="task-pane-comments" tabindex="-1" data-task-tab="comments">Comentários</button><button type="button" id="task-tab-details" role="tab" aria-selected="false" aria-controls="task-pane-details" tabindex="-1" data-task-tab="details">Detalhes</button></div>
+        <div id="task-pane-subtasks" role="tabpanel" aria-labelledby="task-tab-subtasks" tabindex="0">
+            <div data-checklists></div><p class="tp-empty" data-checklist-empty>Nenhuma lista por aqui ainda.</p>
+            <details tabindex="-1" class="tp-settings tp-new-checklist" data-write-only><summary tabindex="0">Adicionar checklist</summary><form data-task-action="checklist.create" class="tp-composer"><input name="title" maxlength="120" required aria-label="Nova lista" placeholder="Nome da lista"><button type="submit" class="tp-icon" aria-label="Adicionar lista" title="Adicionar lista">{{ ui.icon('plus') }}</button></form></details>
+        </div>
+        <div id="task-pane-comments" role="tabpanel" aria-labelledby="task-tab-comments" tabindex="0" hidden>
+        <section class="tp-section"><h3>Comentários</h3><form data-task-action="comment.create" class="tp-form" data-write-only><label class="tp-field">Novo comentário<textarea name="body" rows="3" maxlength="5000" placeholder="Compartilhe uma atualização…"></textarea></label><button type="submit" class="tp-button tp-primary">Comentar</button></form><div data-comments></div><p class="tp-empty" data-comment-empty>Nenhum comentário nesta página.</p><div data-comment-pages></div></section>
+        </div>
+        <div id="task-pane-details" role="tabpanel" aria-labelledby="task-tab-details" tabindex="0" hidden>
+        <form id="task-edit" data-task-action="task.update" class="tp-form tp-section">
+            <fieldset class="tp-fields"><legend>Informações da tarefa</legend><p class="tp-help">Dê clareza ao próximo passo. Título é obrigatório; os demais campos são opcionais.</p>
+                <label class="tp-field">Título<input name="title" maxlength="200" aria-required="true"></label>
+                <label class="tp-field">Descrição<textarea name="description" rows="4" maxlength="16000" placeholder="O que precisa ser feito?"></textarea></label>
+                <label class="tp-field">Prioridade<select name="priority"><option value="low">Baixa</option><option value="normal">Normal</option><option value="high">Alta</option><option value="urgent">Urgente</option></select></label>
+                <fieldset class="tp-group"><legend>Planejamento</legend><div class="tp-date-grid"><label class="tp-field">Início previsto<input name="starts_on" type="date" min="1000-01-01" max="9999-12-31"></label><label class="tp-field">Prazo previsto<input name="due_on" type="date" min="1000-01-01" max="9999-12-31"></label></div><label class="tp-field">Início real (UTC)<input name="started_at" type="datetime-local" step="1" aria-describedby="task-utc-help"></label><p id="task-utc-help" class="tp-help">O início real é registrado em UTC, sem conversão para o horário local.</p></fieldset>
+                <fieldset class="tp-group"><legend>Responsáveis</legend><p class="tp-help">Selecione as pessoas que vão cuidar desta entrega.</p><div class="task-assignee-choices" data-assignees></div></fieldset>
+                <button type="submit" class="tp-button tp-primary" data-write-only>Salvar detalhes</button>
+            </fieldset>
+        </form>
+        <p class="tp-meta" data-task-stamp></p>
+        <section class="tp-section"><h3>Histórico da tarefa</h3><p class="tp-help">Acompanhe as mudanças e quem participou delas. Horários em UTC.</p><div data-activity></div><p class="tp-empty" data-activity-empty>Nenhuma atividade nesta página.</p><div data-activity-pages></div></section>
+        </div>
+    </div>
+</template>
+<template id="task-assignee-template"><label class="tp-check"><input type="checkbox" name="assignee_ids"><span></span></label></template>
+<template id="task-checklist-template">
+    <section class="tp-checklist"><div class="tp-list-heading"><h4></h4><span class="tp-meta" data-list-count></span><details tabindex="-1" class="tp-list-menu" data-write-only><summary tabindex="0" aria-label="Configurar lista" title="Configurar lista">{{ ui.icon('more') }}</summary><div class="tp-list-options"><form data-task-action="checklist.update" class="tp-composer"><input name="title" maxlength="120" required aria-label="Nome da lista"><button type="submit" class="tp-icon" aria-label="Salvar lista" title="Salvar lista">{{ ui.icon('check') }}</button></form><button type="button" class="tp-button tp-danger" data-task-action="checklist.delete">Excluir lista e itens</button></div></details></div>
+        <div data-items></div><p class="tp-empty" data-item-empty>Nenhum item nesta lista.</p><form data-task-action="item.create" class="tp-composer tp-item-create" data-write-only><span aria-hidden="true">{{ ui.icon('plus') }}</span><input name="title" maxlength="300" required aria-label="Nova subtarefa" placeholder="Adicionar subtarefa"><button type="submit" class="tp-icon" aria-label="Adicionar item" title="Adicionar item">{{ ui.icon('arrow-right') }}</button></form>
+    </section>
+</template>
+<template id="task-item-template">
+    <div class="tp-item"><form data-task-action="item.update" class="tp-item-row" data-write-only>
+        <label class="tp-item-check"><input name="is_done" type="checkbox" aria-label="Concluir subtarefa"></label>
+        <button type="button" class="tp-item-title" data-item-edit></button><input class="tp-item-input" name="title" maxlength="300" required aria-label="Título da subtarefa" hidden>
+        <button type="button" class="tp-icon" data-item-edit data-item-pencil aria-label="Editar subtarefa" title="Editar subtarefa">{{ ui.icon('edit') }}</button><button type="button" class="tp-icon tp-delete" data-task-action="item.delete" aria-label="Excluir item" title="Excluir item">{{ ui.icon('trash') }}</button>
+        <button type="submit" class="tp-icon" data-item-confirm aria-label="Salvar item" title="Salvar item" hidden>{{ ui.icon('check') }}</button><button type="button" class="tp-icon" data-item-cancel aria-label="Cancelar edição" title="Cancelar edição" hidden>{{ ui.icon('close') }}</button>
+    </form><p class="task-note tp-item-readonly" data-item-readonly hidden></p></div>
+</template>
+<template id="task-comment-template"><article class="tp-comment"><p class="tp-meta" data-comment-stamp></p><p class="task-note" data-comment-body></p><details tabindex="-1" class="tp-settings" data-comment-edit><summary tabindex="0">Editar comentário</summary><form data-task-action="comment.update" class="tp-form"><label class="tp-field">Comentário<textarea name="body" rows="3" maxlength="5000"></textarea></label><button type="submit" class="tp-button tp-secondary">Salvar comentário</button></form></details><button type="button" class="tp-button tp-danger" data-comment-delete data-task-action="comment.delete">Excluir comentário</button></article></template>
+<template id="task-activity-template"><p class="tp-event"><span data-event-title></span><span class="tp-meta" data-event-stamp></span></p></template>
+<template id="task-pages-template"><nav class="tp-pagination"><button type="button" class="tp-button tp-secondary" data-previous>Anterior</button><span class="tp-meta"></span><button type="button" class="tp-button tp-secondary" data-next>Próxima</button></nav></template>

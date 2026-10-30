@@ -5,6 +5,7 @@ const runBoardBrowser = require('./board-browser.cjs');
 runBoardBrowser(async ({page, save, boardUrl}) => {
     await page.setViewportSize({width: 1280, height: 1000});
     await page.getByRole('button', {name: 'Título persistido', exact: true}).click();
+    await page.getByRole('tab', {name: 'Detalhes', exact: true}).click();
     const edit = page.locator('#task-edit'); await edit.waitFor();
     await edit.locator('[name="title"]').fill('Tarefa consolidada');
     await edit.locator('[name="description"]').fill('<script>window.reportXss=true</script>');
@@ -26,7 +27,7 @@ runBoardBrowser(async ({page, save, boardUrl}) => {
     await page.locator('#priority').selectOption('high');
     await Promise.all([page.waitForURL(/priority=high/), page.getByRole('button', {name: 'Filtrar', exact: true}).click()]);
     await page.getByRole('link', {name: 'Tarefa consolidada', exact: true}).click();
-    await page.waitForURL(/\/board\?task=\d+/); await edit.waitFor();
+    await page.waitForURL(/\/board\?task=\d+/); await page.getByRole('tab', {name: 'Detalhes', exact: true}).click(); await edit.waitFor();
     assert.equal(await edit.locator('[name="title"]').inputValue(), 'Tarefa consolidada', 'Link abre o painel da tarefa correta');
     await page.locator('#task-panel-close').click();
     await page.waitForFunction(() => !document.getElementById('task-panel').classList.contains('show'));

@@ -59,7 +59,7 @@ runBoardBrowser(async ({page, context, boardUrl}) => {
     assert.equal(await page.locator('.app-nav a[aria-current]').getAttribute('aria-current'), 'location');
     // Coexistência com offcanvas Bootstrap: a barra não deve cobrir o painel de tarefa.
     await page.setViewportSize({width: 390, height: 844}); await page.goto(boardUrl);
-    await page.getByRole('button', {name: 'Título persistido', exact: true}).click(); await page.locator('#task-edit').waitFor();
+    await page.getByRole('button', {name: 'Título persistido', exact: true}).click(); await page.getByRole('tab', {name: 'Detalhes', exact: true}).click(); await page.locator('#task-edit').waitFor();
     const close = page.locator('#task-panel-close');
     await page.waitForFunction(() => {
         const element = document.getElementById('task-panel-close'); const rect = element.getBoundingClientRect();

@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 ### Adicionado
+- Revisão do painel conforme preview aprovado: fundo branco, resumo e abas Subtarefas/Comentários/Detalhes, com checklist como visualização inicial.
+- Marcação direta, edição com confirmação/cancelamento e exclusão de subtarefas na mesma linha; adição compacta e gestão da lista em menu.
+- Contagem agregada de subtarefas concluídas/total e percentual no painel/card, com snapshot SQL limitado ao tenant/projeto, sem N+1; conclusão continua pela coluna.
+- Painel de tarefas Fluxo Claro, com planejamento, responsáveis, progresso nativo de checklists, comentários e histórico; tela cheia no celular e lateral no desktop.
+- Templates Twig para detalhes dinâmicos, CSS externo próprio, retorno do foco ao card ao fechar e restauração de foco/rolagem após salvar.
+- Fechamento por Escape com confirmação de descarte, nova tentativa de leitura após falha e paginação identificada por seção.
+- Teste Chromium/axe do painel em 320–1440px, foco/rolagem, retry, exclusão, paginação, quatro papéis e consulta de arquivados.
 - Quadro Kanban Fluxo Claro: cards/colunas responsivos, filtros recolhidos com contador/limpeza, navegação horizontal e controles de edição por papel.
 - Templates Twig nativos para o quadro dinâmico, estilos e comportamento externos; foco e posição horizontal preservados após gravações.
 - Teste Chromium/axe do quadro em 320–1440px, alternativas ao arrastar, consulta sem JS e regressão de tarefas/relatórios.

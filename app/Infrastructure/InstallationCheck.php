@@ -52,7 +52,7 @@ final class InstallationCheck
         $errors = self::configurationErrors($config, $production);
         if (!$errors) $record(true, $production ? 'Configuração de produção válida.' : 'Configuração local válida.');
         foreach ($errors as $error) $record(false, $error);
-        foreach (['assets/brand/mark.svg', 'assets/css/design-tokens.css', 'assets/css/auth.css', 'assets/css/app-shell.css', 'assets/css/dashboard.css', 'assets/css/projects-list.css', 'assets/css/projects-form.css', 'assets/css/project-details.css', 'assets/css/project-members.css', 'assets/js/project-members.js', 'assets/js/projects-form.js', 'assets/css/legacy-layout.css', 'assets/js/app-shell.js', 'assets/js/auth.js', 'assets/css/bootstrap.min.css', 'assets/css/board.css', 'assets/css/reports.css', 'assets/vendor/bootstrap/bootstrap.bundle.min.js', 'assets/vendor/sortablejs/Sortable.min.js', 'assets/js/board.js'] as $asset) {
+        foreach (['assets/brand/mark.svg', 'assets/css/design-tokens.css', 'assets/css/auth.css', 'assets/css/app-shell.css', 'assets/css/dashboard.css', 'assets/css/projects-list.css', 'assets/css/projects-form.css', 'assets/css/project-details.css', 'assets/css/project-members.css', 'assets/js/project-members.js', 'assets/js/projects-form.js', 'assets/css/legacy-layout.css', 'assets/js/app-shell.js', 'assets/js/auth.js', 'assets/css/bootstrap.min.css', 'assets/css/board.css', 'assets/css/task-panel.css', 'assets/css/reports.css', 'assets/vendor/bootstrap/bootstrap.bundle.min.js', 'assets/vendor/sortablejs/Sortable.min.js', 'assets/js/board.js'] as $asset) {
             $record(is_readable($root . '/public/' . $asset), 'Asset local: ' . $asset . '.');
         }
         try {

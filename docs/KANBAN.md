@@ -15,7 +15,7 @@ O quadro usa colunas de 85vw no celular (até 575px) e 288px nas demais larguras
 
 **Filtrar tarefas** recolhe os seletores de prioridade, responsável, coluna e prazo; mostra a quantidade de filtros ativos e oferece **Limpar filtros**. Com filtros ativos, a contagem mostra visíveis de total e o arrastar fica suspenso; os formulários de movimentação continuam disponíveis. Prioridade, atraso e conclusão são comunicados por texto, além das cores.
 
-Criação de coluna e configurações ficam recolhidas. Campos têm texto de 16px e ações principais têm alvo mínimo de 44px. Após gravações, foco retorna ao formulário correspondente e a posição horizontal é preservada. Abertura dos detalhes da tarefa continua no painel existente; seu visual será migrado no próximo incremento.
+Criação de coluna e configurações ficam recolhidas. Campos têm texto de 16px e ações principais têm alvo mínimo de 44px. Após gravações, foco retorna ao formulário correspondente e a posição horizontal é preservada. Os detalhes abrem no painel Fluxo Claro, com tela cheia no celular e apresentação lateral nas demais larguras; veja [TASKS.md](TASKS.md).
 
 Estrutura está em `resources/views/board.html.twig` e `kanban/templates.html.twig`; apresentação em `public/assets/css/board.css`; comportamento em `public/assets/js/board.js`. JavaScript clona templates HTML nativos e preenche `textContent`/valores, sem inserir HTML vindo dos usuários. O estado JSON inerte existente não é código executável. Sortable/Bootstrap mantêm seus estilos de posicionamento em tempo de execução; não há CSS ou scripts executáveis inline escritos para a nova interface. Sem JS, o snapshot do servidor permite consultar títulos/colunas; controles dependentes de JS permanecem ocultos.
 
@@ -42,6 +42,8 @@ Ordenação, conclusão/reabertura, incremento de versão e auditoria são atôm
 | task.move | task_id, column_id, position (inteira, base zero) |
 
 IDs são inteiros positivos; posições são contíguas por coluna. O servidor ignora campos de tenant, projeto, autor ou conclusão enviados pelo cliente e usa seu próprio contexto. Respostas bem-sucedidas contêm `{ok: true, board: ...}` com a versão e o estado persistido; erros contêm `{ok: false, message: ...}`. Códigos relevantes: 401 sessão inválida, 403 permissão, 404 escopo inválido, 409 conflito/estado incompatível, 419 CSRF, 422 validação. O corpo JSON tem limite de 64 KiB. A validação ocorre também antes do roteamento para contornar o tratamento de JSON inválido no Pecee 5.
+
+O snapshot de cada tarefa inclui `subtask_total` e `subtask_done` como inteiros, agregados de todas as listas com escopo de tenant/projeto. Card e painel derivam o percentual; sem itens o card omite o resumo. O checklist não modifica a conclusão por coluna.
 
 ## Instalação e dependência
 
@@ -76,4 +78,4 @@ O teste visual `tests/board-ui-browser.cjs` requer também `@axe-core/playwright
 
 ## Próximo incremento
 
-Detalhes, responsáveis, datas, checklists e comentários já estão disponíveis conforme [TASKS.md](TASKS.md). Próximo incremento de UI/UX: painel de detalhes das tarefas. Homologação operacional permanece adiada.
+Detalhes, responsáveis, datas, checklists e comentários já estão disponíveis conforme [TASKS.md](TASKS.md). Quadro e painel de detalhes já usam o Fluxo Claro. Próximo incremento de UI/UX: Minhas Tarefas. Homologação operacional permanece adiada.

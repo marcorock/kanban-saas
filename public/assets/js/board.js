@@ -12,6 +12,7 @@
     const dirtyForms = new Set();
     let taskId = null;
     let taskDetails = null;
+    let taskTab = 'subtasks';
     let taskRequest = 0;
     const priorities = {low: 'Baixa', normal: 'Normal', high: 'Alta', urgent: 'Urgente'};
     const filters = {priority: document.getElementById('filter-priority'), assignee: document.getElementById('filter-assignee'), column: document.getElementById('filter-column'), due: document.getElementById('filter-due')};
@@ -39,11 +40,6 @@
     function notify(text, error = false) {
         message.textContent = text;
         message.className = `kb-notice kb-notice-${error ? 'error' : 'success'}`;
-    }
-    function button(text, className = 'btn btn-sm btn-outline-primary') {
-        const item = element('button', className, text);
-        item.type = 'submit';
-        return item;
     }
     function cloneTemplate(id) {
         return document.getElementById(id).content.firstElementChild.cloneNode(true);
@@ -75,6 +71,13 @@
                 const title = card.querySelector('[data-task-open]'); title.textContent = task.title; title.dataset.taskOpen = String(task.id);
                 const priority = card.querySelector('.kb-priority'); priority.textContent = priorities[task.priority]; priority.dataset.priority = task.priority;
                 card.querySelector('.kb-completed').hidden = !task.completed_at;
+                const summary = card.querySelector('[data-subtask-summary]'); summary.hidden = !task.subtask_total;
+                if (task.subtask_total) {
+                    summary.querySelector('[data-subtask-count]').textContent = `${task.subtask_done}/${task.subtask_total} subtarefas`;
+                    summary.querySelector('[data-subtask-percent]').textContent = `${Math.round(task.subtask_done * 100 / task.subtask_total)}%`;
+                    const progress = summary.querySelector('progress'); progress.max = task.subtask_total; progress.value = task.subtask_done;
+                    progress.setAttribute('aria-label', `${task.subtask_done} de ${task.subtask_total} subtarefas concluídas`);
+                }
                 const due = card.querySelector('.kb-task-due'); due.hidden = !task.due_on;
                 if (task.due_on) { due.textContent = `${task.overdue ? 'Atrasada · ' : ''}Prazo: ${task.due_on.split('-').reverse().join('/')}`; due.classList.toggle('kb-overdue', task.overdue); }
                 const assigned = card.querySelector('.kb-task-assignees'); assigned.hidden = !task.assignees.length;
@@ -128,6 +131,7 @@
     async function save(action, payload) {
         if (saving) return;
         const focus = focusTarget();
+        const panelDisabled = new Map([...panelContent.querySelectorAll('input,select,textarea,button')].map(control => [control, control.disabled]));
         saving = true;
         let success = false;
         document.getElementById('task-panel-close').disabled = true;
@@ -158,7 +162,7 @@
             document.querySelectorAll('#board-filters select, #clear-board-filters').forEach(item => { item.disabled = false; });
             restoreFocus(focus);
             document.getElementById('task-panel-close').disabled = false;
-            panelContent.querySelectorAll('input,select,textarea,button').forEach(item => { item.disabled = !board.can_write && !item.dataset.page; });
+            panelContent.querySelectorAll('input,select,textarea,button').forEach(item => { item.disabled = panelDisabled.get(item) || (!board.can_write && !item.dataset.page); });
         }
         return success;
     }
@@ -192,101 +196,132 @@
         save('column.create', {name: data.get('name'), is_done: data.has('is_done')});
     });
     function taskNotify(text, error = false) {
-        taskMessage.className = `alert alert-${error ? 'danger' : 'success'}`; taskMessage.textContent = text;
+        taskMessage.hidden = false; taskMessage.className = `tp-notice tp-notice-${error ? 'error' : 'success'}`;
+        taskMessage.textContent = text; taskMessage.setAttribute('role', error ? 'alert' : 'status');
+        if (error) taskMessage.focus();
     }
     function discard() { return dirtyForms.size === 0 || window.confirm('Descartar as alterações ainda não salvas?'); }
     function stamp(value) {
         return value ? new Intl.DateTimeFormat('pt-BR', {timeZone: 'UTC', dateStyle: 'short', timeStyle: 'short'}).format(new Date(value.replace(' ', 'T') + 'Z')) + ' UTC' : 'Não definido';
     }
-    function field(name, label, value, type = 'text', max = 200) {
-        const wrapper = element('label', 'form-label d-block'); wrapper.append(document.createTextNode(label));
-        const control = element(type === 'textarea' ? 'textarea' : 'input', 'form-control mt-1'); control.name = name;
-        if (type !== 'textarea') control.type = type;
-        control.value = value || '';
-        if (type === 'text' || type === 'textarea') control.maxLength = max;
-        if (type === 'datetime-local') control.step = '1';
-        if (type === 'date') { control.min = '1000-01-01'; control.max = '9999-12-31'; }
-        wrapper.append(control); return wrapper;
+    function bindTaskAction(node, key, value) {
+        node.querySelectorAll('[data-task-action]').forEach(control => { control.dataset[key] = String(value); });
     }
-    function editor(action, data = {}) {
-        const form = element('form', 'mt-3'); form.dataset.taskAction = action;
-        for (const [key, value] of Object.entries(data)) form.dataset[key] = String(value);
-        return form;
-    }
-    function actionButton(action, label, data, danger = true) {
-        const control = button(label, `btn btn-sm btn-outline-${danger ? 'danger' : 'secondary'} mt-2`); control.type = 'button'; control.dataset.taskAction = action;
-        for (const [key, value] of Object.entries(data)) control.dataset[key] = String(value);
-        return control;
-    }
-    function heading(text) { return element('h3', 'h6 mt-4', text); }
-    function pages(parent, result, type) {
-        const nav = element('div', 'd-flex justify-content-between align-items-center mt-2 small');
-        for (const [label, page] of [['Anterior', result.page - 1], ['Próxima', result.page + 1]]) {
-            if (page < 1 || page > result.pages) continue;
-            const control = button(label, 'btn btn-sm btn-outline-secondary'); control.type = 'button'; control.dataset.page = type; control.dataset.number = String(page); nav.append(control);
+    function taskPages(parent, result, type) {
+        if (result.pages <= 1) return;
+        const nav = cloneTemplate('task-pages-template'); nav.setAttribute('aria-label', type === 'comments' ? 'Páginas de comentários' : 'Páginas do histórico');
+        nav.querySelector('span').textContent = `Página ${result.page} de ${result.pages}`;
+        for (const [selector, number] of [['[data-previous]', result.page - 1], ['[data-next]', result.page + 1]]) {
+            const control = nav.querySelector(selector); control.dataset.page = type; control.dataset.number = String(number);
+            control.disabled = number < 1 || number > result.pages;
         }
-        nav.append(element('span', '', `Página ${result.page} de ${result.pages}`)); parent.append(nav);
+        parent.append(nav);
+    }
+    function selectTaskTab(name, focus = false) {
+        taskTab = name;
+        panelContent.querySelectorAll('[data-task-tab]').forEach(tab => {
+            const active = tab.dataset.taskTab === name; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1;
+            document.getElementById(tab.getAttribute('aria-controls')).hidden = !active;
+            if (active && focus) tab.focus();
+        });
+    }
+    function editItem(form, editing) {
+        form.dataset.editing = String(editing);
+        form.querySelectorAll('[data-item-edit], [data-task-action="item.delete"]').forEach(control => { control.hidden = editing; });
+        form.querySelector('input[name="title"]').hidden = !editing;
+        form.querySelector('[data-item-confirm]').hidden = !editing; form.querySelector('[data-item-cancel]').hidden = !editing;
+        form.querySelector('[name="is_done"]').disabled = editing;
+        if (editing) { const input = form.querySelector('[name="title"]'); input.focus(); input.select(); }
+        else { form.querySelector('[name="title"]').value = form.dataset.originalTitle; dirtyForms.delete(form); form.querySelector('.tp-item-title').focus({preventScroll: true}); }
     }
     function renderTask() {
         const data = taskDetails; const task = data.task; const writable = board.can_write;
-        panelContent.replaceChildren(); dirtyForms.clear();
-        panelContent.append(element('p', 'small text-body-secondary', `Criada em ${stamp(task.created_at)} · Conclusão: ${task.completed_at ? stamp(task.completed_at) : 'Pendente'}`));
-        const reload = button('Atualizar detalhes', 'btn btn-sm btn-outline-secondary'); reload.type = 'button'; reload.dataset.page = 'reload'; panelContent.append(reload);
-        const edit = editor('task.update'); edit.id = 'task-edit';
-        const fields = element('fieldset'); fields.disabled = !writable;
-        fields.append(field('title', 'Título', task.title), field('description', 'Descrição', task.description, 'textarea', 16000));
-        const priorityLabel = element('label', 'form-label d-block', 'Prioridade'); const priority = element('select', 'form-select'); priority.name = 'priority';
-        for (const [value, title] of Object.entries(priorities)) { const option = element('option', '', title); option.value = value; option.selected = task.priority === value; priority.append(option); }
-        priorityLabel.append(priority); fields.append(priorityLabel);
-        fields.append(field('starts_on', 'Início previsto', task.starts_on, 'date'), field('due_on', 'Prazo previsto', task.due_on, 'date'), field('started_at', 'Início real (UTC)', task.started_at?.replace(' ', 'T'), 'datetime-local'));
-        const assigned = element('fieldset', 'mt-3'); assigned.append(element('legend', 'h6', 'Responsáveis'));
-        const choices = element('div', 'task-assignee-choices');
+        const content = cloneTemplate('task-details-template');
+        content.querySelector('[data-task-heading]').textContent = task.title;
+        const column = board.columns.find(column => column.tasks.some(item => item.id === task.id));
+        content.querySelector('[data-task-meta]').textContent = [column?.name, task.due_on ? 'Prazo: ' + task.due_on.split('-').reverse().join('/') : 'Sem prazo', ...data.members.filter(member => task.assignee_ids.includes(member.id)).map(member => member.name)].filter(Boolean).join(' · ');
+        const allItems = data.checklists.flatMap(list => list.items); const doneItems = allItems.filter(item => item.is_done).length;
+        content.querySelector('[data-total-count]').textContent = allItems.length ? `${doneItems} de ${allItems.length} subtarefas concluídas` : 'Sem subtarefas';
+        content.querySelector('[data-total-percent]').textContent = allItems.length ? `${Math.round(doneItems * 100 / allItems.length)}%` : '';
+        const totalProgress = content.querySelector('[data-total-progress]'); totalProgress.hidden = !allItems.length; totalProgress.max = allItems.length || 1; totalProgress.value = doneItems;
+        totalProgress.setAttribute('aria-label', `${doneItems} de ${allItems.length} subtarefas concluídas`);
+        content.querySelector('[data-task-stamp]').textContent = `Criada em ${stamp(task.created_at)} · Conclusão: ${task.completed_at ? stamp(task.completed_at) : 'Pendente'}`;
+        content.querySelector('[data-readonly]').hidden = writable;
+        const edit = content.querySelector('#task-edit'); edit.querySelector('fieldset').disabled = !writable;
+        for (const name of ['title', 'description', 'priority', 'starts_on', 'due_on']) edit.elements[name].value = task[name] || '';
+        edit.elements.started_at.value = task.started_at?.replace(' ', 'T') || '';
         for (const member of data.members) {
-            const label = element('label', 'form-check d-block'); const checkbox = element('input', 'form-check-input'); checkbox.type = 'checkbox'; checkbox.name = 'assignee_ids'; checkbox.value = String(member.id); checkbox.checked = task.assignee_ids.includes(member.id);
-            label.append(checkbox, document.createTextNode(member.name)); choices.append(label);
+            const label = cloneTemplate('task-assignee-template'); label.querySelector('span').textContent = member.name;
+            const checkbox = label.querySelector('input'); checkbox.value = String(member.id); checkbox.checked = task.assignee_ids.includes(member.id);
+            content.querySelector('[data-assignees]').append(label);
         }
-        assigned.append(choices); fields.append(assigned);
-        if (writable) fields.append(button('Salvar detalhes', 'btn btn-primary mt-3')); edit.append(fields); panelContent.append(edit);
-        panelContent.append(heading('Checklists e subtarefas'));
+        content.querySelector('[data-checklist-empty]').hidden = data.checklists.length > 0;
         for (const checklist of data.checklists) {
-            const section = element('section', 'card card-body mt-3'); section.append(element('h4', 'h6', `${checklist.title} · ${checklist.items.filter(item => item.is_done).length}/${checklist.items.length}`));
-            if (writable) {
-                const settings = element('details'); settings.append(element('summary', 'small', 'Configurar lista'));
-                const rename = editor('checklist.update', {checklistId: checklist.id}); rename.append(field('title', 'Nome da lista', checklist.title, 'text', 120), button('Salvar lista')); settings.append(rename, actionButton('checklist.delete', 'Excluir lista e itens', {checklistId: checklist.id})); section.append(settings);
-            }
+            const section = cloneTemplate('task-checklist-template'); const done = checklist.items.filter(item => item.is_done).length;
+            section.querySelector('h4').textContent = checklist.title;
+            section.querySelector('[data-list-count]').textContent = `${done}/${checklist.items.length}`;
+            bindTaskAction(section, 'checklistId', checklist.id);
+            section.querySelector('[data-task-action="checklist.update"] input').value = checklist.title;
+            section.querySelector('[data-item-empty]').hidden = checklist.items.length > 0;
             for (const item of checklist.items) {
-                if (!writable) { section.append(element('p', 'task-note mt-2', `${item.is_done ? '☑' : '☐'} ${item.title}`)); continue; }
-                const entry = editor('item.update', {itemId: item.id}); entry.append(field('title', 'Item / subtarefa', item.title, 'text', 300));
-                const label = element('label', 'form-check d-block'); const done = element('input', 'form-check-input'); done.type = 'checkbox'; done.name = 'is_done'; done.checked = item.is_done; label.append(done, document.createTextNode('Concluído'));
-                entry.append(label, button('Salvar item')); section.append(entry, actionButton('item.delete', 'Excluir item', {itemId: item.id}));
+                const row = cloneTemplate('task-item-template'); bindTaskAction(row, 'itemId', item.id);
+                const form = row.querySelector('form'); form.dataset.originalTitle = item.title; form.dataset.done = String(item.is_done);
+                row.querySelector('input[name="title"]').value = item.title; row.querySelector('input[name="is_done"]').checked = item.is_done;
+                row.querySelector('input[name="is_done"]').setAttribute('aria-label', `${item.is_done ? 'Reabrir' : 'Concluir'} subtarefa: ${item.title}`);
+                row.querySelector('.tp-item-title').textContent = item.title;
+                const read = row.querySelector('[data-item-readonly]'); read.hidden = writable; read.textContent = `${item.is_done ? 'Concluído' : 'Pendente'} · ${item.title}`;
+                section.querySelector('[data-items]').append(row);
             }
-            if (writable) { const create = editor('item.create', {checklistId: checklist.id}); create.append(field('title', 'Novo item', '', 'text', 300), button('Adicionar item')); section.append(create); }
-            panelContent.append(section);
+            content.querySelector('[data-checklists]').append(section);
         }
-        if (writable) { const create = editor('checklist.create'); create.append(field('title', 'Nova lista', '', 'text', 120), button('Adicionar lista')); panelContent.append(create); }
-        panelContent.append(heading('Comentários'));
-        if (writable) { const create = editor('comment.create'); create.append(field('body', 'Novo comentário', '', 'textarea', 5000), button('Comentar')); panelContent.append(create); }
+        content.querySelector('[data-comment-empty]').hidden = data.comments.items.length > 0;
         for (const comment of data.comments.items) {
-            const article = element('article', 'border rounded p-3 mt-3'); article.dataset.commentId = String(comment.id);
-            article.append(element('p', 'small text-body-secondary', `${comment.author} · ${stamp(comment.created_at)}`), element('p', 'task-note', comment.body));
+            const article = cloneTemplate('task-comment-template'); article.dataset.commentId = String(comment.id); bindTaskAction(article, 'commentId', comment.id);
+            article.querySelector('[data-comment-stamp]').textContent = `${comment.author} · ${stamp(comment.created_at)}`;
+            article.querySelector('[data-comment-body]').textContent = comment.body;
             const own = Number(comment.author_id) === data.actor_id;
-            if (writable && own) {
-                const details = element('details'); details.append(element('summary', 'small', 'Editar comentário'));
-                const update = editor('comment.update', {commentId: comment.id}); update.append(field('body', 'Comentário', comment.body, 'textarea', 5000), button('Salvar comentário')); details.append(update); article.append(details);
-            }
-            if (writable && (own || board.can_manage)) article.append(actionButton('comment.delete', 'Excluir comentário', {commentId: comment.id}));
-            panelContent.append(article);
+            if (writable && own) article.querySelector('textarea').value = comment.body;
+            else article.querySelector('[data-comment-edit]').remove();
+            if (!writable || (!own && !board.can_manage)) article.querySelector('[data-comment-delete]').remove();
+            content.querySelector('[data-comments]').append(article);
         }
-        pages(panelContent, data.comments, 'comments');
-        panelContent.append(heading('Histórico da tarefa'));
+        taskPages(content.querySelector('[data-comment-pages]'), data.comments, 'comments');
         const labels = {'task.created': 'Tarefa criada', 'task.updated': 'Detalhes alterados', 'task.moved': 'Tarefa movimentada', 'task.completed': 'Tarefa concluída', 'task.reopened': 'Tarefa reaberta', 'task.assignees_changed': 'Responsáveis alterados', 'checklist.created': 'Lista criada', 'checklist.updated': 'Lista alterada', 'checklist.deleted': 'Lista excluída', 'checklist.item_created': 'Item criado', 'checklist.item_updated': 'Item alterado', 'checklist.item_deleted': 'Item excluído', 'comment.created': 'Comentário adicionado', 'comment.updated': 'Comentário alterado', 'comment.deleted': 'Comentário excluído'};
-        for (const event of data.activity.items) panelContent.append(element('p', 'small mb-2', `${labels[event.action] || 'Atividade registrada'} · ${event.author} · ${stamp(event.created_at)}`));
-        pages(panelContent, data.activity, 'activity');
+        content.querySelector('[data-activity-empty]').hidden = data.activity.items.length > 0;
+        for (const event of data.activity.items) {
+            const row = cloneTemplate('task-activity-template'); row.querySelector('[data-event-title]').textContent = labels[event.action] || 'Atividade registrada';
+            row.querySelector('[data-event-stamp]').textContent = `${event.author} · ${stamp(event.created_at)}`; content.querySelector('[data-activity]').append(row);
+        }
+        taskPages(content.querySelector('[data-activity-pages]'), data.activity, 'activity');
+        if (!writable) content.querySelectorAll('[data-write-only]').forEach(node => node.remove());
+        panelContent.replaceChildren(content); dirtyForms.clear(); selectTaskTab(taskTab);
     }
-    async function openTask(id, page = {}, force = false) {
+    function panelPosition() {
+        const control = document.activeElement; const form = control?.closest('form');
+        return {scroll: panel.querySelector('.offcanvas-body').scrollTop, page: control?.dataset.page, direction: control?.hasAttribute('data-next') ? 'next' : 'previous', action: form?.dataset.taskAction, checklistId: form?.dataset.checklistId, itemId: form?.dataset.itemId, commentId: form?.dataset.commentId, name: control?.name || form?.querySelector('input,textarea,select')?.name};
+    }
+    function restorePanelPosition(position) {
+        if (!position) return;
+        const form = [...panelContent.querySelectorAll('form')].find(form => ['action', 'checklistId', 'itemId', 'commentId'].every(key => (key === 'action' ? form.dataset.taskAction : form.dataset[key]) === position[key]));
+        let control = form && [...form.elements].find(control => control.name === position.name);
+        if (!control && position.page) {
+            const choices = [...panelContent.querySelectorAll('button[data-page]')].filter(button => button.dataset.page === position.page && !button.disabled);
+            control = choices.find(button => button.hasAttribute('data-' + position.direction)) || choices[0];
+        }
+        if (form?.dataset.taskAction === 'item.update' && position.name === 'title') control = form.querySelector('.tp-item-title');
+        if (control) {
+            const details = control.closest('details'); if (details) details.open = true;
+            control.focus({preventScroll: true});
+        }
+        panel.querySelector('.offcanvas-body').scrollTop = position.scroll;
+    }
+    async function openTask(id, page = {}, force = false, position = null) {
         if (saving || (!force && !discard())) return;
+        if (taskId !== Number(id)) taskTab = 'subtasks';
         taskId = Number(id); const sequence = ++taskRequest;
         panelContent.replaceChildren(); dirtyForms.clear(); taskDetails = null;
+        document.getElementById('task-retry').hidden = true;
+        panelContent.setAttribute('aria-busy', 'true');
         bootstrap.Offcanvas.getOrCreateInstance(panel).show(); taskNotify('Carregando detalhes…');
         try {
             const query = new URLSearchParams({comments_page: page.comments || 1, activity_page: page.activity || 1});
@@ -294,15 +329,20 @@
             const result = await response.json();
             if (sequence !== taskRequest) return;
             if (!response.ok || !result.ok) throw new Error(result.message || 'Não foi possível carregar a tarefa.');
-            board = result.board; taskDetails = result.details; render(); renderTask(); taskMessage.className = 'alert d-none';
-        } catch (error) { if (sequence === taskRequest) taskNotify(error.message, true); }
+            board = result.board; taskDetails = result.details; render(); renderTask(); taskMessage.hidden = true;
+            if (position) restorePanelPosition(position); else panel.querySelector('.offcanvas-body').scrollTop = 0;
+        } catch (error) { if (sequence === taskRequest) { taskNotify(error.message, true); document.getElementById('task-retry').hidden = false; } }
+        finally { if (sequence === taskRequest) panelContent.removeAttribute('aria-busy'); }
     }
     async function taskSave(action, payload, source = null) {
-        if (saving) return;
-        if (Array.from(dirtyForms).some(form => form !== source) && !window.confirm('Há alterações em outros campos. Descartá-las e continuar?')) return;
-        if (action.endsWith('.delete') && !window.confirm('Confirmar a exclusão?')) return;
+        if (saving) return false;
+        if (Array.from(dirtyForms).some(form => form !== source) && !window.confirm('Há alterações em outros campos. Descartá-las e continuar?')) return false;
+        if (action.endsWith('.delete') && !window.confirm('Confirmar a exclusão?')) return false;
         if (action.endsWith('.delete')) payload.confirm = true;
-        if (await save(action, {task_id: taskId, ...payload})) await openTask(taskId, {}, true);
+        const position = panelPosition();
+        const success = await save(action, {task_id: taskId, ...payload});
+        if (success) await openTask(taskId, {}, true, position);
+        return success;
     }
     for (const field of Object.values(filters)) field.addEventListener('change', () => { if (!saving) render(); });
     document.getElementById('clear-board-filters').addEventListener('click', () => {
@@ -317,30 +357,59 @@
     root.addEventListener('scroll', updateColumnNavigation, {passive: true});
     window.addEventListener('resize', updateColumnNavigation);
     root.addEventListener('click', event => { const target = event.target.closest('[data-task-open]'); if (target) openTask(target.dataset.taskOpen); });
-    panelContent.addEventListener('input', event => { const form = event.target.closest('form'); if (form) dirtyForms.add(form); });
-    panelContent.addEventListener('change', event => { const form = event.target.closest('form'); if (form) dirtyForms.add(form); });
+    panelContent.addEventListener('input', event => { const form = event.target.closest('form'); if (form && event.target.name !== 'is_done') dirtyForms.add(form); });
+    panelContent.addEventListener('change', async event => {
+        const form = event.target.closest('form'); if (!form) return;
+        if (form.dataset.taskAction === 'item.update' && event.target.name === 'is_done') {
+            const checkbox = event.target; const previous = form.dataset.done === 'true';
+            const success = await taskSave('item.update', {item_id: Number(form.dataset.itemId), title: form.dataset.originalTitle, is_done: checkbox.checked}, form);
+            if (!success) { checkbox.checked = previous; dirtyForms.delete(form); }
+        } else dirtyForms.add(form);
+    });
     panelContent.addEventListener('submit', event => {
         event.preventDefault(); const form = event.target; const fields = new FormData(form); const payload = {};
         for (const key of ['checklistId', 'itemId', 'commentId']) if (form.dataset[key]) payload[key.replace('Id', '_id')] = Number(form.dataset[key]);
         for (const key of ['title', 'description', 'priority', 'starts_on', 'due_on', 'body']) if (fields.has(key)) payload[key] = fields.get(key);
         if (fields.has('started_at')) { const value = fields.get('started_at'); payload.started_at = value ? value.replace('T', ' ') + (value.length === 16 ? ':00' : '') : ''; }
         if (form.dataset.taskAction === 'task.update') payload.assignee_ids = fields.getAll('assignee_ids').map(Number);
-        if (form.dataset.taskAction === 'item.update') payload.is_done = fields.has('is_done');
+        if (form.dataset.taskAction === 'item.update') payload.is_done = form.querySelector('[name="is_done"]').checked;
         taskSave(form.dataset.taskAction, payload, form);
     });
     panelContent.addEventListener('click', event => {
         const control = event.target.closest('button[type="button"]'); if (!control || saving) return;
+        if (control.dataset.taskTab) { selectTaskTab(control.dataset.taskTab); return; }
+        if (control.hasAttribute('data-item-edit')) { editItem(control.closest('form'), true); return; }
+        if (control.hasAttribute('data-item-cancel')) { editItem(control.closest('form'), false); return; }
         if (control.dataset.page) {
             const page = {comments: taskDetails.comments.page, activity: taskDetails.activity.page};
             if (control.dataset.page !== 'reload') page[control.dataset.page] = Number(control.dataset.number);
-            openTask(taskId, page); return;
+            openTask(taskId, page, false, panelPosition()); return;
         }
         const payload = {};
         for (const key of ['checklistId', 'itemId', 'commentId']) if (control.dataset[key]) payload[key.replace('Id', '_id')] = Number(control.dataset[key]);
         taskSave(control.dataset.taskAction, payload);
     });
-    document.getElementById('task-panel-close').addEventListener('click', () => {
-        if (saving || !discard()) return; ++taskRequest; dirtyForms.clear(); bootstrap.Offcanvas.getOrCreateInstance(panel).hide(); taskId = null;
+    panelContent.addEventListener('keydown', event => {
+        const tab = event.target.closest('[data-task-tab]');
+        if (tab && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+            event.preventDefault(); const tabs = [...panelContent.querySelectorAll('[data-task-tab]')]; const index = tabs.indexOf(tab);
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+            selectTaskTab(tabs[next].dataset.taskTab, true);
+        }
+        const form = event.target.closest('[data-editing="true"]');
+        if (event.key === 'Escape' && form) { event.preventDefault(); event.stopPropagation(); editItem(form, false); }
+    });
+    let returnTaskId = null;
+    function closeTask() {
+        if (saving || !discard()) return;
+        returnTaskId = taskId; ++taskRequest; dirtyForms.clear(); bootstrap.Offcanvas.getOrCreateInstance(panel).hide(); taskId = null;
+    }
+    document.getElementById('task-panel-close').addEventListener('click', closeTask);
+    document.getElementById('task-retry').addEventListener('click', () => { if (taskId) openTask(taskId); });
+    panel.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); closeTask(); } });
+    panel.addEventListener('hidden.bs.offcanvas', () => {
+        const trigger = [...root.querySelectorAll('[data-task-open]')].find(control => Number(control.dataset.taskOpen) === returnTaskId);
+        (trigger || root).focus({preventScroll: true});
     });
     window.addEventListener('beforeunload', event => { if (dirtyForms.size || saving) { event.preventDefault(); event.returnValue = ''; } });
 

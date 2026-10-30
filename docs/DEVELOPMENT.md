@@ -27,6 +27,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 39f7edc | Formulários de criação/edição com validação e retorno contextual |
 | 47d88da | Detalhes do projeto, planejamento e gerenciamento por papel |
 | b8f5fdb | Participantes, convites e aceite Fluxo Claro |
+| 01eb9ea | Quadro Kanban Fluxo Claro |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -105,3 +106,31 @@ Validação: regressão PHP completa e preflight local aprovados. Chromium/axe d
 ## Pausa após o oitavo incremento de UI/UX
 
 A pedido do usuário, o desenvolvimento foi pausado após aprovação e commit do quadro Kanban. O próximo incremento não foi iniciado. Na retomada, continuar pelo visual do painel de detalhes das tarefas, mantendo Twig, CSS e JavaScript separados. Validações e limitações do Kanban estão registradas acima e no PROJECT_CONTEXT.md. Homologação operacional permanece adiada.
+
+
+## Retomada em 30/10/2026 — nono incremento de UI/UX
+
+Retomada solicitada pelo usuário após pausa com Kanban aprovado e commitado (`01eb9ea`). Implementado o painel de detalhes das tarefas no Fluxo Claro, com seções de informações, planejamento, responsáveis, checklists, comentários e histórico. Tela cheia no celular abaixo de 640px e lateral de até 680px acima; header com fechamento acessível, corpo com rolagem própria e progresso nativo das listas.
+
+Estrutura dinâmica migrou para templates Twig em tasks/templates.html.twig; apresentação em task-panel.css; interações continuam externas em board.js. Textos/valores são preenchidos sem interpolar HTML. Fechar por Escape usa as mesmas proteções de descarte/gravação; foco retorna ao card. Gravações restauram posição/foco do formulário e falha de leitura oferece nova tentativa sem editor anterior. Paginações identificadas para comentários e histórico, mantendo limites existentes. Endpoints, serviços, autorização, transações e schema preservados; nenhuma migration nova ou alteração do .env. Homologação operacional continua adiada.
+
+Próximo incremento após aprovação: Minhas Tarefas. Históricos e configurações pessoais permanecem em entregas próprias. Este incremento aguarda aprovação para commit.
+
+Validação do nono incremento: regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px aprovado para painel, quatro papéis, arquivados, foco/Escape, rascunhos, XSS, retry, exclusão e paginação independente de comentários/histórico. Regressões do quadro, relatórios e shell aprovadas. Previews task-panel-*.png/task-checklists-*.png inspecionados visualmente, fora do Git. Testes exclusivamente em banco/Mailpit descartáveis; sem aparelhos físicos/leitores de tela ou certificação de acessibilidade.
+
+
+### Revisão visual solicitada — preview antes da implementação
+
+O usuário não aprovou o desenho inicial do nono incremento, especialmente os botões e sua disposição. Solicitou interface mais limpa, contagem/percentual das subtarefas na tarefa principal e checklist com marcação, edição e exclusão na mesma linha. Foi apresentado mockup conceitual mobile/desktop por imagegen, com resumo também no card Kanban, edição inline e ações compactas. Nenhuma alteração adicional na aplicação nesta etapa de preview. A revisão aguarda validação visual; a versão atual do painel permanece sem aprovação e sem commit. O progresso proposto agrega itens das listas e não substitui a conclusão por coluna. As validações acima correspondem à primeira implementação, não à proposta ainda não implementada.
+
+
+### Implementação da revisão após aprovação do preview
+
+O usuário aprovou o mockup e autorizou implementar. A revisão adota fundo branco, resumo de progresso, abas com Subtarefas inicialmente ativa e checklist em linhas compactas. Checkbox grava diretamente; editar/excluir ficam alinhados ao título e confirmar/cancelar permanecem na mesma linha durante edição. Adição compacta, menu de lista, atalhos Enter/Escape, navegação das abas com setas/Home/End e rascunhos preservados. Marcações com falha/cancelamento voltam ao estado confirmado; editar texto preserva a conclusão do item.
+
+Card e painel mostram concluídas/total e percentual agregado de todas as listas, sem alterar a conclusão por coluna. BoardService passou a agregar itens no snapshot com SQL restrito ao tenant/projeto, mantendo cinco consultas. Testes PHP acrescentam múltiplas listas, isolamento por tarefa/projeto, reabertura e exclusão. Testes de navegador foram adaptados às abas e à marcação direta; revisão concluída e aguardando aprovação da entrega funcional. Não há migration nova, alteração do .env ou publicação. Aprovação do preview não foi tratada como aprovação da entrega funcional para commit.
+
+Validação da revisão: regressão PHP completa e teste ampliado de progresso aprovados (múltiplas listas, isolamento por tarefa/projeto, reabertura/exclusão, 100% sem conclusão automática). Carga de 100/1.000 tarefas manteve cinco consultas no quadro. Preflight local aprovado. Chromium/axe do painel em 320–1440px aprovado para layout das ações, marcação direta, edição/cancelamento inline, preservação em falhas, 3/5 e 60%, abas/teclado, foco, retry, exclusão, paginação, quatro papéis e arquivados. Regressões de relatórios, shell e dashboard aprovadas. Previews reais mobile/desktop/edição inspecionados visualmente, fora do Git. Sem teste em aparelhos físicos/leitores de tela. Incremento permanece sem commit até aprovação da entrega.
+
+
+Nono incremento aprovado pelo usuário e incluído no commit `feat: redesenha painel de tarefas e checklist compacto` (hash no Git). Próximo incremento autorizado: UI/UX de Minhas Tarefas; históricos e configurações pessoais em entregas próprias.

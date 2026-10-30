@@ -118,6 +118,49 @@ $read = details($taskId, ['comments_page' => 2, 'activity_page' => 2]);
 check($read['details']['comments']['page'] === 2 && count($read['details']['comments']['items']) === 2 && $read['details']['activity']['page'] === 2, 'Paginação dos detalhes');
 $actions = $pdo->query("SELECT action FROM activity_logs WHERE task_id = {$taskId}")->fetchAll(PDO::FETCH_COLUMN);
 foreach (['task.updated', 'task.assignees_changed', 'checklist.created', 'checklist.updated', 'checklist.deleted', 'checklist.item_created', 'checklist.item_updated', 'checklist.item_deleted', 'comment.created', 'comment.updated', 'comment.deleted'] as $event) check(in_array($event, $actions, true), 'Histórico obrigatório');
+// Progresso agregado por tarefa: várias listas, outro tenant/projeto, reabertura e exclusão.
+$progressProject = $projectService->create($ownerId, ['name' => 'Progresso', 'description' => '', 'starts_on' => '', 'due_on' => '']);
+$progressState = $service->state($ownerId, $progressProject);
+$progressColumn = $progressState['columns'][0]['id'];
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'task.create', ['column_id' => $progressColumn, 'title' => 'Principal']);
+$progressTask = $progressState['columns'][0]['tasks'][0]['id'];
+$progress = static function (int $total, int $done) use (&$progressState): void {
+    $card = $progressState['columns'][0]['tasks'][0];
+    check($card['subtask_total'] === $total && $card['subtask_done'] === $done, 'Contagem agregada de todas as listas');
+    check($card['completed_at'] === null, 'Checklist não conclui a tarefa principal');
+};
+$progress(0, 0);
+foreach (['Primeira', 'Segunda'] as $listName) {
+    $progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'checklist.create', ['task_id' => $progressTask, 'title' => $listName]);
+    $lists = $service->task($ownerId, $progressProject, $progressTask)['details']['checklists'];
+    $newList = end($lists)['id'];
+    $progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'item.create', ['task_id' => $progressTask, 'checklist_id' => $newList, 'title' => 'Passo']);
+}
+$progress(2, 0);
+$read = $service->task($ownerId, $progressProject, $progressTask)['details'];
+$firstItem = $read['checklists'][0]['items'][0]['id'];
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'item.update', ['task_id' => $progressTask, 'item_id' => $firstItem, 'title' => 'Passo', 'is_done' => true]);
+$progress(2, 1);
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'task.create', ['column_id' => $progressColumn, 'title' => 'Outra tarefa']);
+$siblingTask = $progressState['columns'][0]['tasks'][1]['id'];
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'checklist.create', ['task_id' => $siblingTask, 'title' => 'Outra lista']);
+$siblingList = $service->task($ownerId, $progressProject, $siblingTask)['details']['checklists'][0]['id'];
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'item.create', ['task_id' => $siblingTask, 'checklist_id' => $siblingList, 'title' => 'Não somar na principal']);
+$progress(2, 1);
+check($progressState['columns'][0]['tasks'][1]['subtask_total'] === 1, 'Itens isolados por tarefa no mesmo projeto');
+
+$isolated = $service->state($ownerId, $projectId)['columns'];
+foreach ($isolated as $column) foreach ($column['tasks'] as $card) if ($card['id'] === $taskId) check($card['subtask_total'] === 0 && $card['subtask_done'] === 0, 'Contagem isolada por tarefa/projeto');
+$secondItem = $read['checklists'][1]['items'][0]['id'];
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'item.update', ['task_id' => $progressTask, 'item_id' => $secondItem, 'title' => 'Passo', 'is_done' => true]);
+$progress(2, 2);
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'item.update', ['task_id' => $progressTask, 'item_id' => $secondItem, 'title' => 'Passo', 'is_done' => false]);
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'item.update', ['task_id' => $progressTask, 'item_id' => $firstItem, 'title' => 'Passo', 'is_done' => false]);
+$progress(2, 0);
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'item.delete', ['task_id' => $progressTask, 'item_id' => $firstItem, 'confirm' => true]);
+$progress(1, 0);
+$progressState = $service->mutate($ownerId, $progressProject, $progressState['version'], 'checklist.delete', ['task_id' => $progressTask, 'checklist_id' => $newList, 'confirm' => true]);
+$progress(0, 0);
 $pdo->exec("UPDATE users SET session_version = session_version + 1 WHERE id = {$ownerId}");
 details($taskId, [], null, 401);
 echo "OK: detalhes, múltiplos responsáveis, datas, checklists, comentários, autoria, IDOR, rollback, paginação e remoção de membro.\n";
