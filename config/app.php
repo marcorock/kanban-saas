@@ -17,6 +17,11 @@ return [
         'from_address' => $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@example.com',
         'from_name' => $_ENV['MAIL_FROM_NAME'] ?? 'Kanban SaaS',
     ],
+    'push' => [
+        'public_key' => $_ENV['VAPID_PUBLIC_KEY'] ?? '',
+        'private_key' => $_ENV['VAPID_PRIVATE_KEY'] ?? '',
+        'subject' => $_ENV['VAPID_SUBJECT'] ?? '',
+    ],
     'database' => [
         'host' => $_ENV['DB_HOST'] ?? '127.0.0.1',
         'port' => $_ENV['DB_PORT'] ?? '3306',

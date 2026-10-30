@@ -66,3 +66,9 @@ $notifications = new \App\Controllers\NotificationController($views, $config);
 SimpleRouter::get('/notifications', static fn (): string => $notifications->handle('index'));
 SimpleRouter::post('/notifications/{id}/read', static fn (string $id): string => $notifications->handle('read', $id));
 SimpleRouter::post('/settings/notifications', static fn (): string => $notifications->handle('preferences'));
+
+$push = new \App\Controllers\PushController($config);
+SimpleRouter::get('/notifications/push-config', static fn (): string => $push->handle('config'));
+SimpleRouter::get('/notifications/push-context', static fn (): string => $push->handle('context'));
+SimpleRouter::post('/settings/notifications/push', static fn (): string => $push->handle('save'));
+SimpleRouter::post('/settings/notifications/push/remove', static fn (): string => $push->handle('remove'));

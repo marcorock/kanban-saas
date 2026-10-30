@@ -46,13 +46,13 @@ final class InstallationCheck
             $checks[] = ['ok' => $ok, 'message' => $message];
         };
         $record(PHP_VERSION_ID >= 80300 && PHP_VERSION_ID < 90000, 'PHP compatível com ^8.3 (8.3 até 8.x).');
-        foreach (['ctype', 'filter', 'mbstring', 'openssl', 'pdo_mysql', 'session'] as $extension) {
+        foreach (['ctype', 'curl', 'filter', 'mbstring', 'openssl', 'pdo_mysql', 'session'] as $extension) {
             $record(extension_loaded($extension), 'Extensão PHP: ' . $extension . '.');
         }
         $errors = self::configurationErrors($config, $production);
         if (!$errors) $record(true, $production ? 'Configuração de produção válida.' : 'Configuração local válida.');
         foreach ($errors as $error) $record(false, $error);
-        foreach (['assets/brand/mark.svg', 'assets/css/design-tokens.css', 'assets/css/auth.css', 'assets/css/app-shell.css', 'assets/css/dashboard.css', 'assets/css/projects-list.css', 'assets/css/projects-form.css', 'assets/css/project-details.css', 'assets/css/project-members.css', 'assets/js/project-members.js', 'assets/js/projects-form.js', 'assets/css/legacy-layout.css', 'assets/js/app-shell.js', 'assets/js/auth.js', 'assets/css/bootstrap.min.css', 'assets/css/board.css', 'assets/css/task-panel.css', 'assets/css/my-tasks.css', 'assets/css/history.css', 'assets/css/settings.css', 'assets/js/settings.js', 'assets/css/notifications.css', 'assets/js/notifications.js', 'assets/vendor/bootstrap/bootstrap.bundle.min.js', 'assets/vendor/sortablejs/Sortable.min.js', 'assets/js/board.js'] as $asset) {
+        foreach (['assets/brand/mark.svg', 'assets/css/design-tokens.css', 'assets/css/auth.css', 'assets/css/app-shell.css', 'assets/css/dashboard.css', 'assets/css/projects-list.css', 'assets/css/projects-form.css', 'assets/css/project-details.css', 'assets/css/project-members.css', 'assets/js/project-members.js', 'assets/js/projects-form.js', 'assets/css/legacy-layout.css', 'assets/js/app-shell.js', 'assets/js/auth.js', 'assets/css/bootstrap.min.css', 'assets/css/board.css', 'assets/css/task-panel.css', 'assets/css/my-tasks.css', 'assets/css/history.css', 'assets/css/settings.css', 'assets/js/settings.js', 'assets/css/notifications.css', 'assets/js/notifications.js', 'assets/js/push-settings.js', 'service-worker.js', 'manifest.webmanifest', 'assets/vendor/bootstrap/bootstrap.bundle.min.js', 'assets/vendor/sortablejs/Sortable.min.js', 'assets/js/board.js'] as $asset) {
             $record(is_readable($root . '/public/' . $asset), 'Asset local: ' . $asset . '.');
         }
         try {

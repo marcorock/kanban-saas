@@ -1,0 +1,12 @@
+{
+  "id": "/",
+  "name": "Kanban SaaS",
+  "short_name": "Kanban",
+  "lang": "pt-BR",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f5ee",
+  "theme_color": "#194f43",
+  "icons": [{"src": "/assets/brand/mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
+}

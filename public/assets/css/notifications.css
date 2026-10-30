@@ -23,3 +23,8 @@
 .nt-choice { display: flex; align-items: center; gap: .75rem; min-height: 48px; margin-bottom: .75rem; color: var(--ds-color-ink); font-size: .875rem; line-height: 1.6; }
 .nt-choice input { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--ds-color-primary); }
 .app-header .app-page-context { overflow-wrap: anywhere; }
+
+.nt-device { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--ds-color-border); }
+.nt-device h4 { font-size: .9375rem; font-weight: 650; }
+.nt-device-actions { display: flex; flex-wrap: wrap; gap: .625rem; margin-bottom: .875rem; }
+.nt-device-actions button { min-height: 44px; white-space: normal; }

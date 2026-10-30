@@ -26,7 +26,7 @@ final class NotificationService
                 JOIN projects ip ON ip.id=i.project_id AND ip.tenant_id=i.tenant_id
                 JOIN project_members im ON im.project_id=ip.id AND im.tenant_id=ip.tenant_id AND im.user_id=i.invited_by
                 JOIN tenant_users it ON it.tenant_id=ip.tenant_id AND it.user_id=i.invited_by
-                WHERE o.dedup_key=BINARY SHA2(CONCAT('invitation:',i.id,':',i.token_hash,':',o.user_id),256) AND i.id=o.subject_id AND i.project_id=o.project_id AND i.tenant_id=o.tenant_id AND i.invited_by=o.actor_id
+                WHERE o.dedup_key=BINARY SHA2(CONCAT('invitation:',i.id,':',i.token_hash,':',o.user_id,IF(o.channel='bell','',CONCAT(':',o.channel))),256) AND i.id=o.subject_id AND i.project_id=o.project_id AND i.tenant_id=o.tenant_id AND i.invited_by=o.actor_id
                 AND i.accepted_at IS NULL AND i.cancelled_at IS NULL AND i.expires_at>UTC_TIMESTAMP()
                 AND ip.deleted_at IS NULL AND ip.archived_at IS NULL
                 AND (ip.owner_id=i.invited_by OR (im.role='admin' AND i.role IN ('member','viewer')))))

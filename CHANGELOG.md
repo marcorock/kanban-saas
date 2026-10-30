@@ -2,11 +2,17 @@
 
 ## [Unreleased]
 
+### Correção operacional de VAPID
+- Gerador preserva permissões do .env existente; restauração de leitura pelo Apache local e teste como www-data evitam falha geral de conexão nas rotas após geração das chaves.
+
 ### Adicionado
+- Notificações B: SMTP com resumo de prazos por ciclo, Web Push por dispositivo, ativação explícita, manifest/service worker e CSP mínima.
+- Migration 011 para recibos por dispositivo, remoção 404/410, retries externos e testes Mailpit/concorrência/privacidade/ativação.
+- VAPID configurável em .env com gerador que preserva chaves existentes; integração com cron local e preferências por canal.
 - Notificações A: sino/central paginada, leitura com CSRF e três preferências por canal (sino ligado; push/e-mail desligados).
 - Migration 009 com outbox transacional, deduplicação, notificações, preferências e estrutura de assinaturas por dispositivo; worker CLI com concorrência, leases e retentativas limitadas.
 - Avisos de atribuição, comentário e papel excluem o autor; resumo de prazos às 08h de São Paulo e vencido único por tarefa/prazo, com reconferência de tenant/projeto/atribuição e preferências.
-- Testes de autorização, rollback, dedup, concorrência, prazos, preferências e UI/axe sem JS; documentação curta em docs/NOTIFICATIONS.md. Push/e-mail reservados ao Incremento B.
+- Testes de autorização, rollback, dedup, concorrência, prazos, preferências e UI/axe sem JS; documentação curta em docs/NOTIFICATIONS.md. Push/e-mail entregues no Incremento B.
 - Suite integrada de UI/UX com 11 rotas, cinco larguras, axe de páginas completas, texto ampliado/espaçamento, teclado/jornada, movimento reduzido, assets/CSP e consulta sem JS.
 - Evidência JSON sem credenciais fora do Git e registro reproduzível da revisão em docs/UI_REVIEW.md, mantendo homologação operacional adiada.
 - Perfil/configurações Fluxo Claro: resumo da conta, e-mail somente leitura, nome e disclosures de senha/sessões, com contexto dos efeitos das ações.

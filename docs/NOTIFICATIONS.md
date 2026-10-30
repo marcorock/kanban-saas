@@ -1,31 +1,34 @@
 # Notificações
 
-## Incremento A
+A (sino/núcleo e convites internos) aprovado no commit 5abafbc. B adiciona Web Push e SMTP; commit autorizado pelo usuário com testes manuais ainda incompletos. Continuidade pausada até novas instruções.
 
-Sino e central em `/notifications`, leitura por POST/CSRF e preferências em Configurações. Conta verificada obrigatória; destinatário vem da sessão. Padrão: sino ligado, push/e-mail desligados. As três preferências podem ser salvas; **push/e-mail ainda não enviam no A** e não solicitam permissão ao navegador.
+## Eventos e privacidade
+- Resumo diário de tarefas atribuídas pendentes com prazo hoje, no primeiro ciclo a partir das 08h em America/Sao_Paulo; vencido uma vez por usuário/tarefa/prazo, no primeiro ciclo após vencer.
+- Comentário avisa os responsáveis; atribuição avisa os novos responsáveis; mudança de papel avisa o participante. Nunca avisar o autor da própria ação. Texto somente de títulos/links.
+- Convites para contas existentes aparecem no sino e permitem aceite interno sem conceder acesso antecipado ao projeto. Cancelamento, expiração, reemissão e aceite invalidam o aviso. O SMTP de convites existente permanece separado; B não duplica esses e-mails.
+- Acesso, tenant, projeto, atribuição, validade do evento e preferência são reconferidos antes da entrega. O service worker reconfere a conta atual antes de exibir conteúdo em dispositivo compartilhado.
 
-Outbox gravada pelo ActivityLogger na transação do evento. Comentários avisam responsáveis atuais, atribuições avisam somente novos responsáveis e mudanças de papel avisam o destinatário (Membro/Visualizador/Administrador). Ator excluído; edições de comentário não geram novo aviso. Nenhum corpo, descrição ou e-mail de convite é copiado para notificações.
+## Preferências e dispositivo
+Três chaves em Configurações: sino ligado, push/e-mail desligados por padrão. Eventos novos entram nos canais externos habilitados naquele momento; desligar antes do envio cancela a entrega pendente. Ativação posterior não reenvia eventos antigos.
 
-O worker gera prazos no fuso America/Sao_Paulo (armazenamento UTC): resumo único por usuário/dia no primeiro ciclo a partir de 08h; vencido no primeiro ciclo após a data local vencer, uma vez por usuário/tarefa/prazo. Considera somente tarefas atribuídas, pendentes, em projetos ativos com vínculos atuais de tenant/projeto. Resumo agrega projetos, mostra até cinco títulos/links e oferece filtro para todas as tarefas do dia. Avisos automáticos não têm ator; autoatribuição não gera evento de atribuição para o próprio autor.
+Push exige botão por dispositivo; ativar também liga o canal na conta. Desativar um dispositivo preserva os demais; desligar a chave global suspende todos. Até dez dispositivos/conta. HTTPS ou localhost; no iPhone/iPad compatível, Compartilhar → Adicionar à Tela de Início e abrir pelo ícone. Sem solicitação automática de permissão. Sem cache de páginas privadas.
 
-Chave SHA-256 inclui destinatário/tipo/tarefa/data/canal e origem: prazo estável ou ID do evento, evitando colapsar comentários/reatribuições distintos no mesmo dia. Preferência é reconferida no envio; desligada cancela pendentes, sem entrega retroativa ao religar. Avisos já entregues continuam consultáveis quando ainda há acesso/atribuição; arquivamento, remoção e mudanças de prazo/papel ocultam avisos incompatíveis.
+## Operação
+`php bin/migrate.php` aplica 009 (núcleo), 010 (convites e recuperação dos pendentes existentes) e 011 (recibos de push por dispositivo).
 
-## Execução
+`php bin/generate-vapid.php` gera o par uma vez no .env, sem exibir chaves ou substituir um par existente. Configure VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT (HTTPS ou mailto de contato), preserve-os entre deploys e mantenha o .env fora do Git. SMTP continua em MAIL_*; local usa Mailpit e produção usa seu servidor SMTP. Composer requer cURL e minishlink/web-push com cliente HTTP Guzzle.
 
-Aplicar `php bin/migrate.php` (009, incluindo a estrutura de assinaturas por dispositivo). Executar `php bin/notify.php --limit=100` por cron, por exemplo a cada minuto, no ambiente PHP com o mesmo banco/configuração do app. O horário do cron pode ser UTC: o worker calcula São Paulo. Cada execução gera até 1.000 destinatários/vencimentos elegíveis; ciclos seguintes continuam os restantes. Limite de entrega aceita 1–500 itens. **Nenhum cron de produção é instalado por esta implementação.**
+Agende `php bin/notify.php --limit=500` a cada minuto. O worker gera prazos e processa sino/push/e-mail fora das requisições. E-mails de prazos são agregados por destinatário/ciclo (até 100 itens por lote); comentários, atribuições e papéis seguem individuais. Push processa até 20 eventos/destinatário/lote. Excedentes ficam para o próximo ciclo.
 
-Reserva concorrente com SKIP LOCKED, token e lease de cinco minutos; até cinco tentativas com backoff de 1/2/4/8 minutos, depois falha definitiva. Lease abandonado é recuperado. Preferências e projetos são bloqueados/reconferidos antes de inserir o sino; inserção e conclusão da entrega são atômicas, com chave única por outbox. Erros persistidos são códigos genéricos, sem credenciais. O sino atualiza o contador no carregamento, retorno à aba e a cada minuto visível; consulta/leitura/preferências funcionam sem JS.
+No ambiente local, crontab de marco usa Docker coruja-dev-environment-web-1, lote 500 e log storage/logs/notifications.log. Execução automática verificada. Nenhum agendamento de produção foi alterado. O sino consulta a cada 60s com página visível: processamento/contador podem somar cerca de dois minutos.
 
-## Validação e próximo passo
+Outbox transacional com ActivityLogger e dedup por usuário/tipo/tarefa/data/evento/canal. Reservas têm lease de cinco minutos; até cinco tentativas com backoff. Workers externos serializam usuário/canal sem manter locks SQL durante rede. Assinaturas 404/410 são removidas. Recibos impedem reenviar a dispositivos já atendidos após falha parcial. SMTP/push têm semântica de pelo menos uma vez: queda após aceite remoto e antes do registro local ainda pode repetir; tag estabiliza a apresentação do push.
 
-Somente banco/Mailpit descartáveis: `php tests/notifications.php` com AUTH_TEST_DATABASE=disposable cobre atomicidade, cinco eventos, fuso, deduplicação, concorrência, leases/limites, acesso/tenant, preferências, CSRF/IDOR e conteúdo mínimo. `tests/notifications-ui.php` prepara `tests/notifications-browser.cjs` (Chromium/playwright-core/axe externos); os demais testes afetados são executados antes da regressão completa de fechamento. Fixtures/previews ficam fora do Git.
+## Validação
+Banco e Mailpit descartáveis: notifications, notification-invitations, notifications-channels, segurança/perfil/shell/preflight. notifications-sw.cjs testa sessão/canal, payload e URL; push-browser.cjs cobre clique, persistência e remoção reais na API com provedor/permissão simulados, CSP, manifest e UI/axe 320–1440px. notifications-browser.cjs cobre central e preferências. Gere novamente a fixture notifications-ui.php antes de cada suíte de navegador.
 
-Incremento B: minishlink/web-push/VAPID, ativação por botão, service worker/manifest externos e CSP mínima; iPhone com Adicionar à Tela de Início; remover assinatura 404/410. SMTP/templates existentes, prazos agregados por ciclo. Push/SMTP terão entrega externa com retentativas e possível repetição após falha entre envio e confirmação. B somente após aprovação/commit de A, com testes próprios de 410, Mailpit e preferências.
+SMTP foi enviado ao Mailpit; respostas push 201/404/410/503 foram simuladas no transporte HTTP da biblioteca real. Entrega em provedor/dispositivo real e iPhone instalado ainda exigem validação operacional. Referências: [biblioteca](https://github.com/web-push-libs/web-push-php), [WebKit](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/).
 
-Correção operacional: o ambiente local executa o worker a cada minuto pelo crontab do usuário marco, via container coruja-dev-environment-web-1 (lote de 500). Log em storage/logs/notifications.log; produção exige seu próprio agendamento. Sem worker, os eventos permanecem na outbox e não aparecem no sino.
+Fechamento de B: regressão PHP completa aprovada em banco descartável com migrations 001–011, validação local e execução automática do cron com canais externos confirmadas; commit de B autorizado pelo usuário; teste real de Push e demais testes manuais continuam pendentes.
 
-Migration 010 inclui convites de projeto para contas existentes e recupera os convites pendentes anteriores. O destinatário recebe título/link e aceita pelo sistema, sem token de e-mail exposto e sem acesso ao projeto antes do aceite. Conta verificada correspondente, CSRF, validade do convite e autorização atual do remetente são reconferidos; cancelamento, expiração, reemissão e aceite revogam o aviso anterior. Atribuição de tarefa já notifica o responsável; comentários avisam os responsáveis da tarefa, exceto o autor.
-
-Validação adicional: tests/notification-invitations.php cobre convite entre tenants, privacidade, IDOR, aceite interno, CSRF, reemissão, cancelamento, expiração e canal desligado.
-
-Verificação local: migration 010 aplicada; execução inicial entregou cinco avisos sem falhas. Primeira execução automática do cron confirmada em storage/logs/notifications.log; fila sem pendências. O sino consulta o contador a cada 60 segundos enquanto a página está visível, portanto cron e atualização visual podem somar cerca de dois minutos.
+Permissões: o gerador preserva o modo/proprietário/grupo do .env existente; arquivo novo nasce 600 e exige leitura configurada para o usuário HTTP antes do uso. Local: .env de marco/grupo www-data, modo 640, verificado com bin/check.php executado como www-data. Teste tests/vapid.php usa apenas diretórios temporários, inclusive para idempotência e preservação de permissões.

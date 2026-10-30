@@ -1,2 +1,22 @@
 {% import 'ui/icons.html.twig' as ui %}
-<details id="notification-settings" class="sp-section sp-disclosure"><summary><span aria-hidden="true">{{ ui.icon('bell') }}</span><div><h3>Notificações</h3><p>Escolha os canais de aviso.</p></div><span class="sp-chevron" aria-hidden="true">{{ ui.icon('chevron-right') }}</span></summary><div class="sp-disclosure-body"><p class="sp-help" id="notification-channel-help">O sino já está disponível. Push e e-mail podem ter suas preferências salvas, mas o envio será habilitado na próxima etapa. Ativar esta preferência não solicita permissão ao navegador.</p><form method="post" action="/settings/notifications"><input type="hidden" name="_token" value="{{ csrf }}">{% for key,label in {bell_enabled:'Sino no aplicativo',push_enabled:'Web Push · em preparação',email_enabled:'E-mail · em preparação'} %}<label class="nt-choice"><input type="checkbox" name="{{ key }}" value="1" {{ notificationPreferences[key] ? 'checked' : '' }} aria-describedby="notification-channel-help"><span>{{ label }}</span></label>{% endfor %}<button class="sp-button sp-primary" type="submit">Salvar preferências</button></form></div></details>
+<details id="notification-settings" class="sp-section sp-disclosure">
+    <summary><span aria-hidden="true">{{ ui.icon('bell') }}</span><div><h3>Notificações</h3><p>Escolha como receber seus avisos.</p></div><span class="sp-chevron" aria-hidden="true">{{ ui.icon('chevron-right') }}</span></summary>
+    <div class="sp-disclosure-body">
+        <p class="sp-help" id="notification-channel-help">Suas preferências valem para toda a conta. Para Web Push, autorize também cada dispositivo pelo botão abaixo. O e-mail usa o endereço da sua conta.</p>
+        <form method="post" action="/settings/notifications">
+            <input type="hidden" name="_token" value="{{ csrf }}">
+            {% for key,label in {bell_enabled:'Sino no aplicativo',push_enabled:'Web Push',email_enabled:'E-mail'} %}
+            <label class="nt-choice"><input type="checkbox" name="{{ key }}" value="1" {{ notificationPreferences[key] ? 'checked' : '' }} aria-describedby="notification-channel-help"><span>{{ label }}</span></label>
+            {% endfor %}
+            <button class="sp-button sp-primary" type="submit">Salvar preferências</button>
+        </form>
+        <section class="nt-device" aria-labelledby="push-device-heading" data-push-settings data-csrf="{{ csrf }}">
+            <h4 id="push-device-heading">Neste dispositivo</h4>
+            <p class="sp-help">A permissão do navegador só será solicitada ao ativar. Isso também liga o canal Web Push na sua conta; os outros canais mantêm suas preferências.</p>
+            <div class="nt-device-actions"><button type="button" class="sp-button sp-primary" data-push-enable disabled>Ativar neste dispositivo</button><button type="button" class="sp-button" data-push-remove disabled>Desativar neste dispositivo</button></div>
+            <p class="sp-help" role="status" aria-live="polite" data-push-status>Verificando disponibilidade de Web Push…</p>
+            <p class="sp-help">No iPhone/iPad, use Compartilhar → Adicionar à Tela de Início e abra o aplicativo pelo ícone para ativar o Push. Requer iOS/iPadOS 16.4 ou superior.</p>
+            <noscript><p class="sp-help">Ative o JavaScript para autorizar este dispositivo. O sino, o e-mail e as preferências continuam disponíveis.</p></noscript>
+        </section>
+    </div>
+</details>

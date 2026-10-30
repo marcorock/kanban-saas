@@ -1,0 +1,12 @@
+{% for item in items %}
+{{ item.title }}
+{% for link in item.links %}
+{{ link.title }}
+{{ baseUrl }}{{ link.url }}
+{% endfor %}
+{% if item.more_url %}
+Ver todas: {{ baseUrl }}{{ item.more_url }}
+{% endif %}
+
+{% endfor %}
+Preferências de notificações: {{ baseUrl }}/settings#notification-settings

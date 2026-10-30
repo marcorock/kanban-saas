@@ -7,6 +7,8 @@
     <title>{% if appAuthenticated %}{{ navigation.title }} · {% endif %}{{ projectName }}</title>
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     {% if appAuthenticated %}
+    <link rel="manifest" href="/manifest.webmanifest">
+    <script src="/assets/js/push-settings.js" defer></script>
     <meta name="theme-color" content="#194f43">
     <link rel="icon" type="image/svg+xml" href="/assets/brand/mark.svg">
     <link rel="stylesheet" href="/assets/css/design-tokens.css">

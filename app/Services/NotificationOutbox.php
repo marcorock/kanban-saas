@@ -13,9 +13,14 @@ final class NotificationOutbox
     public function enqueue(int $userId, string $kind, string $day, array $scope, string $origin): void
     {
         if (($scope['actor_id'] ?? null)===$userId) return;
-        $key=hash('sha256',implode('|',[$userId,$kind,$scope['task_id']??0,$scope['due_on']??$day,$origin,'bell']));
-        if ($kind==='invited') $key=hash('sha256','invitation:'.$scope['subject_id'].':'.$scope['invitation_hash'].':'.$userId);
-        $this->pdo->prepare('INSERT INTO notification_outbox(user_id,tenant_id,project_id,task_id,actor_id,event_id,subject_id,kind,event_day,due_on,target_role,dedup_key) VALUES (?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE id=id')->execute([$userId,$scope['tenant_id']??null,$scope['project_id']??null,$scope['task_id']??null,$scope['actor_id']??null,$scope['event_id']??null,$scope['subject_id']??null,$kind,$day,$scope['due_on']??null,$scope['target_role']??null,$key]);
+        $preferences=(new NotificationService($this->pdo))->preferences($userId);
+        foreach (['bell','push','email'] as $channel) {
+            if ($kind==='invited' && $channel!=='bell') continue;
+            if ($channel!=='bell' && !$preferences[$channel.'_enabled']) continue;
+            $key=hash('sha256',implode('|',[$userId,$kind,$scope['task_id']??0,$scope['due_on']??$day,$origin,$channel]));
+            if ($kind==='invited') $key=hash('sha256','invitation:'.$scope['subject_id'].':'.$scope['invitation_hash'].':'.$userId.($channel==='bell'?'':':'.$channel));
+            $this->pdo->prepare('INSERT INTO notification_outbox(user_id,tenant_id,project_id,task_id,actor_id,event_id,subject_id,kind,event_day,due_on,target_role,dedup_key,channel) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE id=id')->execute([$userId,$scope['tenant_id']??null,$scope['project_id']??null,$scope['task_id']??null,$scope['actor_id']??null,$scope['event_id']??null,$scope['subject_id']??null,$kind,$day,$scope['due_on']??null,$scope['target_role']??null,$key,$channel]);
+        }
     }
 
     public function capture(array $project,int $actor,string $action,?array $before,?array $after,?int $taskId,int $eventId): void
