@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Adicionado
+- Detalhes de projeto Fluxo Claro: quadro em destaque, contexto, planejamento, papel e navegação do projeto.
+- Gerenciamento separado para proprietário, exclusão recolhida com confirmação nativa e feedback de sucesso; descrição sem style inline e sem JS adicional.
+- Teste Chromium/axe de detalhes, quatro papéis, consulta, ações com CSRF, exclusão confirmada e uso sem JS.
 - Formulários de criação/edição Fluxo Claro, com seções, datas opcionais, ajuda, contadores e estado de envio em arquivos Twig/CSS/JS separados.
 - Preservação de dados e retorno no próprio formulário em sessão expirada (419), mantendo CSRF e autorização.
 - Teste Chromium/axe dos formulários, validação, cancelamento, permissões e envio sem JS.

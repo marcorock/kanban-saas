@@ -77,3 +77,15 @@ Validação 422 mantém os dados como antes. Sessão de formulário expirada (41
 `tests/projects-form-browser.cjs` usa a fixture de tests/projects-list.php no mesmo ambiente descartável. Cobre tamanhos 320–1440px, axe A/AA, preenchimento, datas, 422/419, foco/preservação, XSS, criação, edição, cancelamento, permissões e envio sem JS. Dependências/variáveis de execução são as mesmas do teste da listagem; executar a listagem antes dos formulários, pois estes acrescentam projetos à fixture. Sem teste em aparelhos físicos/leitores de tela.
 
 Próximo incremento: detalhes do projeto. Sem migration nova ou publicação.
+
+## UI dos detalhes — Fluxo Claro
+
+`/projects/{id}` destaca o quadro e separa descrição, planejamento e gerenciamento. Mostra estado e papel do usuário, com avisos para membro, visualizador e arquivado. Descrição completa mantém quebras de linha por CSS externo e texto escapado, sem HTML/Markdown executável. Sem descrição, só owner/admin de projeto ativo recebem atalho para editar.
+
+A navegação contextual contém visão geral, participantes e histórico; o retorno à listagem preserva Arquivados quando aplicável. Metadados mostram datas previstas e registros de criação/atualização em UTC, usando campos já consultados. Não há novas queries ou estatísticas simuladas.
+
+Owner/admin editam ativos; somente owner vê gestão de arquivar/restaurar/excluir. Arquivado oferece quadro de consulta e não exibe edição. Exclusão fica recolhida em disclosure nativo: abrir opções não exclui, checkbox continua obrigatório e o botão envia POST com CSRF. Sem JavaScript, disclosure e ações continuam funcionando. Backend mantém autorização, transações, auditoria e exclusão lógica existentes.
+
+Template em projects/show.html.twig e apresentação em project-details.css. Feedback após criar/editar/arquivar/restaurar usa o novo componente de status. Erros HTTP de ações mantêm o tratamento anterior. `tests/project-details-browser.cjs` usa a fixture de tests/projects-list.php para validar telas e papéis; cria/exclui somente um projeto temporário no banco descartável para testar confirmação e CSRF. Não usar banco real.
+
+Previews: storage/previews/project-details-390.png e project-details-1440.png, além dos estados archived-*.png, fora do Git. Aparelhos físicos e leitores de tela não avaliados. Próximo incremento: participantes e convites.

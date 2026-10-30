@@ -4,7 +4,7 @@ Direção visual original para o Kanban SaaS: clareza, ritmo e foco no próximo 
 
 ## Escopo e evolução
 
-Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; o quinto incremento trata os formulários; próximo incremento proposto: detalhes do projeto. Homologação operacional continua adiada.
+Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; o quinto incremento trata os formulários; o sexto incremento trata os detalhes; próximo incremento proposto: participantes e convites. Homologação operacional continua adiada.
 
 O desenho deve servir às funções existentes. Não exibir busca global, notificações, calendário, assinatura, login social ou links de políticas sem a funcionalidade/conteúdo correspondente. Não há biblioteca de componentes remota, fonte externa, imagens geradas ou etapa de build.
 
@@ -164,3 +164,15 @@ Validação do quarto incremento: regressão PHP completa, preflight local e Chr
 - Limites: teste automatizado em Chromium; dispositivos físicos e leitores de tela não avaliados. Próximo incremento: detalhes do projeto; homologação operacional permanece adiada.
 
 Validação do quinto incremento: regressão PHP completa e preflight local aprovados. Chromium/axe da página em 320–1440px aprovado para criação, edição e retorno de erro; fluxos de datas, 422/419, preservação/foco, XSS, cancelamento, autorização e envio sem JS aprovados. Regressões de listagem e dashboard também aprovadas; previews inspecionados visualmente.
+
+## Sexto incremento — detalhes do projeto
+
+- Estado/papel, nome completo e ação principal de quadro; edição apenas para quem gerencia projeto ativo. Navegação contextual por links GET, sem simular widget de tabs.
+- Descrição completa e planejamento em coluna no celular, lado a lado a partir de 1200px. Datas ausentes explícitas e registros reais em UTC. Conteúdo longo quebra linha sem ocultar o contexto.
+- Avisos explicam colaboração, consulta e arquivamento. Gestão do proprietário em seção própria; exclusão recolhida por details/summary nativo, com confirmação obrigatória e botão distinto de abrir opções.
+- HTML em projects/show.html.twig; CSS em project-details.css; nenhum JS adicional. Descrição não usa style inline. Feedback de sucesso permanece acessível por role=status.
+- Permissões, consultas, serviços, transações e auditoria preservados. Ações seguem POST/CSRF, inclusive sem JS. Não há progresso/totais fictícios ou exposição de dados de projetos inacessíveis.
+- `tests/project-details-browser.cjs` verifica 320–1440px, axe A/AA, quatro papéis, atalhos, consulta, arquivamento/restauração/exclusão, confirmação/CSRF, sem JS e textos/XSS. Fixture de tests/projects-list.php, exclusivamente descartável. Registros de testes e previews ficam fora do Git.
+- Limites: sem aparelhos físicos/leitores de tela; participantes, convites e demais módulos aguardam migração. Homologação operacional adiada.
+
+Validação do sexto incremento: regressão PHP completa e preflight local aprovados; Chromium/axe dos detalhes ativo/arquivado, quatro papéis e exclusão expandida aprovado em 320–1440px. Fluxos de arquivar/restaurar/excluir, confirmação/CSRF, navegação sem JS e XSS aprovados; regressões de formulários e relatórios aprovadas. Previews inspecionados visualmente, sem certificação ou teste em dispositivos físicos.

@@ -24,6 +24,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 0460acf | Header, menus responsivos e footer da área autenticada |
 | 756af0e | Dashboard Fluxo Claro com indicadores, prazos e progresso nativo |
 | ace0d17 | Listagem de projetos com filtros, cards e atalhos |
+| 39f7edc | Formulários de criação/edição com validação e retorno contextual |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -74,3 +75,9 @@ Incremento aprovado e incluído no commit `feat: redesenha listagem de projetos`
 Iniciado após aprovação da listagem. Formulários com seções de informações/prazos, indicação de obrigatoriedade, ajuda, contadores e retorno de erro com foco. CSS e JS externos; envio comum por POST continua sem JS. Em 419, criação/edição reapresentam os dados e token atual, mantendo rejeição sem escrita. Políticas, validações, serviços e transações preservados.
 
 Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px aprovado nos formulários (criação/edição, datas, 422/419, foco/preservação, XSS, cancelamento, papéis e envio sem JS); regressões de listagem e dashboard também aprovadas. Previews inspecionados visualmente, sem teste em dispositivos físicos/leitores de tela. Documentação de contexto consolidada para manter leitura curta; o histórico completo continua neste arquivo e no Git. Nenhuma migration nova, mudança do .env ou deploy. Incremento aprovado e incluído no commit `feat: redesenha formulários de projetos`; próximo incremento autorizado: detalhes do projeto.
+
+## UI/UX — sexto incremento: detalhes do projeto
+
+Iniciado após aprovação dos formulários. Detalhes com quadro em destaque, badges de estado/papel, descrição completa em texto simples, planejamento com datas de registro UTC e navegação contextual. Gestão exclusiva do proprietário separada; exclusão em details/summary nativo, com checkbox obrigatório preservado. Sem JS novo, sem style inline ou alterações em consultas/políticas/serviços.
+
+Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px aprovado para quatro papéis, atalhos/consulta, arquivar/restaurar/excluir, confirmação/CSRF, sem JS e XSS; regressões de formulários e relatórios também aprovadas. Previews inspecionados visualmente; sem teste em dispositivos físicos/leitores de tela. Ações reais de teste ocorreram somente no banco descartável. Sem migration nova, alteração do .env ou publicação. Incremento aprovado e incluído no commit `feat: redesenha detalhes do projeto`; próximo incremento autorizado: participantes e convites. Homologação operacional permanece adiada.

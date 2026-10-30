@@ -37,6 +37,7 @@
 - 0460acf — estrutura autenticada: header, menus responsivos e footer.
 - 756af0e — dashboard Fluxo Claro.
 - ace0d17 — listagem de projetos Fluxo Claro.
+- 39f7edc — formulários de criação/edição de projetos.
 
 ## Módulos consolidados
 
@@ -45,7 +46,7 @@
 - Kanban transacional com board_version, tarefas, responsáveis, checklists e comentários: docs/KANBAN.md e docs/TASKS.md.
 - Dashboard, Minhas Tarefas e históricos com escopo de tenant/projeto: docs/REPORTS.md.
 - Fase 6 aprovada: preflight somente leitura, segurança, regressão e roteiro operacional em docs/PRODUCTION.md e docs/VALIDATION.md.
-- Fluxo Claro já aplicado a acesso, navegação, dashboard e listagem. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
+- Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem e formulários. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
 - Homologação operacional adiada pelo usuário para trabalhar UI/UX em incrementos pequenos. Sem publicação autorizada. Organizações seguem expansão pendente; sem cobrança no MVP.
 
 ## Entrega anterior — UI/UX: listagem de projetos
@@ -58,15 +59,25 @@
 - Nenhuma migration nova, mudança de .env ou publicação. Homologação operacional continua adiada.
 - Próximo incremento após aprovação: formulários de criação/edição de projetos; detalhes em entrega posterior.
 
-## Última entrega aprovada — UI/UX: formulários de projetos
+## Entrega anterior — UI/UX: formulários de projetos
 
-- Quinto incremento aprovado; commit de fechamento: `feat: redesenha formulários de projetos`. Próximo incremento autorizado: detalhes do projeto.
+- Quinto incremento aprovado; commit de fechamento: `39f7edc` — `feat: redesenha formulários de projetos`. Próximo incremento autorizado: detalhes do projeto.
 - Criação/edição com informações e prazos em seções, labels/ajuda, campos opcionais explícitos, ações mobile e apoio contextual no desktop.
 - Twig/CSS/JS externos separados. Contadores, limite de data de término, foco em erros e estado de envio são melhorias progressivas; POST funciona sem JS.
 - Respostas 422 preservam dados; 419 de criação/edição agora reapresenta o formulário e CSRF atual, mantendo status e sem gravar dados. Regras/serviços/políticas não foram alterados.
 - Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px: criação/edição, datas, 422/419, preservação/foco, XSS, cancelamento, papéis e envio sem JS aprovados; regressões de listagem e dashboard aprovadas.
 - Previews projects-new-390.png/projects-new-1440.png e projects-edit-* em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em aparelhos físicos/leitores de tela, migration nova ou alteração de .env. Fixtures apenas em banco descartável.
 - Próximo incremento após aprovação: detalhes do projeto. Homologação operacional permanece adiada.
+
+## Última entrega aprovada — UI/UX: detalhes do projeto
+
+- Sexto incremento aprovado; commit de fechamento: `feat: redesenha detalhes do projeto`. Próximo incremento autorizado: participantes e convites.
+- Quadro em destaque, papel/estado, descrição completa, planejamento com UTC e navegação de projeto. Gestão separada e visível apenas ao proprietário.
+- Disclosure nativo de exclusão mantém checkbox obrigatório e POST/CSRF; arquivar/restaurar e links funcionam sem JS novo. Twig/CSS separados; descrição sem style inline.
+- Consultas, autorização, serviços, transações e auditoria preservados. Nenhuma migration nova ou alteração do .env; testes só em banco descartável.
+- Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px: quatro papéis, consulta, atalhos, arquivar/restaurar/excluir, confirmação/CSRF, sem JS e XSS aprovados; regressões de formulários e relatórios aprovadas.
+- Previews project-details-390.png/project-details-1440.png e archived-* em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em dispositivos físicos/leitores de tela. Próximo incremento após aprovação: participantes e convites.
+- Homologação operacional permanece adiada; sem publicação.
 
 ## Documentação por módulo
 
