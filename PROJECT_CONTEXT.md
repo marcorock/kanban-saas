@@ -42,6 +42,7 @@
 - b8f5fdb — participantes, convites e aceite Fluxo Claro.
 - 01eb9ea — quadro Kanban Fluxo Claro.
 - 46785c3 — painel de tarefas e checklist compacto.
+- 61b86a4 — Minhas Tarefas Fluxo Claro.
 
 ## Módulos consolidados
 
@@ -53,74 +54,15 @@
 - Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem, formulários, detalhes, equipe e quadro e painel. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
 - Homologação operacional adiada pelo usuário para trabalhar UI/UX em incrementos pequenos. Sem publicação autorizada. Organizações seguem expansão pendente; sem cobrança no MVP.
 
-## Entrega anterior — UI/UX: listagem de projetos
+## Continuidade recente
 
-- Quarto incremento aprovado; commit de fechamento: `ace0d17` — `feat: redesenha listagem de projetos`. Próximo incremento autorizado: formulários de criação/edição.
-- Cards responsivos com nome, papel/vínculo, prazo, descrição resumida e atalhos para quadro/detalhes. Filtros GET Ativos/Arquivados, vazios e paginação próprios.
-- Twig e CSS separados, sem JS novo. Sem mudanças em queries/políticas: 25 itens por página, mesmos vínculos de tenant/projeto e ordenação. Formulários/detalhes ainda não migrados.
-- Regressão PHP completa e preflight local aprovados. Chromium/axe da listagem aprovado em 320–1440px, com papéis, arquivados/viewer, paginação/filtro, teclado, XSS, vazios e sem JS; regressões de dashboard, perfil e shell também aprovadas.
-- Fixtures exclusivamente em banco descartável; previews em storage/previews/projects-390.png e projects-1440.png, fora do Git, inspecionados visualmente. Sem teste em aparelhos físicos/leitores de tela.
-- Nenhuma migration nova, mudança de .env ou publicação. Homologação operacional continua adiada.
-- Próximo incremento após aprovação: formulários de criação/edição de projetos; detalhes em entrega posterior.
+- Evolução dos incrementos anteriores e suas validações preservadas em docs/DEVELOPMENT.md, docs/DESIGN_SYSTEM.md e Git; os commits aprovados estão listados acima.
+- Pausa após aprovação do Kanban (`01eb9ea`) e retomada em 30/10/2026. Painel revisado conforme preview aprovado, concluído/aprovado em `46785c3`.
+- A aprovação de Minhas Tarefas autorizou seu commit (`61b86a4`) e início dos históricos. Homologação operacional permanece adiada.
 
-## Entrega anterior — UI/UX: formulários de projetos
+## Entrega anterior — UI/UX: Minhas Tarefas
 
-- Quinto incremento aprovado; commit de fechamento: `39f7edc` — `feat: redesenha formulários de projetos`. Próximo incremento autorizado: detalhes do projeto.
-- Criação/edição com informações e prazos em seções, labels/ajuda, campos opcionais explícitos, ações mobile e apoio contextual no desktop.
-- Twig/CSS/JS externos separados. Contadores, limite de data de término, foco em erros e estado de envio são melhorias progressivas; POST funciona sem JS.
-- Respostas 422 preservam dados; 419 de criação/edição agora reapresenta o formulário e CSRF atual, mantendo status e sem gravar dados. Regras/serviços/políticas não foram alterados.
-- Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px: criação/edição, datas, 422/419, preservação/foco, XSS, cancelamento, papéis e envio sem JS aprovados; regressões de listagem e dashboard aprovadas.
-- Previews projects-new-390.png/projects-new-1440.png e projects-edit-* em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em aparelhos físicos/leitores de tela, migration nova ou alteração de .env. Fixtures apenas em banco descartável.
-- Próximo incremento após aprovação: detalhes do projeto. Homologação operacional permanece adiada.
-
-## Entrega anterior — UI/UX: detalhes do projeto
-
-- Sexto incremento aprovado; commit de fechamento: `47d88da` — `feat: redesenha detalhes do projeto`. Próximo incremento autorizado: participantes e convites.
-- Quadro em destaque, papel/estado, descrição completa, planejamento com UTC e navegação de projeto. Gestão separada e visível apenas ao proprietário.
-- Disclosure nativo de exclusão mantém checkbox obrigatório e POST/CSRF; arquivar/restaurar e links funcionam sem JS novo. Twig/CSS separados; descrição sem style inline.
-- Consultas, autorização, serviços, transações e auditoria preservados. Nenhuma migration nova ou alteração do .env; testes só em banco descartável.
-- Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px: quatro papéis, consulta, atalhos, arquivar/restaurar/excluir, confirmação/CSRF, sem JS e XSS aprovados; regressões de formulários e relatórios aprovadas.
-- Previews project-details-390.png/project-details-1440.png e archived-* em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em dispositivos físicos/leitores de tela. Próximo incremento após aprovação: participantes e convites.
-- Homologação operacional permanece adiada; sem publicação.
-
-## Entrega anterior — UI/UX: participantes e convites
-
-- Sétimo incremento aprovado; commit de fechamento: `b8f5fdb` — `feat: redesenha participantes e convites`. Próximo incremento autorizado: quadro Kanban.
-- Equipe com papéis e guia, atalho de convite, controles recolhidos, confirmações nativas de remoção/transferência, pendências e consulta de arquivados.
-- Privacidade mantida no serviço/HTML: e-mails e convites só para administração, opções admin só para proprietário. Contagens da página, mesma paginação de 25 por seção.
-- Aceite usa layout de acesso para visitante e shell para autenticado; prévia apenas para conta elegível, sem conceder acesso na abertura. POST/CSRF funciona sem JS.
-- Twig/CSS/JS separados; envio/foco progressivos, 419 contextual com dados de convite, sem reter confirmações sensíveis. Serviços, queries, limites, tokens e transações preservados.
-- Regressão PHP completa e preflight local aprovados. Chromium/axe da equipe passou em 320–1440px, incluindo privacidade, SMTP, aceite, remoção, transferência e XSS; regressões de detalhes e telas de acesso aprovadas.
-- Previews members-390.png/members-1440.png e invitation-guest-390.png/invitation-accept-390.png em storage/previews, ignorados no Git e inspecionados visualmente; sem aparelhos físicos/leitores de tela.
-- Fixtures somente em banco/Mailpit descartáveis, sem migration ou alteração do .env. Homologação operacional continua adiada.
-- Próximo incremento após aprovação: quadro Kanban; painel de tarefas em entrega própria.
-
-## Entrega anterior — UI/UX: quadro Kanban
-
-- Oitavo incremento aprovado; commit de fechamento: `01eb9ea` — `feat: redesenha quadro Kanban com Fluxo Claro`.
-- Colunas/cards Fluxo Claro, filtros recolhidos com contador/limpeza, navegação horizontal, controles mobile e gestão por papel. Formulários continuam como alternativa ao arrastar.
-- HTML em Twig/templates nativos; CSS/JS externos. Preenchimento seguro de texto/valores, restauração de foco e rolagem nas gravações; snapshot para consulta sem JS.
-- Endpoints, autorização, serviços, versão concorrente, transações e schema preservados. Painel de tarefas mantém visual anterior, para próximo incremento próprio.
-- Nenhuma migration nova, alteração do .env ou publicação; homologação operacional adiada. Fixtures somente em banco/Mailpit descartáveis.
-- Regressão PHP completa e preflight local aprovados. Chromium/axe do quadro aprovado em 320–1440px, com arrastar, erro/409, persistência, foco/rolagem, filtros, papéis, arquivados e consulta sem JS; regressões de tarefas e relatórios aprovadas.
-- Previews kanban-390.png/kanban-1440.png em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em dispositivos físicos/leitores de tela.
-- Desenvolvimento retomado em 30/10/2026 a pedido do usuário, pelo UI/UX do painel de detalhes das tarefas.
-
-## Entrega anterior — UI/UX: painel de tarefas e checklist compacto
-
-- Nono incremento aprovado; commit de fechamento: `46785c3` — `feat: redesenha painel de tarefas e checklist compacto`.
-- Revisão substitui o primeiro desenho não aprovado: fundo branco, resumo da tarefa e abas Subtarefas (inicial), Comentários e Detalhes; histórico em Detalhes. Tela cheia abaixo de 640px e lateral de até 680px acima.
-- Subtarefas com checkbox de gravação direta, título editável, editar/excluir na mesma linha; confirmação/cancelamento inline. Adição de item em linha única e gestão de lista no menu. Ações permanecem na linha inclusive no celular.
-- Resumo agregado no painel/card: concluídas/total de todas as listas e percentual arredondado. Sem itens mostra Sem subtarefas no painel e omite barra/card. Progresso não muda conclusão por coluna.
-- BoardService inclui contagens por tarefa com agregação SQL limitada ao tenant/projeto; mantém 5 consultas no snapshot, sem N+1. Sem alteração de autorização, endpoints, transações ou schema; sem migrations novas ou alteração do .env.
-- HTML em Twig/templates, CSS e JS externos. Texto inserido por textContent/valores. Descarte, confirmação de exclusão, retry, rascunhos em erro, foco e posição preservados; checkbox com falha retorna ao estado confirmado.
-- Regressão PHP completa, teste ampliado de progresso e preflight local aprovados. Snapshot mantém 5 consultas em carga de 100/1.000 tarefas. Chromium/axe 320–1440px aprovado para alinhamento, marcação/edição/cancelamento, falhas/rascunhos, abas, foco/Escape, exclusão, retry, paginação, quatro papéis e arquivados; regressões de relatórios, shell e dashboard aprovadas.
-- Previews reais task-panel-390.png/task-panel-1440.png e task-inline-edit-390.png em storage/previews, ignorados no Git e inspecionados visualmente. Fixtures só em banco/Mailpit descartáveis; sem aparelhos físicos/leitores de tela. Homologação operacional adiada.
-- Próximo incremento autorizado: UI/UX de Minhas Tarefas; históricos e configurações em entregas próprias.
-
-## Última entrega aprovada — UI/UX: Minhas Tarefas
-
-- Décimo incremento aprovado; commit de fechamento: `feat: redesenha Minhas Tarefas com Fluxo Claro` (hash no Git).
+- Décimo incremento aprovado; commit de fechamento: `61b86a4` — `feat: redesenha Minhas Tarefas com Fluxo Claro`.
 - Lista clara com prioridade, estado textual, prazo e projeto/coluna; links abrem o painel correto. Ícones de estado são informativos, sem checkbox que simule conclusão fora do quadro.
 - Navegação GET Todas/Pendentes/Iniciadas/Concluídas mantém filtros e reinicia paginação. Filtros nativos recolhidos por padrão e abertos quando há critérios adicionais; total real dos resultados, vazios e aviso de arquivados.
 - Twig e CSS externo próprios, sem JS novo. Formulários/links funcionam sem JS; detalhes da tarefa continuam dependendo de JS no quadro. Erros 422 recebem apresentação própria, mantendo status/validação.
@@ -128,6 +70,17 @@
 - Regressão PHP completa, fixture própria e preflight local aprovados. Chromium/axe em 320–1440px aprovado para filtros/estados, paginação, XSS, atribuições, viewer, conta vazia, arquivados, links, 422/404 e uso sem JS; regressões de relatórios e dashboard aprovadas.
 - Previews my-tasks-390.png/my-tasks-1440.png, filtros/vazio em storage/previews, fora do Git e inspecionados visualmente. Sem testes em aparelhos físicos/leitores de tela.
 - Próximo incremento autorizado: UI/UX dos históricos pessoal e do projeto; configurações pessoais em entrega posterior.
+
+## Última entrega aprovada — UI/UX: históricos pessoal e do projeto
+
+- Décimo primeiro incremento aprovado; commit de fechamento: `feat: redesenha históricos com Fluxo Claro` (hash no Git).
+- Linha do tempo com ação, autor, horário UTC e links de projeto/tarefa. Meu Histórico segue só ações próprias; histórico do projeto mostra ações da equipe.
+- Filtros GET em disclosure nativo, preservação na paginação e totais reais. Antes/depois em comparações por campo, empilhadas no celular e lado a lado no desktop; textos longos sem rolagem horizontal.
+- Twig/CSS externos, sem JS novo. Vazios, consulta de arquivados e erro 422 próprios. Retorno 422 mantém validação/status e limpeza volta ao mesmo projeto; restrições de convites permanecem no ActivityPresenter.
+- ReportingService, autorização, consultas, ordenação e limites preservados. CSS de relatórios e paginação legados sem referências removidos. Sem migration, alteração do .env ou publicação.
+- Regressão PHP completa, fixture de históricos, teste de relatórios e preflight local aprovados. Chromium/axe 320–1440px aprovado para pessoal/projeto, antes/depois, textos longos/XSS, filtros/paginação/UTC, autores, quatro papéis, privacidade, arquivados, links, 422/404 e uso sem JS; regressão de relatórios no navegador aprovada.
+- Previews history-personal-390.png/history-project-390.png e versões 1440, history-changes-*.png/history-empty-390.png em storage/previews, fora do Git e inspecionados visualmente. Sem testes em aparelhos físicos/leitores de tela.
+- Próximo incremento autorizado: UI/UX de perfil e configurações pessoais. Homologação operacional segue adiada; testes apenas em banco/Mailpit descartáveis.
 
 ## Documentação por módulo
 

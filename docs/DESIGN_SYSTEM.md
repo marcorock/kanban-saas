@@ -227,3 +227,14 @@ Validação da revisão: regressão PHP e preflight local aprovados. Chromium ve
 - Próximo incremento após aprovação: históricos pessoal e de projeto. Homologação operacional permanece adiada.
 
 Validação do décimo incremento: regressão PHP completa e preflight local aprovados. Chromium 320/390/768/1024/1440px e axe A/AA nos cenários auditados aprovados, incluindo lista, texto longo, vazios, filtros abertos, concluídas e 422. Filtros, paginação, atribuições, papéis, arquivados, deep link e uso sem JS aprovados; regressões de relatórios/dashboard aprovadas. Previews inspecionados visualmente; sem validação em aparelhos físicos/leitores de tela.
+
+
+## Décimo primeiro incremento — históricos
+
+- Linha do tempo em lista branca com separadores discretos: ícone informativo, ação, autor, horário UTC e links de contexto. Escopos pessoal/equipe explícitos e aviso de arquivo.
+- Filtros em disclosure nativo, abertos com critérios ativos. GET preservado na paginação e total real, sem contagens por tipo simuladas.
+- Comparações Antes/Depois por campo, em coluna no celular e duas colunas a partir de 640px. Conteúdo integral com quebras de linha; não há tabela larga ou estilo inline.
+- Campos de 16px/48px, ações e disclosures com mínimo de 44px e foco visível. Vazios e erros próprios. Sem JS novo; filtros, paginação e expansões continuam nativos.
+- Templates em reports/, CSS externo history.css; sem mudança de consultas ou privacidade. Estilos/template de paginação legados sem referências removidos. Próximo incremento após aprovação: perfil/configurações pessoais; homologação operacional adiada.
+
+Validação do décimo primeiro incremento: PHP, preflight local e Chromium 320/390/768/1024/1440px aprovados. Axe A/AA sem violações nos cenários auditados: pessoal/projeto, snapshots expandidos, papéis, arquivados, vazios e 422. Comparações, filtros, paginação, UTC, autoria, privacidade, links e uso sem JS aprovados; regressão de relatórios aprovada. Previews inspecionados visualmente; sem teste em aparelhos físicos/leitores de tela.

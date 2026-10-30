@@ -51,6 +51,16 @@ Estrutura em reports/tasks.html.twig/tasks-error.html.twig, CSS em public/assets
 
 Valores de criação/exclusão usam “Não definido” no lado ausente. A linha do tempo de uma tarefa continua disponível no painel lateral. Eventos de projetos excluídos permanecem no banco para auditoria, mas não aparecem nestas consultas porque o projeto não pode mais ser acessado.
 
+## UI dos históricos — Fluxo Claro
+
+Meu Histórico e histórico do projeto apresentam linha do tempo com ação, autor, horário UTC e links de projeto/tarefa. O cabeçalho diferencia ações próprias de ações da equipe. Projetos arquivados recebem aviso de consulta.
+
+Filtros de projeto (apenas pessoal), ação e período ficam em disclosure nativo, recolhidos por padrão e abertos com critérios ativos. A data filtra a atividade, incluindo dias inicial/final em UTC. Totais correspondem à seleção inteira; paginação preserva GET e continua com 25 eventos. Erros 422 usam apresentação própria, mantendo validação/status; Limpar filtros preserva o contexto do histórico do projeto.
+
+**Ver alterações** expande comparação por campo. Antes/Depois ficam empilhados no celular e lado a lado a partir de 640px, preservando quebras de linha e nomes/valores completos. Textos longos quebram sem exigir rolagem horizontal. Toda navegação, filtragem, paginação e expansão funciona sem JS. Links para detalhes das tarefas continuam dependendo de JS no quadro.
+
+HTML em reports/history.html.twig/events.html.twig/history-error.html.twig, CSS externo history.css, sem JS novo. Consultas, autorização, limites e ActivityPresenter permanecem iguais; eventos restritos recebem apenas aviso e não contêm e-mail/snapshots ocultos no HTML. Assets de relatórios/paginação legados sem uso foram removidos.
+
 ## Isolamento e implementação
 
 ReportingService exige vínculo atual tanto em tenant_users quanto em project_members em todas as consultas, com igualdade do tenant e projeto nas junções de tarefas, atribuições e eventos. Filtros de projeto revalidam acesso no backend e retornam 404 para projetos alheios. IDs de usuário ou autor enviados por query string não mudam a identidade da consulta.
@@ -77,3 +87,6 @@ Próxima pendência funcional: perfil e configurações pessoais. Depois: revis�
 
 
 Para validar o incremento de Minhas Tarefas, execute `AUTH_TEST_DATABASE=disposable php tests/my-tasks-ui.php` no ambiente descartável e depois `node tests/my-tasks-browser.cjs`, com as variáveis e ferramentas Chromium/playwright-core/@axe-core/playwright descritas em KANBAN.md. A fixture inclui atribuições próprias/alheias, conta vazia, viewer, projeto privado/arquivado, paginação, prazo e título longo com HTML literal. Previews my-tasks-390.png/my-tasks-1440.png e filtros/vazio em storage/previews, fora do Git.
+
+
+Para testar os históricos, no mesmo ambiente descartável execute `AUTH_TEST_DATABASE=disposable php tests/history-ui.php` e depois `node tests/history-browser.cjs` com Chromium/playwright-core/@axe-core/playwright. A fixture inclui 27 alterações para paginação, snapshots longos/HTML literal, autores diferentes, conta vazia, arquivados e convite enviado por administrador posteriormente rebaixado a membro. Previews history-personal-390.png/history-project-390.png e versões 1440, history-changes-*.png/history-empty-390.png ficam em storage/previews, fora do Git.

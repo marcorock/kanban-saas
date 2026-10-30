@@ -1,17 +1,23 @@
 {% extends 'layout.html.twig' %}
-{% block styles %}<link rel="stylesheet" href="/assets/css/reports.css">{% endblock %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/history.css">{% endblock %}
 {% block content %}
-<h2 class="h4">{{ project ? 'Histórico do projeto — ' ~ project.name : 'Meu Histórico' }}</h2>
-<p class="text-body-secondary">{{ project ? 'Atividades dos participantes deste projeto.' : 'Suas ações nos projetos aos quais você tem acesso atualmente.' }}</p>
-{% if project %}<a href="/projects/{{ project.id }}">Voltar ao projeto</a>{% endif %}
-<form method="get" class="row g-3 my-3">
-    {% if not project %}<div class="col-sm-6"><label class="form-label" for="project">Projeto</label><select class="form-select" id="project" name="project_id"><option value="">Todos os projetos</option>{% for item in projects %}<option value="{{ item.id }}" {{ filters.project_id == item.id ? 'selected' : '' }}>{{ item.name }}{{ item.archived_at ? ' (arquivado)' : '' }}</option>{% endfor %}</select></div>{% endif %}
-    <div class="col-sm-6"><label class="form-label" for="action">Tipo de ação</label><select class="form-select" id="action" name="action"><option value="">Todas as ações</option>{% for value, label in actions %}<option value="{{ value }}" {{ filters.action == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
-    <div class="col-sm-6"><label class="form-label" for="from">De (UTC)</label><input type="date" class="form-control" id="from" name="from" value="{{ filters.from }}" min="1000-01-01" max="9999-12-31"></div>
-    <div class="col-sm-6"><label class="form-label" for="to">Até (UTC)</label><input type="date" class="form-control" id="to" name="to" value="{{ filters.to }}" min="1000-01-01" max="9999-12-31"></div>
-    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Filtrar</button><a class="btn btn-outline-secondary" href="{{ project ? '/projects/' ~ project.id ~ '/history' : '/history' }}">Limpar filtros</a></div>
+{% set activeFilters = (not project and filters.project_id ? 1 : 0) + (filters.action ? 1 : 0) + (filters.from ? 1 : 0) + (filters.to ? 1 : 0) %}
+<div class="history-page">
+    {% if project %}<a href="/projects/{{ project.id }}" class="hi-back">{{ ui.icon('arrow-left') }} Voltar ao projeto</a>{% endif %}
+    <header class="hi-intro"><h2>{{ project ? 'Histórico do projeto' : 'Meu Histórico' }}</h2>{% if project %}<p class="hi-project-name">{{ project.name }}</p>{% endif %}<p>{{ project ? 'Acompanhe as ações de todos os participantes deste projeto.' : 'Acompanhe suas ações nos projetos aos quais você tem acesso atualmente.' }}</p></header>
+    {% if project and project.archived_at %}<p class="hi-context">{{ ui.icon('archive') }} Projeto arquivado. O histórico continua disponível para consulta.</p>{% endif %}
+    <details id="history-filters" class="hi-filters" {{ activeFilters ? 'open' : '' }}><summary>{{ ui.icon('settings') }} Filtros <span>{{ activeFilters ? (activeFilters == 1 ? '1 ativo' : activeFilters ~ ' ativos') : (project ? 'Ação e período' : 'Projeto, ação e período') }}</span></summary>
+<form method="get" class="hi-filter-form">
+    {% if not project %}<div class="hi-field"><label for="project">Projeto</label><select id="project" name="project_id"><option value="">Todos os projetos</option>{% for item in projects %}<option value="{{ item.id }}" {{ filters.project_id == item.id ? 'selected' : '' }}>{{ item.name }}{{ item.archived_at ? ' (arquivado)' : '' }}</option>{% endfor %}</select></div>{% endif %}
+    <div class="hi-field"><label for="action">Tipo de ação</label><select id="action" name="action"><option value="">Todas as ações</option>{% for value, label in actions %}<option value="{{ value }}" {{ filters.action == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="hi-field"><label for="from">De (UTC)</label><input type="date" id="from" name="from" value="{{ filters.from }}" min="1000-01-01" max="9999-12-31"></div>
+    <div class="hi-field"><label for="to">Até (UTC)</label><input type="date" id="to" name="to" value="{{ filters.to }}" min="1000-01-01" max="9999-12-31"></div>
+    <div class="hi-actions"><button class="hi-button hi-primary" type="submit">Filtrar</button><a class="hi-button hi-secondary" href="{{ project ? '/projects/' ~ project.id ~ '/history' : '/history' }}">Limpar filtros</a></div>
 </form>
-<p>{{ result.total }} atividade(s)</p>
-{% include 'reports/events.html.twig' with {events: result.items} %}
-{% include 'reports/pagination.html.twig' %}
+    <p class="hi-help">O período considera a data da atividade em UTC, incluindo os dias inicial e final.</p></details>
+    <div class="hi-results-heading"><h3>Atividades encontradas</h3><span class="hi-total">{{ result.total }} {{ result.total == 1 ? 'atividade' : 'atividades' }}</span></div>
+    {% include 'reports/events.html.twig' with {events: result.items} %}
+    {% if result.pages > 1 %}<nav class="hi-pagination" aria-label="Paginação do histórico">{% if result.page > 1 %}<a href="?{{ filters|merge({page: result.page - 1})|url_encode }}">{{ ui.icon('arrow-left') }} Anterior</a>{% else %}<span aria-disabled="true">Anterior</span>{% endif %}<span>Página {{ result.page }} de {{ result.pages }}</span>{% if result.page < result.pages %}<a href="?{{ filters|merge({page: result.page + 1})|url_encode }}">Próxima {{ ui.icon('arrow-right') }}</a>{% else %}<span aria-disabled="true">Próxima</span>{% endif %}</nav>{% endif %}
+</div>
 {% endblock %}

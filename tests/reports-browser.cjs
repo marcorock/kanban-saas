@@ -33,6 +33,7 @@ runBoardBrowser(async ({page, save, boardUrl}) => {
     await page.locator('#task-panel-close').click();
     await page.waitForFunction(() => !document.getElementById('task-panel').classList.contains('show'));
     await page.getByRole('link', {name: 'Meu Histórico', exact: true}).click();
+    await page.locator('#history-filters > summary').click();
     await page.locator('#action').selectOption('task.updated');
     await Promise.all([page.waitForURL(/action=task.updated/), page.getByRole('button', {name: 'Filtrar', exact: true}).click()]);
     const event = page.locator('article').filter({hasText: 'Tarefa consolidada'}).first();
@@ -45,6 +46,7 @@ runBoardBrowser(async ({page, save, boardUrl}) => {
     await page.goto(projectUrl);
     await page.getByRole('link', {name: 'Histórico do projeto', exact: true}).click();
     assert.match(await page.getByRole('heading', {level: 2}).innerText(), /Histórico do projeto/);
+    await page.locator('#history-filters > summary').click();
     await page.locator('#from').fill('2000-01-01'); await page.locator('#to').fill('2000-01-01');
     await Promise.all([page.waitForURL(/from=2000-01-01/), page.getByRole('button', {name: 'Filtrar', exact: true}).click()]);
     assert.match(await page.locator('main').innerText(), /Nenhuma atividade/);

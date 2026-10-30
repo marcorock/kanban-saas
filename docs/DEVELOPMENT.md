@@ -29,6 +29,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | b8f5fdb | Participantes, convites e aceite Fluxo Claro |
 | 01eb9ea | Quadro Kanban Fluxo Claro |
 | 46785c3 | Painel de tarefas, progresso agregado e checklist compacto |
+| 61b86a4 | Minhas Tarefas Fluxo Claro |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -149,3 +150,17 @@ Validação do décimo incremento: regressão PHP completa, fixture própria e p
 
 
 Décimo incremento aprovado pelo usuário e incluído no commit `feat: redesenha Minhas Tarefas com Fluxo Claro` (hash no Git). Próximo incremento autorizado: históricos pessoal e do projeto; configurações pessoais em entrega posterior.
+
+
+## UI/UX — décimo primeiro incremento: históricos
+
+Iniciado após aprovação e commit de Minhas Tarefas (`61b86a4`). Históricos pessoal e do projeto com linha do tempo, ação/autor, horários UTC e contexto com links de projeto/tarefa. Escopos pessoais/equipe explícitos. Filtros nativos recolhidos por padrão, abertos com critérios ativos, totais reais e paginação GET preservada. Comparação de snapshots em campos com Antes/Depois, empilhados no celular e lado a lado no desktop, sem tabela larga.
+
+HTML em reports/history.html.twig/events.html.twig/history-error.html.twig; CSS externo history.css, sem JS novo. Privacidade continua no ActivityPresenter; templates não recebem dados administrativos ocultos para membros/viewers. Consultas, autorização, limites e ordenação preservados. O erro 422 recebe a nova apresentação, mantendo status/validação; Limpar filtros agora retorna ao mesmo histórico do projeto quando aplicável. Assets/templates legados reports.css e reports/pagination.html.twig, sem referências restantes, foram removidos. Sem migration ou alteração do .env.
+
+Fixture de testes em history-ui.php e navegador em history-browser.cjs, exclusivamente descartáveis. Incremento concluído; aguarda aprovação própria para commit. Próximo incremento após aprovação: perfil/configurações pessoais. Homologação operacional continua adiada. PROJECT_CONTEXT foi consolidado para manter o estado atual conciso; este arquivo e Git preservam a evolução anterior.
+
+Validação do décimo primeiro incremento: regressão PHP completa, fixture de históricos, teste de relatórios após ajuste de retorno 422 e preflight local aprovados. Chromium/axe 320–1440px aprovado para pessoal/projeto, snapshots longos e HTML literal, filtros/paginação/UTC, ações próprias/equipe, privacidade administrativa inclusive após rebaixamento, arquivados, links, 422/404 e navegação sem JS. Regressão de relatórios no navegador aprovada. Previews mobile/desktop e comparações inspecionados visualmente, fora do Git. Sem testes em aparelhos físicos/leitores de tela. Fixtures exclusivamente em banco/Mailpit descartáveis. Sem migration ou mudança do .env.
+
+
+Décimo primeiro incremento aprovado e incluído no commit `feat: redesenha históricos com Fluxo Claro` (hash no Git). Próximo incremento autorizado: UI/UX de perfil e configurações pessoais.

@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Adicionado
+- Históricos pessoal/de projeto Fluxo Claro, com linha do tempo, autor/horário UTC, contexto e navegação para projeto/tarefa.
+- Filtros nativos recolhidos, totais/paginação GET, vazios, aviso de arquivados e erro 422 próprios; comparação Antes/Depois por campo adaptada ao celular, sem tabela larga.
+- CSS externo próprio e remoção de stylesheet/template de paginação legados sem referências, preservando consultas e privacidade administrativa.
+- Fixture/teste Chromium/axe dos históricos, snapshots longos, autores e restrição de convites por papel.
 - Minhas Tarefas Fluxo Claro: lista compacta, prioridade/estado/prazo, contexto e links diretos ao painel da tarefa.
 - Navegação GET por estado com preservação de filtros, filtros nativos recolhidos, total real, paginação, vazios e aviso de arquivados; apresentação própria do erro 422.
 - CSS externo próprio, sem JavaScript adicional ou alteração de regras de consulta/atribuição; fixture e teste Chromium/axe de Minhas Tarefas.

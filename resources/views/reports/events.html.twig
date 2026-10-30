@@ -1,14 +1,11 @@
-{% for event in events %}
-<article class="card card-body mb-3">
-    <div class="d-flex flex-wrap gap-2 justify-content-between"><strong>{{ event.label }}</strong><time class="small text-body-secondary">{{ event.created_at|date('d/m/Y H:i', 'UTC') }} UTC</time></div>
-    <p class="small mb-1">{{ event.author }} · <a href="/projects/{{ event.project_id }}">{{ event.project_name }}</a>{% if event.task_id %} · <a href="/projects/{{ event.project_id }}/board?task={{ event.task_id }}">{{ event.task_title ?: 'Ver tarefa' }}</a>{% endif %}</p>
-    {% if event.restricted|default(false) %}<p class="small text-body-secondary mb-0">Detalhes disponíveis somente à administração do projeto.</p>{% endif %}
-    {% if event.changes|default([]) %}
-    <details><summary class="small">Ver alterações</summary>
-        <div class="table-responsive mt-2"><table class="table table-sm"><thead><tr><th>Campo</th><th>Antes</th><th>Depois</th></tr></thead><tbody>
-        {% for change in event.changes %}<tr><th>{{ change.label }}</th><td class="report-value">{{ change.before }}</td><td class="report-value">{{ change.after }}</td></tr>{% endfor %}
-        </tbody></table></div>
-    </details>
-    {% endif %}
-</article>
-{% else %}<p class="alert alert-info">Nenhuma atividade encontrada.</p>{% endfor %}
+{% import 'ui/icons.html.twig' as ui %}
+{% if events %}<ol class="hi-timeline">{% for event in events %}
+<li><article class="hi-event">
+    <span class="hi-event-icon" aria-hidden="true">{{ ui.icon(event.task_id ? 'tasks' : (event.action starts with 'invitation.' ? 'mail' : (event.action starts with 'member.' ? 'users' : 'history'))) }}</span>
+    <div class="hi-event-content"><div class="hi-event-heading"><h4>{{ event.label }}</h4><time datetime="{{ event.created_at|date('c', 'UTC') }}">{{ event.created_at|date('d/m/Y H:i', 'UTC') }} UTC</time></div>
+    <p class="hi-author">{{ event.author }}</p><p class="hi-context-links"><a href="/projects/{{ event.project_id }}">{{ event.project_name }}</a>{% if event.task_id %}<span aria-hidden="true">·</span><a href="/projects/{{ event.project_id }}/board?task={{ event.task_id }}">{{ event.task_title ?: 'Ver tarefa' }}</a>{% endif %}</p>
+    {% if event.restricted|default(false) %}<p class="hi-restricted">{{ ui.icon('lock') }} Detalhes disponíveis somente à administração do projeto.</p>{% endif %}
+    {% if event.changes|default([]) %}<details class="hi-changes"><summary>Ver alterações <span>{{ event.changes|length }} {{ event.changes|length == 1 ? 'campo' : 'campos' }}</span></summary><dl>{% for change in event.changes %}<div class="hi-change"><dt>{{ change.label }}</dt><dd><div><span>Antes</span><p>{{ change.before }}</p></div><div><span>Depois</span><p>{{ change.after }}</p></div></dd></div>{% endfor %}</dl></details>{% endif %}
+    </div>
+</article></li>{% endfor %}</ol>
+{% else %}<section class="hi-empty"><span aria-hidden="true">{{ ui.icon('history') }}</span><h4>Nenhuma atividade encontrada.</h4><p>{{ project ? 'As ações dos participantes aparecerão aqui conforme os filtros selecionados.' : 'Suas ações nos projetos acessíveis aparecerão aqui conforme os filtros selecionados.' }}</p><a class="hi-button hi-secondary" href="{{ project ? '/projects/' ~ project.id : '/projects' }}">{{ project ? 'Voltar ao projeto' : 'Explorar projetos' }} {{ ui.icon('arrow-right') }}</a></section>{% endif %}

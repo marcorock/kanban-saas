@@ -1,0 +1,4 @@
+{% extends 'layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/history.css">{% endblock %}
+{% block content %}<div class="history-page"><header class="hi-intro"><h2>Histórico</h2></header><section class="hi-empty" role="alert"><span aria-hidden="true">{{ ui.icon('alert') }}</span><h3>Revise os filtros.</h3><p>{{ message }}</p><a class="hi-button hi-secondary" href="{{ back }}">Limpar filtros {{ ui.icon('arrow-right') }}</a></section></div>{% endblock %}
