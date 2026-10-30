@@ -4,7 +4,7 @@ Direção visual original para o Kanban SaaS: clareza, ritmo e foco no próximo 
 
 ## Escopo e evolução
 
-Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; próximo incremento proposto: formulários de criação/edição. Homologação operacional continua adiada.
+Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; o quinto incremento trata os formulários; próximo incremento proposto: detalhes do projeto. Homologação operacional continua adiada.
 
 O desenho deve servir às funções existentes. Não exibir busca global, notificações, calendário, assinatura, login social ou links de políticas sem a funcionalidade/conteúdo correspondente. Não há biblioteca de componentes remota, fonte externa, imagens geradas ou etapa de build.
 
@@ -152,3 +152,15 @@ Validação do terceiro incremento: regressão PHP completa e preflight local ap
 - Próximo incremento: criação/edição de projetos; detalhes, participantes e Kanban serão migrados separadamente. Sem homologação operacional neste incremento.
 
 Validação do quarto incremento: regressão PHP completa, preflight local e Chromium da listagem/dashboard/perfil/shell aprovados. Axe sem violações A/AA nos casos verificados da listagem preenchida, arquivada, vazia e com textos longos. Previews inspecionados visualmente. Testes usaram exclusivamente banco descartável; aparelhos físicos e leitores de tela permanecem pendentes.
+
+## Quinto incremento — formulários de projetos
+
+- Seções de informações/prazos, indicação de nome obrigatório e demais campos opcionais; ajuda associada por aria-describedby e campos de pelo menos 52px/16px.
+- Uma coluna no celular, datas lado a lado a partir de 640px e apoio contextual no desktop a partir de 1280px. Ações no fluxo normal, sem barra fixa disputando espaço com o teclado.
+- Contadores informativos, mínimo de término conforme início e estado de envio, todos em JS externo. Sem JS, POST e validação do servidor continuam funcionais.
+- Resumo textual com role=alert, foco em erro e preservação de campos em 422/419. Campos reapresentados continuam escapados; nenhum rascunho salvo automaticamente. Cancelar não altera o projeto.
+- Templates em projects/form.html.twig; estilos em projects-form.css; interações em projects-form.js. O preflight verifica os assets. Backend preserva regras, escopo, transações e autorização.
+- Previews em storage/previews/projects-new-390.png, projects-new-1440.png e correspondentes projects-edit-*.png. Testes em projects-form-browser.cjs, com fixture descartável da listagem; executar antes tests/projects-list.php ou o runner PHP.
+- Limites: teste automatizado em Chromium; dispositivos físicos e leitores de tela não avaliados. Próximo incremento: detalhes do projeto; homologação operacional permanece adiada.
+
+Validação do quinto incremento: regressão PHP completa e preflight local aprovados. Chromium/axe da página em 320–1440px aprovado para criação, edição e retorno de erro; fluxos de datas, 422/419, preservação/foco, XSS, cancelamento, autorização e envio sem JS aprovados. Regressões de listagem e dashboard também aprovadas; previews inspecionados visualmente.

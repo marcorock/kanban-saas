@@ -60,17 +60,22 @@ final class ProjectController
         if (in_array($action, ['new', 'edit'], true)) {
             return $this->views->render('projects/form.html.twig', $base + ['project' => $project, 'old' => $project ?? $blank, 'errors' => []]);
         }
-        if (!Session::verifyCsrf($_POST['_token'] ?? null)) {
-            http_response_code(419);
-            return 'Sessão do formulário expirada. Recarregue a página.';
-        }
-        if (in_array($action, ['create', 'update'], true)) {
-            $data = [];
-            $formatError = false;
+        $formSubmission = in_array($action, ['create', 'update'], true);
+        $data = []; $formatError = false;
+        if ($formSubmission) {
             foreach (array_keys($blank) as $key) {
                 if (isset($_POST[$key]) && (!is_string($_POST[$key]) || str_contains($_POST[$key], "\0"))) { $formatError = true; }
                 $data[$key] = is_string($_POST[$key] ?? null) ? trim($_POST[$key]) : '';
             }
+        }
+        if (!Session::verifyCsrf($_POST['_token'] ?? null)) {
+            http_response_code(419);
+            if ($formSubmission) {
+                return $this->views->render('projects/form.html.twig', $base + ['project' => $project, 'old' => $data, 'errors' => ['Sua sessão do formulário expirou. Confira os dados e tente salvar novamente.']]);
+            }
+            return 'Sessão do formulário expirada. Recarregue a página.';
+        }
+        if ($formSubmission) {
             $errors = $formatError ? ['Formato de formulário inválido.'] : ProjectValidator::errors($data);
             if ($errors) {
                 http_response_code(422);

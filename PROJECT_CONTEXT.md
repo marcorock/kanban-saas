@@ -36,96 +36,37 @@
 - 2f0fd5c — design system Fluxo Claro e telas de acesso.
 - 0460acf — estrutura autenticada: header, menus responsivos e footer.
 - 756af0e — dashboard Fluxo Claro.
+- ace0d17 — listagem de projetos Fluxo Claro.
 
-## Entrega anterior — dashboard e históricos (Fase 5)
+## Módulos consolidados
 
-- Dashboard, Minhas Tarefas e históricos aprovados pelo usuário; incluídos no commit `75927a9` — `feat: adiciona dashboard e históricos consolidados`.
-- Migration 008: índices de período de activity_logs por tenant/projeto e por autor.
-- Dashboard: projetos ativos acessíveis, contagens de tarefas atribuídas em projetos ativos, progresso paginado, prazos próximos e atividades recentes.
-- Minhas Tarefas: somente atribuições próprias, com filtros de projeto, prioridade, estado, prazo e arquivamento; 25 registros por página.
-- Meu Histórico: ações próprias em projetos ainda acessíveis. Histórico do projeto: ações de todos os participantes; filtros de ação/período e snapshots legíveis.
-- ReportingService aplica vínculos atuais de tenant e projeto em todas as consultas; ProjectRepository valida filtros de projeto.
-- Detalhes/e-mails de convites nos históricos são restritos à administração atual, inclusive após alteração de papel.
-- ActivityPresenter usa campos conhecidos, nomes em lote e saída escapada; relatórios não exibem JSON bruto.
-- Navegação unificada e links de tarefas abrem o painel correto por query task, com autorização no backend.
-- Regressão PHP aprovada: sessões, contas/SMTP, projetos, participantes, Kanban, tarefas e relatórios.
-- Testes de relatórios aprovados: contagens/progresso, múltiplos tenants, acesso, privacidade, período UTC, XSS, paginação e revogação.
-- Chromium aprovado: Kanban, navegação, métricas, filtros, snapshots seguros, links diretos e layout móvel.
-- Testes somente em PHP 8.3.32/MariaDB 11.8.8/Mailpit descartáveis; ambiente local recebe apenas migrations verificadas.
+- Autenticação, confirmação/reset SMTP e perfil/sessões: docs/AUTHENTICATION.md.
+- Projetos, papéis, convites, transferência e auditoria: docs/PROJECTS.md e docs/MEMBERS.md.
+- Kanban transacional com board_version, tarefas, responsáveis, checklists e comentários: docs/KANBAN.md e docs/TASKS.md.
+- Dashboard, Minhas Tarefas e históricos com escopo de tenant/projeto: docs/REPORTS.md.
+- Fase 6 aprovada: preflight somente leitura, segurança, regressão e roteiro operacional em docs/PRODUCTION.md e docs/VALIDATION.md.
+- Fluxo Claro já aplicado a acesso, navegação, dashboard e listagem. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
+- Homologação operacional adiada pelo usuário para trabalhar UI/UX em incrementos pequenos. Sem publicação autorizada. Organizações seguem expansão pendente; sem cobrança no MVP.
 
-## Entrega anterior — perfil e configurações pessoais
+## Entrega anterior — UI/UX: listagem de projetos
 
-- Retomada solicitada em 29/10/2026. Incremento aprovado pelo usuário; commit de fechamento: `aba013c` — `feat: adiciona perfil e configurações pessoais`. Próxima etapa autorizada: Fase 6.
-- `/settings`: edição do nome, e-mail confirmado para consulta, troca de senha e encerramento das demais sessões.
-- Troca exige senha atual e confirmação; invalida tokens de recuperação, incrementa session_version e regenera a sessão atual/CSRF.
-- ProfileService bloqueia o usuário e revalida a versão na transação; rollback preserva senha/tokens/versão. Identidade vem apenas da sessão.
-- Formulários protegidos por CSRF, limites por usuário/ação e escape Twig. Sem nova migration; schema local 001–008 permanece suficiente.
-- Teste descartável de perfil aprovado: autorização, validação, campos protegidos, XSS, senha, rollback, tokens, revogação e concorrência entre processos.
-- Regressão PHP aprovada: sessões, autenticação, contas/SMTP, projetos, membros, Kanban, tarefas e relatórios; migrations idempotentes e sintaxe PHP verificadas. Teste visual original não executado; Chromium do perfil concluído e aprovado durante a Fase 6.
-- Limitações: sem alteração de e-mail, avatar, tema/fuso ou listagem individual de dispositivos; conta não altera nome do tenant.
-- Aprovação do perfil autorizou a Fase 6, implementada abaixo.
-- Gerenciamento de organizações segue pendente de expansão; sem cobrança/pagamentos no MVP.
-
-## Entrega anterior — Fase 6: validação e preparação para produção
-
-- Incremento aprovado pelo usuário; commit de fechamento: `58c0e2a` — `chore: prepara validação e instalação em produção`. O commit do perfil não contém esta fase.
-- Preflight `php bin/check.php [--production]`: runtime/extensões, configuração segura, assets, MariaDB/UTC e migrations; somente leitura e sem exposição de segredos.
-- CSP, proteção de frames e Permissions-Policy em respostas dinâmicas, inclusive erros; HSTS na configuração de produção com APP_URL HTTPS.
-- Composer explicita extensões; lock sincronizado sem alterar versões. Audit sem avisos conhecidos; validate mantém aviso preexistente de licença não definida.
-- Quadro consulta apenas campos dos cards; descrições continuam no detalhe. Carga de 1.000 tarefas: 5 consultas e pico adicional de 1,64 MiB; amostra local, sem SLA.
-- Regressão PHP, preflight com usuário SQL somente leitura, concorrência e Chromium (perfil, tarefas, relatórios e Kanban) aprovados. Runner sequencial em tests/run.php.
-- Check local aprovado em leitura; nenhuma migration nova ou alteração no .env. Ambiente de teste descartável separado do banco de uso diário.
-- Roteiro de instalação, backup, permissões, SMTP, HTTPS e reversão: docs/PRODUCTION.md. Evidências e limitações: docs/VALIDATION.md.
-- Não houve deploy, teste do SMTP/HTTPS de produção ou ensaio de carga HTTP concorrente.
-- Homologação operacional adiada por solicitação explícita do usuário. Após o commit, o usuário definiu UI/UX como prioridade, conforme incremento abaixo. Publicação requer autorização explícita.
-
-## Entrega anterior — UI/UX: telas de acesso
-
-- Solicitado pelo usuário: design system original, mobile first e pequenos incrementos; primeiro login, cadastro e recuperação/reset.
-- Fluxo Claro: verde profundo, lima, superfícies claras e hierarquia tipográfica própria. APP_NAME permanece o nome do produto.
-- Implementados header/footer de acesso, formulários, confirmação/reenvio/aviso de e-mail e estados de erro/sucesso/envio. Sem redesenho das telas internas ou da página inicial `/`.
-- HTML em Twig; tokens/layout em CSS externo; comportamento em JS externo. Nenhum inline nos novos templates; separação registrada no AGENTS.md.
-- Melhorias progressivas: mostrar senha, foco no resumo de erros, bloqueio de envio repetido; POST/CSRF e login funcionam sem JS.
-- Testes PHP de autenticação, conta/SMTP, segurança e preflight aprovados. Chromium/axe: 320/390/768/1024/1440px, sem overflow, acessibilidade automatizada A/AA, fluxos de conta e fallback sem JS aprovados.
-- Previews mobile/desktop em storage/previews (ignorados no Git), verificados visualmente; sem teste em dispositivos físicos/leitores de tela.
-- Design system, menus internos planejados, componentes e limites: docs/DESIGN_SYSTEM.md. Preflight local aprovado com novos assets; nenhuma migration ou alteração no .env.
-- Incremento aprovado pelo usuário; commit de fechamento: `2f0fd5c` — `feat: define design system e redesenha telas de acesso`. Próximo incremento autorizado: shell autenticado (header, menus responsivos e footer); adaptar módulos depois, um por vez.
-- Homologação operacional permanece adiada; nenhuma publicação realizada.
-
-## Entrega anterior — UI/UX: estrutura autenticada
-
-- Segundo incremento visual aprovado pelo usuário; commit de fechamento: `0460acf` — `feat: redesenha navegação da área autenticada`. Não incluído no commit das telas de acesso.
-- Header contextual com perfil, sidebar desktop a partir de 1024px, barra inferior em celular/tablet e footer discreto.
-- Mais: histórico, configurações e saída; diálogo com foco contido, Escape/botão/backdrop, retorno de foco e fechamento ao mudar para desktop. Details/summary como alternativa sem JS.
-- Estado ativo por módulo: páginas internas de projeto mantêm Projetos ativo; histórico próprio e histórico do projeto não se confundem.
-- NavigationContext prepara somente contexto visual; permissões, rotas e consultas de escopo permanecem existentes. Convites autenticados integram a navegação.
-- Twig, CSS e JS externos separados; dimensões antigas da página pública preservadas em legacy-layout.css. Conteúdo dos módulos ainda usa seus componentes anteriores.
-- Regressão PHP completa aprovada, incluindo teste de shell, convites, CSRF/XSS, transações, concorrência e isolamento. Migrations idempotentes no banco descartável; nenhuma migration nova.
-- Chromium: shell em 320/390/768/1024/1440px, axe A/AA restrito aos componentes novos, foco/resize, navegação/logout sem JS, offcanvas, tarefas, relatórios e perfil aprovados.
-- Preflight local aprovado somente em leitura. Previews em storage/previews/shell-390.png, shell-1440.png e shell-menu-390.png; verificados visualmente e ignorados no Git.
-- Limitações: conteúdo dos módulos não foi redesenhado; sem testes em aparelhos físicos/leitores de tela. Homologação operacional permanece adiada, sem deploy ou alteração do .env.
-- Próximo incremento após aprovação: redesenho do dashboard com os componentes e tokens definidos; depois módulos, um por vez.
-
-## Entrega anterior — UI/UX: dashboard
-
-- Terceiro incremento visual aprovado; commit de fechamento: `756af0e` — `feat: redesenha dashboard com Fluxo Claro`. Próximo incremento autorizado: listagem de projetos.
-- Quatro indicadores pessoais com filtros, prazos priorizados no celular, progresso e atividades compactas. Projetos ativos contam no cabeçalho da seção de progresso.
-- Progress nativo com valor/nome acessível, sem style inline, gráficos externos ou JS novo. CSS em dashboard.css e conteúdo em Twig separado.
-- Ordem prazos/projetos/atividades consistente no DOM e no layout. Estados vazios, projeto sem tarefas, links ao painel e datas UTC preservados.
-- ReportingService, consultas, contagens, políticas e escopos não alterados. Limites/paginação preservados; nenhuma migration nova ou alteração de .env.
-- Regressão PHP completa e preflight local aprovados. Chromium/axe da página em 320–1440px, filtros, prazos, progresso sem JS, UTC, XSS e conta vazia aprovados; regressões de relatórios e shell também aprovadas. Previews verificados visualmente.
-- Limitações: validação automatizada em Chromium, sem aparelhos físicos/leitores de tela. Ambiente descartável separado do banco de uso diário.
-- Próximo incremento após aprovação: listagem de projetos; formulários/detalhes em entrega posterior. Homologação operacional permanece adiada.
-
-## Última entrega aprovada — UI/UX: listagem de projetos
-
-- Quarto incremento aprovado; commit de fechamento: `feat: redesenha listagem de projetos`. Próximo incremento autorizado: formulários de criação/edição.
+- Quarto incremento aprovado; commit de fechamento: `ace0d17` — `feat: redesenha listagem de projetos`. Próximo incremento autorizado: formulários de criação/edição.
 - Cards responsivos com nome, papel/vínculo, prazo, descrição resumida e atalhos para quadro/detalhes. Filtros GET Ativos/Arquivados, vazios e paginação próprios.
 - Twig e CSS separados, sem JS novo. Sem mudanças em queries/políticas: 25 itens por página, mesmos vínculos de tenant/projeto e ordenação. Formulários/detalhes ainda não migrados.
 - Regressão PHP completa e preflight local aprovados. Chromium/axe da listagem aprovado em 320–1440px, com papéis, arquivados/viewer, paginação/filtro, teclado, XSS, vazios e sem JS; regressões de dashboard, perfil e shell também aprovadas.
 - Fixtures exclusivamente em banco descartável; previews em storage/previews/projects-390.png e projects-1440.png, fora do Git, inspecionados visualmente. Sem teste em aparelhos físicos/leitores de tela.
 - Nenhuma migration nova, mudança de .env ou publicação. Homologação operacional continua adiada.
 - Próximo incremento após aprovação: formulários de criação/edição de projetos; detalhes em entrega posterior.
+
+## Última entrega aprovada — UI/UX: formulários de projetos
+
+- Quinto incremento aprovado; commit de fechamento: `feat: redesenha formulários de projetos`. Próximo incremento autorizado: detalhes do projeto.
+- Criação/edição com informações e prazos em seções, labels/ajuda, campos opcionais explícitos, ações mobile e apoio contextual no desktop.
+- Twig/CSS/JS externos separados. Contadores, limite de data de término, foco em erros e estado de envio são melhorias progressivas; POST funciona sem JS.
+- Respostas 422 preservam dados; 419 de criação/edição agora reapresenta o formulário e CSRF atual, mantendo status e sem gravar dados. Regras/serviços/políticas não foram alterados.
+- Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px: criação/edição, datas, 422/419, preservação/foco, XSS, cancelamento, papéis e envio sem JS aprovados; regressões de listagem e dashboard aprovadas.
+- Previews projects-new-390.png/projects-new-1440.png e projects-edit-* em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em aparelhos físicos/leitores de tela, migration nova ou alteração de .env. Fixtures apenas em banco descartável.
+- Próximo incremento após aprovação: detalhes do projeto. Homologação operacional permanece adiada.
 
 ## Documentação por módulo
 

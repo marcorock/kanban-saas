@@ -23,6 +23,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 2f0fd5c | Design system Fluxo Claro e telas de acesso |
 | 0460acf | Header, menus responsivos e footer da área autenticada |
 | 756af0e | Dashboard Fluxo Claro com indicadores, prazos e progresso nativo |
+| ace0d17 | Listagem de projetos com filtros, cards e atalhos |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -67,3 +68,9 @@ Iniciado após aprovação do dashboard. Listagem ativa/arquivada redesenhada em
 Regressão PHP completa e preflight local aprovados. Testes novos de listagem em PHP/Chromium/axe aprovados para quatro papéis, isolamento, paginação com filtro, XSS, estados vazios, 320–1440px e uso sem JavaScript. Regressões Chromium de dashboard, perfil e shell também aprovadas. Previews inspecionados visualmente; sem teste em dispositivos físicos/leitores de tela.
 
 Incremento aprovado e incluído no commit `feat: redesenha listagem de projetos`. Próximo incremento autorizado: formulários de criação/edição. Sem novas migrations, alteração do .env ou deploy; homologação operacional adiada.
+
+## UI/UX — quinto incremento: criação e edição de projetos
+
+Iniciado após aprovação da listagem. Formulários com seções de informações/prazos, indicação de obrigatoriedade, ajuda, contadores e retorno de erro com foco. CSS e JS externos; envio comum por POST continua sem JS. Em 419, criação/edição reapresentam os dados e token atual, mantendo rejeição sem escrita. Políticas, validações, serviços e transações preservados.
+
+Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px aprovado nos formulários (criação/edição, datas, 422/419, foco/preservação, XSS, cancelamento, papéis e envio sem JS); regressões de listagem e dashboard também aprovadas. Previews inspecionados visualmente, sem teste em dispositivos físicos/leitores de tela. Documentação de contexto consolidada para manter leitura curta; o histórico completo continua neste arquivo e no Git. Nenhuma migration nova, mudança do .env ou deploy. Incremento aprovado e incluído no commit `feat: redesenha formulários de projetos`; próximo incremento autorizado: detalhes do projeto.

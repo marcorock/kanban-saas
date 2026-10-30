@@ -1,21 +1,58 @@
 {% extends 'projects/layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/projects-form.css">{% endblock %}
+{% block scripts %}<script src="/assets/js/projects-form.js" defer></script>{% endblock %}
+{% block project_notice %}{% if notice %}<div class="pf-feedback pf-feedback-success" role="status">{{ ui.icon('check') }}<p>{{ notice }}</p></div>{% endif %}{% endblock %}
 {% block projects %}
-<section class="card card-body">
-    <h2 class="h4">{{ project ? 'Editar projeto' : 'Novo projeto' }}</h2>
-    {% for error in errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
-    <form method="post" action="{{ project ? '/projects/' ~ project.id : '/projects' }}">
-        <input type="hidden" name="_token" value="{{ csrf }}">
-        <label for="name" class="form-label">Nome</label>
-        <input id="name" name="name" class="form-control mb-3" required maxlength="120" value="{{ old.name }}">
-        <label for="description" class="form-label">Descrição</label>
-        <textarea id="description" name="description" class="form-control mb-3" rows="4" maxlength="5000">{{ old.description }}</textarea>
-        <div class="row">
-            <div class="col-sm-6"><label for="starts_on" class="form-label">Data inicial</label><input id="starts_on" name="starts_on" type="date" class="form-control mb-3" value="{{ old.starts_on }}" min="1000-01-01" max="9999-12-31"></div>
-            <div class="col-sm-6"><label for="due_on" class="form-label">Previsão de término</label><input id="due_on" name="due_on" type="date" class="form-control mb-3" value="{{ old.due_on }}" min="1000-01-01" max="9999-12-31"></div>
-        </div>
-        {% if not project %}<p class="form-text">O projeto será criado na sua conta pessoal, com você como proprietário.</p>{% endif %}
-        <button class="btn btn-primary" type="submit">Salvar projeto</button>
-        <a class="btn btn-outline-secondary" href="{{ project ? '/projects/' ~ project.id : '/projects' }}">Cancelar</a>
-    </form>
-</section>
+<div class="project-editor">
+    <a class="pf-back" href="{{ project ? '/projects/' ~ project.id : '/projects' }}">{{ ui.icon('arrow-left') }} {{ project ? 'Voltar ao projeto' : 'Voltar aos projetos' }}</a>
+    <div class="pf-intro">
+        <p class="pf-eyebrow">{{ project ? 'UM AJUSTE NO CAMINHO' : 'O PRIMEIRO PASSO' }}</p>
+        <h2>{{ project ? 'Deixe o projeto no ponto.' : 'Dê forma à próxima ideia.' }}</h2>
+        <p>{{ project ? 'Atualize as informações e mantenha o planejamento claro para a equipe.' : 'Comece pelo nome. Você pode completar os detalhes e os prazos depois.' }}</p>
+    </div>
+    <div class="pf-layout">
+        <form class="pf-form" method="post" action="{{ project ? '/projects/' ~ project.id : '/projects' }}" data-project-form>
+            <input type="hidden" name="_token" value="{{ csrf }}">
+            {% if errors %}
+            <div class="pf-feedback pf-feedback-error" role="alert" id="project-form-errors" tabindex="-1" data-project-errors>
+                {{ ui.icon('alert') }}<div><h3>Vamos conferir os dados?</h3><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
+            </div>
+            {% endif %}
+            <fieldset class="pf-section">
+                <legend>{{ ui.icon('projects') }} Informações do projeto</legend>
+                <div class="pf-field">
+                    <label for="name">Nome <span class="pf-required">Obrigatório</span></label>
+                    <input id="name" name="name" required maxlength="120" value="{{ old.name }}" autocomplete="off" placeholder="Ex.: Lançamento do site" aria-describedby="name-help" data-counted>
+                    <div class="pf-field-footer"><p id="name-help">Um nome claro para encontrar o projeto. Até 120 caracteres.</p><span data-count-for="name" hidden></span></div>
+                </div>
+                <div class="pf-field">
+                    <label for="description">Descrição <span class="pf-optional">Opcional</span></label>
+                    <textarea id="description" name="description" rows="5" maxlength="5000" placeholder="O que queremos realizar com este projeto?" aria-describedby="description-help" data-counted>{{ old.description }}</textarea>
+                    <div class="pf-field-footer"><p id="description-help">Conte o objetivo e o que é importante para a equipe. Até 5.000 caracteres, em texto simples.</p><span data-count-for="description" hidden></span></div>
+                </div>
+            </fieldset>
+            <fieldset class="pf-section pf-dates">
+                <legend>{{ ui.icon('calendar') }} Prazos do projeto</legend>
+                <p class="pf-section-help">As datas são opcionais. Defina agora ou quando o planejamento estiver mais claro.</p>
+                <div class="pf-date-fields">
+                    <div class="pf-field"><label for="starts_on">Data inicial</label><input id="starts_on" name="starts_on" type="date" value="{{ old.starts_on }}" min="1000-01-01" max="9999-12-31" aria-describedby="dates-help"></div>
+                    <div class="pf-field"><label for="due_on">Previsão de término</label><input id="due_on" name="due_on" type="date" value="{{ old.due_on }}" min="1000-01-01" max="9999-12-31" aria-describedby="dates-help"></div>
+                </div>
+                <p class="pf-section-help" id="dates-help">Se informar as duas datas, o término deve ser igual ou posterior ao início.</p>
+            </fieldset>
+            <div class="pf-form-footer">
+                {% if not project %}<p class="pf-ownership">{{ ui.icon('lock') }} O projeto será criado na sua conta pessoal, com você como proprietário.</p>{% endif %}
+                <div class="pf-actions"><button class="pf-button pf-button-primary" type="submit" data-project-submit><span data-project-submit-label>Salvar projeto</span>{{ ui.icon('check') }}</button><a class="pf-button pf-button-secondary" href="{{ project ? '/projects/' ~ project.id : '/projects' }}">Cancelar</a></div>
+            </div>
+        </form>
+        <aside class="pf-support" aria-label="Sobre o planejamento">
+            <span class="pf-support-icon">{{ ui.icon(project ? 'projects' : 'plus') }}</span>
+            <p class="pf-eyebrow">{{ project ? 'CLAREZA PARA A EQUIPE' : 'DO PLANO AO MOVIMENTO' }}</p>
+            <h3>{{ project ? 'O plano pode evoluir.' : 'Comece simples. Avance junto.' }}</h3>
+            <p>{{ project ? 'Ajuste nome, descrição e prazos conforme o projeto avança. As alterações ficam no histórico.' : 'Depois de salvar, seu quadro estará pronto para organizar tarefas. Você também poderá convidar a equipe.' }}</p>
+            <div class="pf-support-note">{{ ui.icon('check') }} Um passo de cada vez, no seu ritmo.</div>
+        </aside>
+    </div>
+</div>
 {% endblock %}

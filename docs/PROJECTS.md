@@ -65,3 +65,15 @@ Estados vazios diferenciam ausência de ativos e de arquivados. O aviso de suces
 Para Chromium, após rodar esse teste PHP no mesmo ambiente descartável, instale playwright-core e @axe-core/playwright no ambiente de testes e defina AUTH_TEST_DATABASE=disposable/NODE_PATH. O teste usa AUTH_TEST_URL/CHROMIUM_PATH quando fornecidos; PROJECTS_UI_FIXTURE pode indicar o JSON de fixture e UI_PREVIEW_DIR o destino dos screenshots. Não use fixtures no banco diário ou contas reais. Arquivos temporários podem ser removidos ao descartar o ambiente.
 
 Próximo incremento: formulários de criação/edição; detalhes em entrega posterior. Homologação operacional permanece adiada.
+
+## UI de criação/edição — Fluxo Claro
+
+`/projects/new` e `/projects/{id}/edit` usam o mesmo formulário, com seções de informações e prazos. Nome obrigatório (até 120 caracteres), descrição opcional (até 5.000) e datas opcionais preservam as regras existentes. A data final deve ser igual ou posterior à inicial quando ambas forem informadas. A propriedade pessoal aparece somente na criação; editar não muda tenant/proprietário.
+
+Twig em projects/form.html.twig, CSS em projects-form.css e melhorias progressivas em projects-form.js. Campos com fonte 16px, ações de toque, contadores informativos, mínimo de término vinculado ao início, foco no resumo de erros e estado de envio. Sem JavaScript, os campos, POST, CSRF e validação do servidor continuam funcionando; contadores permanecem ocultos. Cancelar usa links comuns e não grava rascunho.
+
+Validação 422 mantém os dados como antes. Sessão de formulário expirada (419) em criação/edição agora reapresenta campos e CSRF atual com mensagem, sem escrita; outras ações mantêm o fluxo anterior. Não foram alterados validadores, políticas ou serviços. Owner/admin continuam editando projetos ativos; member/viewer não editam, arquivados exigem restauração e projetos inacessíveis retornam 404.
+
+`tests/projects-form-browser.cjs` usa a fixture de tests/projects-list.php no mesmo ambiente descartável. Cobre tamanhos 320–1440px, axe A/AA, preenchimento, datas, 422/419, foco/preservação, XSS, criação, edição, cancelamento, permissões e envio sem JS. Dependências/variáveis de execução são as mesmas do teste da listagem; executar a listagem antes dos formulários, pois estes acrescentam projetos à fixture. Sem teste em aparelhos físicos/leitores de tela.
+
+Próximo incremento: detalhes do projeto. Sem migration nova ou publicação.

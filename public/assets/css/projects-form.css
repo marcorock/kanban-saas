@@ -1,0 +1,72 @@
+/* Fluxo Claro — criação/edição. Estrutura em Twig, interações em projects-form.js. */
+.project-editor { min-width: 0; color: var(--ds-color-ink); }
+.project-editor a { color: var(--ds-color-primary); text-underline-offset: .2em; }
+.project-editor a:hover { color: var(--ds-color-primary-hover); }
+.project-editor :is(a, button, input, textarea):focus-visible, .pf-feedback:focus { outline: 3px solid var(--ds-color-primary); outline-offset: 4px; }
+.pf-back { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; margin-bottom: 1rem; font-size: .8125rem; text-decoration: none; }
+.pf-back .ds-icon { width: 16px; height: 16px; }
+.pf-back:hover { text-decoration: underline; }
+.pf-intro { margin-bottom: 1.5rem; }
+.pf-eyebrow { margin: 0 0 .5rem; color: var(--ds-color-muted); font-size: .625rem; font-weight: 700; letter-spacing: .12em; line-height: 1.5; }
+.pf-intro h2 { margin: 0 0 .75rem; font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 650; letter-spacing: -.055em; line-height: 1.2; }
+.pf-intro > p:last-child { margin: 0; color: var(--ds-color-muted); font-size: .875rem; line-height: 1.8; }
+.pf-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.pf-form { min-width: 0; padding: 1.25rem; border: 1px solid var(--ds-color-border); border-radius: 1.25rem; background: var(--ds-color-surface); }
+.pf-section { min-width: 0; margin: 0; padding: 0; border: 0; }
+.pf-section legend { float: none; display: flex; align-items: center; gap: .625rem; width: 100%; margin: 0 0 1.5rem; padding: 0; font-size: .9375rem; line-height: 1.5; font-weight: 650; }
+.pf-section legend .ds-icon { color: var(--ds-color-primary); width: 18px; height: 18px; }
+.pf-field { min-width: 0; margin-bottom: 1.5rem; }
+.pf-field label { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin-bottom: .5rem; font-size: .875rem; font-weight: 650; }
+.pf-optional { font-size: .75rem; font-weight: 400; color: var(--ds-color-muted); }
+.pf-required { font-size: .625rem; font-weight: 600; padding: .1875rem .375rem; color: var(--ds-color-primary); background: var(--ds-color-soft); border-radius: .375rem; }
+.pf-field input, .pf-field textarea { width: 100%; min-width: 0; min-height: 52px; padding: .875rem; border: 1px solid var(--ds-color-control-border); border-radius: .75rem; background: #fff; color: var(--ds-color-ink); font: 400 1rem/1.5 var(--ds-font-body); }
+.pf-field input[type="date"] { display: block; }
+.pf-field textarea { resize: vertical; min-height: 148px; }
+.pf-field :is(input, textarea)::placeholder { color: var(--ds-color-muted); opacity: 1; }
+.pf-field :is(input, textarea):hover { border-color: var(--ds-color-primary); }
+.pf-field :is(input, textarea):focus { border-color: var(--ds-color-primary); }
+.pf-field-footer { display: flex; align-items: flex-start; gap: .75rem; margin-top: .5rem; color: var(--ds-color-muted); font-size: .75rem; line-height: 1.7; }
+.pf-field-footer p { margin: 0; flex: 1; }
+.pf-field-footer > span { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.pf-dates { margin-top: .25rem; padding-top: 1.5rem; border-top: 1px solid var(--ds-color-border); }
+.pf-dates legend { margin-bottom: .5rem; }
+.pf-section-help { margin: 0 0 1.25rem; color: var(--ds-color-muted); font-size: .8125rem; line-height: 1.8; }
+.pf-date-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 1rem; }
+.pf-date-fields .pf-field { margin-bottom: 1rem; }
+.pf-form-footer { margin-top: .5rem; padding-top: 1.25rem; border-top: 1px solid var(--ds-color-border); }
+.pf-ownership { display: flex; align-items: flex-start; gap: .5rem; margin: 0 0 1.25rem; color: var(--ds-color-muted); font-size: .75rem; line-height: 1.8; }
+.pf-ownership .ds-icon { width: 16px; height: 16px; margin-top: .1875rem; }
+.pf-actions { display: flex; flex-direction: column; gap: .625rem; }
+.project-editor .pf-button { display: inline-flex; align-items: center; justify-content: center; gap: .75rem; min-height: 52px; padding: .875rem 1.25rem; border: 1px solid transparent; border-radius: .75rem; font: 650 .875rem/1.4 var(--ds-font-body); text-decoration: none; }
+.project-editor .pf-button-primary { color: #fff; background: var(--ds-color-primary); }
+.project-editor .pf-button-primary:hover { color: #fff; background: var(--ds-color-primary-hover); }
+.project-editor .pf-button-secondary { color: var(--ds-color-primary); background: #fff; border-color: var(--ds-color-control-border); }
+.project-editor .pf-button-secondary:hover { background: var(--ds-color-soft); }
+.pf-button:disabled { cursor: wait; opacity: .7; }
+.pf-feedback { display: flex; align-items: flex-start; gap: .75rem; padding: 1rem; border: 1px solid transparent; border-radius: .75rem; margin-bottom: 1.5rem; font-size: .875rem; line-height: 1.7; overflow-wrap: anywhere; }
+.pf-feedback > .ds-icon { margin-top: .25rem; }
+.pf-feedback h3 { margin: 0 0 .375rem; font-size: .875rem; font-weight: 700; }
+.pf-feedback ul { margin: 0; padding-left: 1rem; }
+.pf-feedback p { margin: 0; }
+.pf-feedback-error { color: var(--ds-color-error); background: var(--ds-color-error-surface); border-color: #edcbc7; }
+.pf-feedback-success { color: var(--ds-color-success); background: var(--ds-color-success-surface); border-color: #cfe1ce; }
+.pf-support { display: none; }
+@media (min-width: 640px) {
+    .pf-form { padding: 2rem; }
+    .pf-date-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pf-actions { flex-direction: row; }
+    .pf-actions .pf-button-primary { min-width: 180px; }
+}
+@media (min-width: 1280px) {
+    .pf-layout { grid-template-columns: minmax(0, 1fr) 264px; }
+    .pf-support { display: block; padding: 1.75rem; border-radius: 1.25rem; background: var(--ds-color-primary); color: #fff; }
+    .pf-support-icon { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #6a9386; border-radius: .75rem; margin-bottom: 1.5rem; color: var(--ds-color-accent); }
+    .pf-support .pf-eyebrow { color: #d2e1cb; }
+    .pf-support h3 { font-size: 1.375rem; line-height: 1.3; font-weight: 600; letter-spacing: -.04em; margin: 0 0 1rem; }
+    .pf-support > p:not(.pf-eyebrow) { margin: 0; color: #d2e1cb; font-size: .8125rem; line-height: 1.8; }
+    .pf-support-note { display: flex; align-items: flex-start; gap: .625rem; padding-top: 1.25rem; margin-top: 1.5rem; border-top: 1px solid #6a9386; font-size: .75rem; line-height: 1.8; }
+    .pf-support-note .ds-icon { width: 16px; height: 16px; margin-top: .1875rem; }
+}
+@media (forced-colors: active) {
+    .pf-form, .pf-support, .pf-required { border: 1px solid CanvasText; }
+}
