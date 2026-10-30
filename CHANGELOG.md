@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Adicionado
+- Participantes/convites Fluxo Claro, com papéis explicados, gestão recolhida, confirmações de remoção/transferência e privacidade administrativa preservada.
+- Aceite de convite integrado ao layout de acesso e à área autenticada; erros com foco e preservação do e-mail, envio progressivo e CSS/JS externos.
+- Fixture e testes Chromium/axe de equipe, SMTP/reenvio/cancelamento, aceite sem JS, conta incompatível, uso único e transferência.
 - Detalhes de projeto Fluxo Claro: quadro em destaque, contexto, planejamento, papel e navegação do projeto.
 - Gerenciamento separado para proprietário, exclusão recolhida com confirmação nativa e feedback de sucesso; descrição sem style inline e sem JS adicional.
 - Teste Chromium/axe de detalhes, quatro papéis, consulta, ações com CSRF, exclusão confirmada e uso sem JS.

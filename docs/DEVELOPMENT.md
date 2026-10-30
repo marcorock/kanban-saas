@@ -25,6 +25,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 756af0e | Dashboard Fluxo Claro com indicadores, prazos e progresso nativo |
 | ace0d17 | Listagem de projetos com filtros, cards e atalhos |
 | 39f7edc | Formulários de criação/edição com validação e retorno contextual |
+| 47d88da | Detalhes do projeto, planejamento e gerenciamento por papel |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -81,3 +82,11 @@ Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px a
 Iniciado após aprovação dos formulários. Detalhes com quadro em destaque, badges de estado/papel, descrição completa em texto simples, planejamento com datas de registro UTC e navegação contextual. Gestão exclusiva do proprietário separada; exclusão em details/summary nativo, com checkbox obrigatório preservado. Sem JS novo, sem style inline ou alterações em consultas/políticas/serviços.
 
 Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px aprovado para quatro papéis, atalhos/consulta, arquivar/restaurar/excluir, confirmação/CSRF, sem JS e XSS; regressões de formulários e relatórios também aprovadas. Previews inspecionados visualmente; sem teste em dispositivos físicos/leitores de tela. Ações reais de teste ocorreram somente no banco descartável. Sem migration nova, alteração do .env ou publicação. Incremento aprovado e incluído no commit `feat: redesenha detalhes do projeto`; próximo incremento autorizado: participantes e convites. Homologação operacional permanece adiada.
+
+## UI/UX — sétimo incremento: participantes e convites
+
+Iniciado após aprovação dos detalhes. Equipe em cards, atalho para convidar, guia de papéis, controles de acesso recolhidos e confirmações nativas. Privacidade de e-mails e pendentes restrita à administração, opções de admin exclusivas ao owner e consulta em arquivados preservadas. Aceite integrado ao layout de acesso para visitantes e ao shell para autenticados, incluindo conta incompatível/convite indisponível.
+
+CSS/JS externos; formulários continuam com POST/CSRF e uso sem JS. Retorno 419 agora usa resumo de erro; convite preserva e-mail/papel quando aplicável, sem reter confirmações sensíveis. Serviços, consultas, limites, tokens e transações não alterados. Regressão PHP e preflight local aprovados; Chromium/axe de equipe e aceite, detalhes e telas de acesso aprovados. Papéis, privacidade, SMTP, confirmações, CSRF, transferência e XSS verificados; previews inspecionados visualmente. Sem teste em aparelhos físicos/leitores de tela. Fixtures só em banco descartável.
+
+Incremento aprovado e incluído no commit `feat: redesenha participantes e convites`. Próximo incremento autorizado: quadro Kanban; painel de tarefas em entrega posterior. Homologação operacional permanece adiada, sem migration nova ou alteração do .env.

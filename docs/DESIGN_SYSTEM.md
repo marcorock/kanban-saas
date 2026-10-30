@@ -4,7 +4,7 @@ Direção visual original para o Kanban SaaS: clareza, ritmo e foco no próximo 
 
 ## Escopo e evolução
 
-Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; o quinto incremento trata os formulários; o sexto incremento trata os detalhes; próximo incremento proposto: participantes e convites. Homologação operacional continua adiada.
+Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; o quinto incremento trata os formulários; o sexto incremento trata os detalhes; o sétimo incremento trata participantes e convites; próximo incremento proposto: quadro Kanban. Homologação operacional continua adiada.
 
 O desenho deve servir às funções existentes. Não exibir busca global, notificações, calendário, assinatura, login social ou links de políticas sem a funcionalidade/conteúdo correspondente. Não há biblioteca de componentes remota, fonte externa, imagens geradas ou etapa de build.
 
@@ -176,3 +176,16 @@ Validação do quinto incremento: regressão PHP completa e preflight local apro
 - Limites: sem aparelhos físicos/leitores de tela; participantes, convites e demais módulos aguardam migração. Homologação operacional adiada.
 
 Validação do sexto incremento: regressão PHP completa e preflight local aprovados; Chromium/axe dos detalhes ativo/arquivado, quatro papéis e exclusão expandida aprovado em 320–1440px. Fluxos de arquivar/restaurar/excluir, confirmação/CSRF, navegação sem JS e XSS aprovados; regressões de formulários e relatórios aprovadas. Previews inspecionados visualmente, sem certificação ou teste em dispositivos físicos.
+
+## Sétimo incremento — participantes, convites e aceite
+
+- Cards de equipe com papel/nome, e-mail somente para administração e indicação Você. Contagem da página, sem totais simulados. Atalho de convite visível no topo para quem pode gerenciar.
+- Mudar papel, remover e transferir ficam em disclosures nativos. Confirmações sensíveis continuam obrigatórias; não são restauradas no erro. Papéis e opções refletem as restrições existentes, inclusive em arquivados.
+- Convite com contexto de acesso e guia de papéis. Pendências mostram validade UTC e ações permitidas; seletor admin só para owner. Dados privados não aparecem para membro/visualizador.
+- Aceite usa o layout de acesso para visitante e o shell para autenticado; não mostra projeto a conta incompatível. Caminho de entrar/cadastrar, prévia elegível e confirmação por POST preservados.
+- HTML em Twig, CSS em project-members.css e melhorias em project-members.js (envio/foco, sem estilos). Native details e formulários continuam funcionais sem JS. Base auth agora oferece blocos de CSS/JS externo.
+- 419 retorna resumo com dados de convite preservados quando aplicável, sem ação. SMTP e regras permanecem no serviço; retorno de falha tem mensagem acionável sem expor configuração.
+- Testes de fixture/equipe em members-ui.php/members-browser.cjs, com banco e Mailpit descartáveis. Screenshots de equipe e aceite em storage/previews, ignorados no Git. Sem aparelhos físicos/leitores de tela.
+- Próximo incremento: quadro Kanban. Painel de detalhes das tarefas em entrega própria; sem homologação operacional automática.
+
+Validação do sétimo incremento: regressão PHP completa e preflight local aprovados. Chromium/axe de equipe e aceite aprovado, incluindo quatro papéis, privacidade, arquivados, SMTP, remoção/transferência, visitante/conta incompatível, uso único, 419/foco e operação sem JS. Regressões de detalhes e telas de acesso aprovadas. Previews inspecionados visualmente; nenhuma certificação ou validação em aparelhos físicos.

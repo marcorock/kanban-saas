@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/assets/css/design-tokens.css">
     <link rel="stylesheet" href="/assets/css/auth.css">
     <script src="/assets/js/auth.js" defer></script>
+    {% block styles %}{% endblock %}
 </head>
 <body class="auth-page">
 <a class="ds-skip-link" href="#auth-title">Pular para o conteúdo</a>
@@ -27,5 +28,6 @@
     </section>
 </main>
 <footer class="auth-footer"><p>Seu trabalho, no seu ritmo.</p><p>© {{ 'now'|date('Y') }} {{ projectName }}</p></footer>
+{% block scripts %}{% endblock %}
 </body>
 </html>

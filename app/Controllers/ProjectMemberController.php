@@ -23,12 +23,18 @@ final class ProjectMemberController
         $projectId = (int) $project['id'];
         $service = new ProjectMemberService($this->pdo);
         $page = filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 1;
-        $render = fn (array $errors = []): string => $this->views->render('projects/members.html.twig', $base + $service->overview($userId, $projectId, $page) + ['isOwner' => ProjectPolicy::isOwner($project, $userId), 'errors' => $errors]);
+        $oldInvite = [
+            'email' => $action === 'invite' && is_string($_POST['email'] ?? null) ? mb_substr($_POST['email'], 0, 254) : '',
+            'role' => $action === 'invite' && is_string($_POST['role'] ?? null) ? $_POST['role'] : 'member',
+        ];
+        $render = fn (array $errors = []): string => $this->views->render('projects/members.html.twig', $base + $service->overview($userId, $projectId, $page) + [
+            'isOwner' => ProjectPolicy::isOwner($project, $userId), 'errors' => $errors, 'oldInvite' => $oldInvite,
+        ]);
         if ($action === 'members') { return $render(); }
         ProjectPolicy::authorizeMembers($project, $userId);
         if (!Session::verifyCsrf($_POST['_token'] ?? null)) {
             http_response_code(419);
-            return 'Sessão do formulário expirada. Recarregue a página.';
+            return $render(['Sua sessão do formulário expirou. Confira os dados e tente novamente.']);
         }
         try {
             if ($action === 'invite') {
@@ -44,7 +50,7 @@ final class ProjectMemberController
                 }
                 if (!$service->invite($userId, $projectId, $email, $role, new Mailer($this->config['mail']), $this->config['url'])) {
                     http_response_code(502);
-                    return $render(['Convite salvo, mas o envio do e-mail falhou. Verifique o SMTP e reenvie o convite.']);
+                    return $render(['Convite salvo, mas o e-mail não foi enviado. Tente reenviar o convite mais tarde.']);
                 }
                 $notice = 'Convite enviado. O acesso será liberado somente após o aceite.';
             } else {

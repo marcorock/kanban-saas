@@ -1,83 +1,66 @@
 {% extends 'projects/layout.html.twig' %}
-{% block projects %}
+{% import 'ui/icons.html.twig' as ui %}
 {% set roles = {owner: 'Proprietário', admin: 'Administrador', member: 'Membro', viewer: 'Visualizador'} %}
 {% set canEdit = canManage and not project.archived_at %}
-<h2 class="h4">Participantes — {{ project.name }}</h2>
-<a href="/projects/{{ project.id }}">Voltar ao projeto</a>
-{% for error in errors %}<div class="alert alert-danger mt-3" role="alert">{{ error }}</div>{% endfor %}
-{% if project.archived_at %}<div class="alert alert-info mt-3">Restaure o projeto para gerenciar participantes e convites.</div>{% endif %}
-<section class="mt-4">
-{% for member in members %}
-<div class="card card-body mb-3">
-    <div class="d-flex flex-wrap gap-2 justify-content-between"><strong>{{ member.name }}</strong><span>{{ roles[member.role] }}</span></div>
-    {% if canManage %}<p class="small text-body-secondary">{{ member.email }}</p>{% endif %}
-    {% if canEdit and member.role != 'owner' and (isOwner or member.role != 'admin') %}
-    <div class="d-flex flex-wrap gap-3 mt-2">
-        <form method="post" action="/projects/{{ project.id }}/members/role" class="d-flex gap-2 align-items-end">
-            <input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="user_id" value="{{ member.user_id }}">
-            <div><label for="role-{{ member.user_id }}" class="form-label">Papel</label><select id="role-{{ member.user_id }}" name="role" class="form-select">
-                {% for value, label in roles %}{% if value != 'owner' and (isOwner or value != 'admin') %}<option value="{{ value }}" {{ value == member.role ? 'selected' : '' }}>{{ label }}</option>{% endif %}{% endfor %}
-            </select></div><button type="submit" class="btn btn-outline-primary">Salvar</button>
-        </form>
-        <form method="post" action="/projects/{{ project.id }}/members/remove" class="align-self-end">
-            <input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="user_id" value="{{ member.user_id }}">
-            <div class="form-check"><input type="checkbox" id="remove-{{ member.user_id }}" name="confirm" value="remove" class="form-check-input" required><label class="form-check-label" for="remove-{{ member.user_id }}">Confirmar remoção</label></div>
-            <button type="submit" class="btn btn-outline-danger mt-1">Remover participante</button>
-        </form>
-    </div>
-    {% if isOwner %}
-    <details class="mt-3"><summary>Transferir propriedade para este participante</summary>
-        <p class="mt-2">Este participante receberá controle total do projeto. Você passará a administrador; o tenant do projeto permanece o mesmo.</p>
-        <form method="post" action="/projects/{{ project.id }}/transfer">
-            <input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="user_id" value="{{ member.user_id }}">
-            <div class="form-check mb-2"><input type="checkbox" id="transfer-{{ member.user_id }}" name="confirm" value="transfer" class="form-check-input" required><label for="transfer-{{ member.user_id }}" class="form-check-label">Confirmo a transferência de propriedade.</label></div>
-            <button class="btn btn-outline-danger" type="submit">Transferir propriedade</button>
-        </form>
-    </details>
-    {% endif %}
-    {% endif %}
-</div>
-{% endfor %}
-</section>
-{% if canEdit %}
-<section class="card card-body mt-4">
-    <h3 class="h5">Convidar participante</h3>
-    <p>O destinatário deverá entrar ou criar uma conta com o e-mail convidado, confirmar o endereço e aceitar o convite.</p>
-    <form method="post" action="/projects/{{ project.id }}/invitations" class="row g-3">
-        <input type="hidden" name="_token" value="{{ csrf }}">
-        <div class="col-sm-7"><label for="email" class="form-label">E-mail</label><input type="email" id="email" name="email" class="form-control" maxlength="254" required></div>
-        <div class="col-sm-5"><label for="invite-role" class="form-label">Papel</label><select id="invite-role" name="role" class="form-select">
-            <option value="member">Membro</option><option value="viewer">Visualizador</option>{% if isOwner %}<option value="admin">Administrador</option>{% endif %}
-        </select></div>
-        <div><button class="btn btn-primary" type="submit">Enviar convite</button></div>
-    </form>
-</section>
-{% endif %}
-{% if canManage %}
-<section class="mt-4">
-    <h3 class="h5">Convites pendentes</h3>
-    {% for invitation in invitations %}
-    <div class="card card-body mb-3">
-        <strong>{{ invitation.email }}</strong><span>{{ roles[invitation.role] }} · Expira em {{ invitation.expires_at|date('d/m/Y H:i', 'UTC') }} UTC</span>
-        {% if canEdit and (isOwner or invitation.role != 'admin') %}
-        <div class="d-flex flex-wrap gap-2 mt-2">
-            <form method="post" action="/projects/{{ project.id }}/invitations">
-                <input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="email" value="{{ invitation.email }}"><input type="hidden" name="role" value="{{ invitation.role }}">
-                <button class="btn btn-outline-primary" type="submit">Reenviar convite</button>
-            </form>
-            <form method="post" action="/projects/{{ project.id }}/invitations/cancel">
-                <input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="invitation_id" value="{{ invitation.id }}">
-                <button class="btn btn-outline-danger" type="submit">Cancelar convite</button>
-            </form>
+{% block styles %}<link rel="stylesheet" href="/assets/css/project-members.css">{% endblock %}
+{% block scripts %}<script src="/assets/js/project-members.js" defer></script>{% endblock %}
+{% block project_notice %}{% if notice %}<div class="pm-feedback pm-success" role="status">{{ ui.icon('check') }}<p>{{ notice }}</p></div>{% endif %}{% endblock %}
+{% block projects %}
+<div class="project-members">
+    <a class="pm-back" href="/projects/{{ project.id }}">{{ ui.icon('arrow-left') }} Voltar ao projeto</a>
+    <div class="pm-intro"><p class="pm-eyebrow">CONSTRUIR É MELHOR EM EQUIPE</p><h2>Quem faz acontecer.</h2><p>Participantes de <strong>{{ project.name }}</strong></p>{% if canEdit %}<a class="pm-button pm-primary pm-top-action" href="#pm-invite-title">{{ ui.icon('mail') }} Convidar participante</a>{% endif %}</div>
+    <nav class="pm-navigation" aria-label="Navegação do projeto"><a href="/projects/{{ project.id }}">Visão geral</a><a href="/projects/{{ project.id }}/members" aria-current="page">{{ ui.icon('users') }} Participantes</a><a href="/projects/{{ project.id }}/history">{{ ui.icon('history') }} Histórico do projeto</a></nav>
+    {% if errors %}<div class="pm-feedback pm-error" role="alert" tabindex="-1" data-members-errors>{{ ui.icon('alert') }}<div><h3>Não foi possível concluir.</h3><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div></div>{% endif %}
+    {% if project.archived_at %}<div class="pm-note">{{ ui.icon('archive') }}<p>Projeto arquivado. O gerenciamento de participantes e convites está suspenso; o proprietário precisa restaurá-lo para permitir alterações.</p></div>{% elseif not canManage %}<div class="pm-note">{{ ui.icon('lock') }}<p>Você pode consultar os nomes e papéis. E-mails, convites e gestão de acesso ficam disponíveis somente à administração do projeto.</p></div>{% endif %}
+    <div class="pm-layout">
+        <section class="pm-panel" aria-labelledby="pm-team-title">
+            <div class="pm-heading"><h3 id="pm-team-title">Participantes</h3><span>{{ members|length }} nesta página</span></div>
+            {% for member in members %}
+            <article class="pm-member" data-member-id="{{ member.user_id }}">
+                <div class="pm-person"><span class="pm-avatar" aria-hidden="true">{{ member.name|slice(0, 1)|upper }}</span><div><h4>{{ member.name }}{% if member.user_id == user.id %}<span class="pm-you">Você</span>{% endif %}</h4>{% if canManage %}<p>{{ member.email }}</p>{% endif %}</div><span class="pm-role">{{ roles[member.role] }}</span></div>
+                {% if canEdit and member.role != 'owner' and (isOwner or member.role != 'admin') %}
+                <details class="pm-access"><summary>Gerenciar acesso {{ ui.icon('chevron-right') }}</summary>
+                    <div class="pm-access-content">
+                        <form method="post" action="/projects/{{ project.id }}/members/role" class="pm-role-form" data-members-form>
+                            <input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="user_id" value="{{ member.user_id }}">
+                            <div class="pm-field"><label for="role-{{ member.user_id }}">Papel no projeto</label><select id="role-{{ member.user_id }}" name="role">{% for value, label in roles %}{% if value != 'owner' and (isOwner or value != 'admin') %}<option value="{{ value }}" {% if value == member.role %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}</select></div><button class="pm-button pm-secondary" type="submit" data-pending="Salvando…">Salvar</button>
+                        </form>
+                        <details class="pm-sensitive"><summary>Remover acesso {{ ui.icon('chevron-right') }}</summary><div>
+                            <p>A remoção revoga o acesso a este projeto e retira as atribuições de tarefas. A conta e o acesso a outros projetos são preservados.</p>
+                            <form method="post" action="/projects/{{ project.id }}/members/remove" data-members-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="user_id" value="{{ member.user_id }}"><label class="pm-confirm" for="remove-{{ member.user_id }}"><input type="checkbox" id="remove-{{ member.user_id }}" name="confirm" value="remove" required><span>Confirmar remoção de {{ member.name }}.</span></label><button class="pm-button pm-danger" type="submit" data-pending="Removendo…">Remover participante</button></form>
+                        </div></details>
+                        {% if isOwner %}<details class="pm-sensitive"><summary>Transferência de propriedade {{ ui.icon('chevron-right') }}</summary><div>
+                            <p>Este participante receberá controle total se tiver e-mail verificado. Você passará a administrador. A transferência vale apenas para este projeto.</p>
+                            <form method="post" action="/projects/{{ project.id }}/transfer" data-members-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="user_id" value="{{ member.user_id }}"><label class="pm-confirm" for="transfer-{{ member.user_id }}"><input type="checkbox" id="transfer-{{ member.user_id }}" name="confirm" value="transfer" required><span>Confirmo a transferência de propriedade para {{ member.name }}.</span></label><button class="pm-button pm-danger" type="submit" data-pending="Transferindo…">Transferir propriedade</button></form>
+                        </div></details>{% endif %}
+                    </div>
+                </details>
+                {% endif %}
+            </article>
+            {% else %}<p class="pm-empty">Nenhum participante nesta página. Use a paginação para voltar à equipe.</p>{% endfor %}
+        </section>
+        <div class="pm-side">
+            {% if canEdit %}<section class="pm-panel pm-invite" aria-labelledby="pm-invite-title">
+                <div class="pm-heading"><h3 id="pm-invite-title" tabindex="-1">Convidar participante</h3>{{ ui.icon('mail') }}</div>
+                <p class="pm-help">O acesso só é liberado depois que a pessoa entra com o mesmo e-mail, confirma o endereço e aceita o convite.</p>
+                <form method="post" action="/projects/{{ project.id }}/invitations" data-members-form>
+                    <input type="hidden" name="_token" value="{{ csrf }}">
+                    <div class="pm-field"><label for="email">E-mail</label><input type="email" id="email" name="email" value="{{ oldInvite.email|default('') }}" maxlength="254" required autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="pessoa@exemplo.com"></div>
+                    <div class="pm-field"><label for="invite-role">Papel</label><select id="invite-role" name="role" aria-describedby="invite-role-help"><option value="member" {% if oldInvite.role|default('member') == 'member' %}selected{% endif %}>Membro</option><option value="viewer" {% if oldInvite.role|default('') == 'viewer' %}selected{% endif %}>Visualizador</option>{% if isOwner %}<option value="admin" {% if oldInvite.role|default('') == 'admin' %}selected{% endif %}>Administrador</option>{% endif %}</select></div>
+                    <p class="pm-help" id="invite-role-help">Membro colabora; visualizador consulta.{% if isOwner %} Administrador gerencia o projeto.{% endif %}</p>
+                    <button class="pm-button pm-primary" type="submit" data-pending="Enviando…">Enviar convite</button>
+                </form>
+            </section>{% endif %}
+            <section class="pm-panel pm-guide" aria-labelledby="pm-guide-title"><h3 id="pm-guide-title">Cada papel, um alcance</h3><dl id="pm-role-help"><div><dt>Proprietário</dt><dd>Controle do projeto, inclusive arquivar, excluir e transferir.</dd></div><div><dt>Administrador</dt><dd>Gerencia o projeto e acessos de membros e visualizadores.</dd></div><div><dt>Membro</dt><dd>Colabora nas tarefas do quadro.</dd></div><div><dt>Visualizador</dt><dd>Acompanha o projeto sem alterar o trabalho.</dd></div></dl></section>
         </div>
-        {% endif %}
     </div>
-    {% else %}<p>Nenhum convite pendente nesta página.</p>{% endfor %}
-</section>
-{% endif %}
-<nav class="d-flex justify-content-between mt-3" aria-label="Paginação de participantes e convites">
-    {% if page > 1 %}<a href="/projects/{{ project.id }}/members?page={{ page - 1 }}">Anterior</a>{% endif %}
-    <span>Página {{ page }} de {{ pages }}</span>
-    {% if page < pages %}<a href="/projects/{{ project.id }}/members?page={{ page + 1 }}">Próxima</a>{% endif %}
-</nav>
+    {% if canManage %}<section class="pm-panel pm-pending" aria-labelledby="pm-pending-title"><div class="pm-heading"><h3 id="pm-pending-title">Convites pendentes</h3><span>{{ invitations|length }} nesta página</span></div>
+    {% for invitation in invitations %}<article class="pm-invitation"><div><h4>{{ invitation.email }}</h4><p>{{ roles[invitation.role] }} · Expira em <time datetime="{{ invitation.expires_at|date('Y-m-d\\TH:i:s', 'UTC') }}Z">{{ invitation.expires_at|date('d/m/Y H:i', 'UTC') }} UTC</time></p></div>
+        {% if canEdit and (isOwner or invitation.role != 'admin') %}<div class="pm-invitation-actions">
+            <form method="post" action="/projects/{{ project.id }}/invitations" data-members-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="email" value="{{ invitation.email }}"><input type="hidden" name="role" value="{{ invitation.role }}"><button class="pm-button pm-secondary" type="submit" data-pending="Reenviando…">Reenviar convite</button></form>
+            <form method="post" action="/projects/{{ project.id }}/invitations/cancel" data-members-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="invitation_id" value="{{ invitation.id }}"><button class="pm-button pm-danger" type="submit" data-pending="Cancelando…">Cancelar convite</button></form>
+        </div>{% endif %}
+    </article>{% else %}<div class="pm-empty">{{ ui.icon('mail') }}<p>Nenhum convite pendente nesta página.</p></div>{% endfor %}</section>{% endif %}
+    <nav class="pm-pagination" aria-label="Paginação de participantes e convites">{% if page > 1 %}<a href="/projects/{{ project.id }}/members?page={{ page - 1 }}">{{ ui.icon('arrow-left') }} Anterior</a>{% endif %}<span>Página {{ page }} de {{ pages }}</span>{% if page < pages %}<a href="/projects/{{ project.id }}/members?page={{ page + 1 }}">Próxima {{ ui.icon('arrow-right') }}</a>{% endif %}</nav>
+</div>
 {% endblock %}

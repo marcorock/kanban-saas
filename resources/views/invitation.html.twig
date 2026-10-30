@@ -1,22 +1,22 @@
-{% extends 'layout.html.twig' %}
+{% extends signedIn ? 'layout.html.twig' : 'auth/layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block page_title %}Convite para projeto{% endblock %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/project-members.css">{% endblock %}
+{% block scripts %}<script src="/assets/js/project-members.js" defer></script>{% endblock %}
 {% block content %}
-<section class="card card-body">
-    <h2 class="h4">Convite para projeto</h2>
-    {% for error in errors %}<div class="alert alert-warning" role="alert">{{ error }}</div>{% endfor %}
+<section class="project-accept">
+    <span class="pm-accept-icon">{{ ui.icon('mail') }}</span><p class="pm-eyebrow">UM CONVITE PARA CONSTRUIR JUNTO</p>
+    {% if signedIn %}<h2>Convite para projeto</h2>{% else %}<h1 id="auth-title">Um novo espaço para colaborar.</h1>{% endif %}
+    {% if errors %}<div class="pm-feedback pm-error" role="alert" tabindex="-1" data-members-errors><div>{% for error in errors %}<p>{{ error }}</p>{% endfor %}</div></div>{% endif %}
     {% if not signedIn %}
     <p>Entre ou crie uma conta com o mesmo e-mail que recebeu o convite. Confirme seu e-mail antes de aceitar.</p>
-    <div class="d-flex gap-2"><a class="btn btn-primary" href="/login">Entrar</a><a class="btn btn-outline-primary" href="/register">Criar conta</a></div>
+    <div class="pm-accept-actions"><a class="pm-button pm-primary" href="/login">Entrar {{ ui.icon('arrow-right') }}</a><a class="pm-button pm-secondary" href="/register">Criar conta</a></div>
     {% elseif invitation %}
     {% set roles = {admin: 'Administrador', member: 'Membro', viewer: 'Visualizador'} %}
     <p>Você foi convidado para <strong>{{ invitation.name }}</strong> como <strong>{{ roles[invitation.role] }}</strong>.</p>
-    <form method="post" action="/invitations/accept">
-        <input type="hidden" name="_token" value="{{ csrf }}">
-        <button type="submit" class="btn btn-primary">Aceitar convite</button>
-    </form>
+    <p class="pm-help">Confira o projeto e o papel antes de continuar. O acesso será concedido somente após o aceite.</p>
+    <form method="post" action="/invitations/accept" data-members-form><input type="hidden" name="_token" value="{{ csrf }}"><button class="pm-button pm-primary" type="submit" data-pending="Aceitando…">Aceitar convite</button></form>
     {% endif %}
-    {% if signedIn %}
-    <a href="/projects" class="mt-3">Meus projetos</a>
-    <form method="post" action="/logout" class="mt-3"><input type="hidden" name="_token" value="{{ csrf }}"><button class="btn btn-outline-secondary" type="submit">Sair para usar outra conta</button></form>
-    {% endif %}
+    {% if signedIn %}<div class="pm-accept-footer"><a href="/projects">Meus projetos</a><form method="post" action="/logout"><input type="hidden" name="_token" value="{{ csrf }}"><button class="pm-button pm-secondary" type="submit">Sair para usar outra conta</button></form></div>{% endif %}
 </section>
 {% endblock %}

@@ -79,7 +79,9 @@ async function run() {
         await page.goto(await mailLink(email, '/email/verify'));
         await submitted(page.getByRole('button', {name: 'Confirmar e-mail', exact: true}), 200);
         await page.getByRole('status').waitFor(); await audit('E-mail confirmado');
-        await page.getByRole('link', {name: 'Ir para meu painel'}).click(); await page.getByRole('button', {name: 'Sair', exact: true}).click();
+        await page.getByRole('link', {name: 'Ir para meu painel'}).click();
+        await page.getByRole('button', {name: 'Mais', exact: true}).click();
+        await page.getByRole('dialog', {name: 'Mais opções'}).getByRole('button', {name: 'Sair', exact: true}).click();
         await page.waitForURL('**/login');
         await page.locator('#email').fill(email); await page.locator('#password').fill('Senha-incorreta-123');
         await submitted(page.getByRole('button', {name: 'Entrar', exact: true}), 401);

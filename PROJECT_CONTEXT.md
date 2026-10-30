@@ -38,6 +38,7 @@
 - 756af0e — dashboard Fluxo Claro.
 - ace0d17 — listagem de projetos Fluxo Claro.
 - 39f7edc — formulários de criação/edição de projetos.
+- 47d88da — detalhes do projeto Fluxo Claro.
 
 ## Módulos consolidados
 
@@ -46,7 +47,7 @@
 - Kanban transacional com board_version, tarefas, responsáveis, checklists e comentários: docs/KANBAN.md e docs/TASKS.md.
 - Dashboard, Minhas Tarefas e históricos com escopo de tenant/projeto: docs/REPORTS.md.
 - Fase 6 aprovada: preflight somente leitura, segurança, regressão e roteiro operacional em docs/PRODUCTION.md e docs/VALIDATION.md.
-- Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem e formulários. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
+- Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem, formulários e detalhes. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
 - Homologação operacional adiada pelo usuário para trabalhar UI/UX em incrementos pequenos. Sem publicação autorizada. Organizações seguem expansão pendente; sem cobrança no MVP.
 
 ## Entrega anterior — UI/UX: listagem de projetos
@@ -69,15 +70,27 @@
 - Previews projects-new-390.png/projects-new-1440.png e projects-edit-* em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em aparelhos físicos/leitores de tela, migration nova ou alteração de .env. Fixtures apenas em banco descartável.
 - Próximo incremento após aprovação: detalhes do projeto. Homologação operacional permanece adiada.
 
-## Última entrega aprovada — UI/UX: detalhes do projeto
+## Entrega anterior — UI/UX: detalhes do projeto
 
-- Sexto incremento aprovado; commit de fechamento: `feat: redesenha detalhes do projeto`. Próximo incremento autorizado: participantes e convites.
+- Sexto incremento aprovado; commit de fechamento: `47d88da` — `feat: redesenha detalhes do projeto`. Próximo incremento autorizado: participantes e convites.
 - Quadro em destaque, papel/estado, descrição completa, planejamento com UTC e navegação de projeto. Gestão separada e visível apenas ao proprietário.
 - Disclosure nativo de exclusão mantém checkbox obrigatório e POST/CSRF; arquivar/restaurar e links funcionam sem JS novo. Twig/CSS separados; descrição sem style inline.
 - Consultas, autorização, serviços, transações e auditoria preservados. Nenhuma migration nova ou alteração do .env; testes só em banco descartável.
 - Regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px: quatro papéis, consulta, atalhos, arquivar/restaurar/excluir, confirmação/CSRF, sem JS e XSS aprovados; regressões de formulários e relatórios aprovadas.
 - Previews project-details-390.png/project-details-1440.png e archived-* em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em dispositivos físicos/leitores de tela. Próximo incremento após aprovação: participantes e convites.
 - Homologação operacional permanece adiada; sem publicação.
+
+## Última entrega aprovada — UI/UX: participantes e convites
+
+- Sétimo incremento aprovado; commit de fechamento: `feat: redesenha participantes e convites`. Próximo incremento autorizado: quadro Kanban.
+- Equipe com papéis e guia, atalho de convite, controles recolhidos, confirmações nativas de remoção/transferência, pendências e consulta de arquivados.
+- Privacidade mantida no serviço/HTML: e-mails e convites só para administração, opções admin só para proprietário. Contagens da página, mesma paginação de 25 por seção.
+- Aceite usa layout de acesso para visitante e shell para autenticado; prévia apenas para conta elegível, sem conceder acesso na abertura. POST/CSRF funciona sem JS.
+- Twig/CSS/JS separados; envio/foco progressivos, 419 contextual com dados de convite, sem reter confirmações sensíveis. Serviços, queries, limites, tokens e transações preservados.
+- Regressão PHP completa e preflight local aprovados. Chromium/axe da equipe passou em 320–1440px, incluindo privacidade, SMTP, aceite, remoção, transferência e XSS; regressões de detalhes e telas de acesso aprovadas.
+- Previews members-390.png/members-1440.png e invitation-guest-390.png/invitation-accept-390.png em storage/previews, ignorados no Git e inspecionados visualmente; sem aparelhos físicos/leitores de tela.
+- Fixtures somente em banco/Mailpit descartáveis, sem migration ou alteração do .env. Homologação operacional continua adiada.
+- Próximo incremento após aprovação: quadro Kanban; painel de tarefas em entrega própria.
 
 ## Documentação por módulo
 

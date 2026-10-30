@@ -64,3 +64,19 @@ AUTH_TEST_DATABASE=disposable MAILPIT_TEST_URL=http://127.0.0.1:8025 php tests/m
 O teste cria usuários/projetos, envia somente ao Mailpit, simula expiração, verifica papéis/IDOR/CSRF/limites e usa triggers e processos simultâneos para testar rollback e consumo concorrente. Não execute no banco local de uso diário ou em produção.
 
 Quadro Kanban disponível conforme [KANBAN.md](KANBAN.md). Detalhes de tarefa disponíveis conforme [TASKS.md](TASKS.md). Remover um participante também retira suas atribuições das tarefas, com auditoria e atualização da versão do quadro. Não há gerenciamento de organizações ou planos neste incremento.
+
+## UI/UX — Fluxo Claro
+
+Participantes usam cards com nome/papel e identificação da própria conta. Atalho inicial leva ao formulário de convite no celular. Gestão por details/summary nativo: mudar papel, remover e transferir ficam recolhidos; remoção e transferência exigem confirmação e não são reenviadas automaticamente depois de erro. E-mails e convites pendentes continuam restritos a owner/admin, inclusive no HTML; não são apenas ocultados por CSS. Badges indicam quantidade **nesta página**, sem inventar totais do serviço.
+
+Owner pode propor admin; administrador gerencia somente membro/visualizador e não altera pendências de admin. Arquivado exibe consulta, sem controles de alteração. A paginação compartilhada de membros/convites, 25 por seção, permanece como antes; uma seção pode estar vazia quando a outra possui mais páginas.
+
+Convite tem ajuda sobre os papéis, estado de envio e preserva e-mail/papel após erro quando aplicável. Respostas 419 usam o próprio resumo com token atual, sem executar a ação; confirmações de remover/transferir voltam desmarcadas. Falha SMTP mantém status 502 e convite salvo, com orientação de reenviar. Papéis, serviços, rate limits, tokens, validação, escopo e transações permanecem no backend.
+
+Aceite usa auth/layout para visitante e layout autenticado para conta confirmada. O visitante não recebe nome/papel de projeto; a prévia só aparece para a conta elegível. Conta incompatível ou link indisponível mantém resposta genérica e alternativa de trocar conta. Logout limpa o contexto, como antes; reabra o link recebido para continuar. Abrir não concede acesso e a URL continua limpa após redirecionamento. Aceitar funciona sem JS por POST/CSRF.
+
+Templates projects/members.html.twig e invitation.html.twig; estilos project-members.css; comportamento progressivo project-members.js. O layout de acesso oferece blocos styles/scripts para manter arquivos externos. Não há handlers, estilos ou scripts inline novos.
+
+`tests/members-ui.php` integra o runner PHP e prepara contas/projetos fictícios, inclusive pendência, em storage/previews/members-fixture.json (fora do Git). `tests/members-browser.cjs` usa esse arquivo no mesmo banco/Mailpit descartáveis. Dependências: Chromium, playwright-core e @axe-core/playwright somente em teste; AUTH_TEST_DATABASE=disposable e NODE_PATH, com AUTH_TEST_URL/MAILPIT_TEST_URL/CHROMIUM_PATH/UI_PREVIEW_DIR opcionais. Execute a fixture novamente antes de repetir o teste: ele muda papéis, remove e transfere o projeto de teste.
+
+Testes cobrem 320–1440px, axe A/AA, quatro papéis, privacidade, arquivados, 419/foco, SMTP, reenvio/cancelamento, visitante, conta incompatível, aceite sem JS/uso único, remoção, transferência e XSS. Previews members-390.png/members-1440.png e invitation-guest-390.png/invitation-accept-390.png ficam em storage/previews, fora do Git. Sem validação em aparelhos físicos/leitores de tela. Próxima entrega visual: quadro Kanban.
