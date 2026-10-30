@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Adicionado
+- Suite integrada de UI/UX com 11 rotas, cinco larguras, axe de páginas completas, texto ampliado/espaçamento, teclado/jornada, movimento reduzido, assets/CSP e consulta sem JS.
+- Evidência JSON sem credenciais fora do Git e registro reproduzível da revisão em docs/UI_REVIEW.md, mantendo homologação operacional adiada.
 - Perfil/configurações Fluxo Claro: resumo da conta, e-mail somente leitura, nome e disclosures de senha/sessões, com contexto dos efeitos das ações.
 - CSS/JS externos próprios, mostrar/ocultar senha, resumo de erro com foco e envio progressivo; POST/CSRF continua sem JS e senhas não são reapresentadas.
 - Preservação de nome seguro no retorno 419, mantendo rejeição sem escrita, token atual e seção do erro aberta; testes PHP/Chromium de perfil, revogação e uso sem JS.
@@ -89,6 +91,7 @@
 - Snapshot do Kanban consulta apenas campos dos cards, evitando carregar descrições completas a cada leitura/mutação.
 
 ### Corrigido
+- Número do card Pendentes no dashboard mantém a cor branca no hover, impedindo que a regra genérica de links o torne invisível sobre o fundo verde.
 - Configuração local de e-mail direcionada ao Mailpit na rede Docker, preservando suporte a SMTP de produção.
 
 ### Alterado

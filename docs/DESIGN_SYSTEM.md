@@ -249,3 +249,13 @@ Validação do décimo primeiro incremento: PHP, preflight local e Chromium 320/
 - Preservação segura de nome em 419, com rejeição/token mantidos; serviços/transações/autorização preservados. Próxima etapa após aprovação: revisão integrada de UI/UX e acessibilidade dos fluxos migrados. Homologação operacional continua adiada.
 
 Validação do décimo segundo incremento: PHP, preflight local e Chromium 320/390/768/1024/1440px aprovados. Axe A/AA sem violações nos cenários auditados: perfil, segurança aberta e erros 422/419. Foco, toggles, rascunho sem escrita, senha não reapresentada, POST sem JS e revogação real de sessões aprovados; regressão do shell aprovada. Previews inspecionados visualmente, sem validação em aparelhos físicos/leitores de tela.
+
+
+## Revisão integrada após os módulos migrados
+
+Registro e reprodução em [UI_REVIEW.md](UI_REVIEW.md). Teste integrado cobre páginas completas, navegação e preferências de texto em 11 rotas autenticadas, com evidência JSON local; as telas de acesso usam sua suite própria. Não é certificação de acessibilidade ou validação em aparelhos físicos. Não houve mudança visual/runtime necessária nos cenários integrados verificados. Homologação operacional permanece adiada até instrução explícita do usuário.
+
+Resultado desta execução: PHP/preflight, integração e suite de acesso aprovados. Foram 77 cenários estruturais e 25 auditorias axe integradas, mais 17 auditorias da suite de acesso, sem violações nos cenários auditados. Nenhuma correção de runtime necessária. Registro e teste aprovados para commit; desenvolvimento pausado a pedido do usuário, aguardando novas instruções.
+
+
+O card destacado Pendentes deve manter texto numérico branco tanto em repouso quanto no hover/foco; o fundo escurece para a cor de hover sem herdar a cor de links genéricos. A regressão do dashboard agora verifica a interação, inclusive com valor zero e axe durante hover.

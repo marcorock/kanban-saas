@@ -31,6 +31,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 46785c3 | Painel de tarefas, progresso agregado e checklist compacto |
 | 61b86a4 | Minhas Tarefas Fluxo Claro |
 | 4c5d3bc | Históricos pessoal e do projeto Fluxo Claro |
+| 06a0407 | Perfil e configurações pessoais Fluxo Claro |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -179,3 +180,22 @@ Validação do décimo segundo incremento: regressão PHP completa e preflight l
 
 
 Décimo segundo incremento aprovado e incluído no commit `feat: redesenha perfil e configurações pessoais` (hash no Git). Próximo incremento autorizado: revisão integrada de UI/UX e acessibilidade dos fluxos migrados, mantendo homologação operacional adiada.
+
+
+## Revisão integrada de UI/UX e acessibilidade
+
+Iniciada após aprovação e commit de perfil/configurações (`06a0407`). Nova suite ui-integration-browser.cjs reutiliza a jornada real do quadro e cruza 11 rotas da mesma conta, com tarefa atribuída, checklist e links entre módulos. Verifica cinco larguras, páginas completas com axe, estrutura/reflow, texto 200%/espaçamento, teclado, movimento reduzido, consulta sem JS, assets e CSP. JSON de evidências sem credenciais em storage/previews, fora do Git.
+
+Regressão PHP completa e preflight local aprovados. Integração passou com 77 cenários estruturais e 25 auditorias axe. Nenhuma correção de runtime necessária nos cenários verificados; suite de acesso também aprovada, incluindo SMTP, cadastro/confirmação/reset, erros, teclado e uso sem JS. Registro em docs/UI_REVIEW.md diferencia esta revisão de homologação operacional, que continua adiada. Após aprovação/commit, aguardar os próximos ajustes do usuário, sem inferir autorização de publicação ou homologação.
+
+Revisão e correção posterior aprovadas e incluídas no commit `fix: preserva contraste do dashboard e registra revisão integrada` (hash no Git). A suite de acesso executou 17 auditorias axe adicionais sem violações nos cenários auditados. Sem correções de runtime, migrations, alterações do .env ou publicação. Previews e evidência JSON preservados fora do Git; banco/Mailpit de teste descartáveis, sem testes em aparelhos físicos/leitores de tela.
+
+
+### Correção visual após relato — número no hover do dashboard
+
+O usuário reportou o desaparecimento do número do card Pendentes ao passar o mouse. A regra genérica de link em hover sobrepunha a cor base do card por especificidade; número/fundo ficavam na mesma cor. Corrigido em dashboard.css com branco explícito no hover do card destacado. A revisão integrada inicial não incluía esse estado de interação. Teste dashboard-browser.cjs ampliado para hover/foco, contagem positiva/zero e axe em hover; a falha foi reproduzida antes do ajuste. Validação concluída: Chromium 320–1440px, hover/foco, contagem positiva/zero, axe em hover e demais regressões do dashboard aprovados. Preview dashboard-hover-1440.png inspecionado visualmente, fora do Git. Sem alterações de HTML/JS de runtime, queries, schema ou .env; nenhuma mudança anterior foi commitada sem aprovação.
+
+
+## Pausa após revisão integrada e correção de hover
+
+Usuário aprovou o trabalho, solicitou o commit e instruiu aguardar novas orientações. Revisão, teste integrado, correção de contraste e documentação registrados juntos. Nenhum próximo incremento iniciado; homologação operacional continua adiada, sem push, merge ou publicação.

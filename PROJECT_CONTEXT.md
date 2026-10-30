@@ -44,6 +44,7 @@
 - 46785c3 — painel de tarefas e checklist compacto.
 - 61b86a4 — Minhas Tarefas Fluxo Claro.
 - 4c5d3bc — históricos pessoal e de projeto Fluxo Claro.
+- 06a0407 — perfil e configurações pessoais Fluxo Claro.
 
 ## Módulos consolidados
 
@@ -83,15 +84,24 @@
 - Previews history-personal-390.png/history-project-390.png e versões 1440, history-changes-*.png/history-empty-390.png em storage/previews, fora do Git e inspecionados visualmente. Sem testes em aparelhos físicos/leitores de tela.
 - Próximo incremento autorizado: UI/UX de perfil e configurações pessoais. Homologação operacional segue adiada; testes apenas em banco/Mailpit descartáveis.
 
-## Última entrega aprovada — UI/UX: perfil e configurações pessoais
+## Entrega anterior — UI/UX: perfil e configurações pessoais
 
-- Décimo segundo incremento aprovado; commit de fechamento: `feat: redesenha perfil e configurações pessoais` (hash no Git).
+- Décimo segundo incremento aprovado; commit de fechamento: `06a0407` — `feat: redesenha perfil e configurações pessoais`.
 - Perfil/segurança no Fluxo Claro: resumo da conta, e-mail somente leitura e nome; troca de senha/sessões em disclosures nativos, recolhidos por padrão e abertos no erro correspondente.
 - Twig/CSS/JS separados; mostrar/ocultar senha, foco em erros e estado de envio progressivos. Formulários POST/CSRF funcionam sem JS e senhas não voltam ao HTML.
 - Nome UTF-8 seguro preservado em 419, com status/rejeição mantidos. ProfileService, autorização, rate limit, transações e revogação preservados; nenhuma migration ou alteração do .env.
 - Regressão PHP completa (incluindo 419 sem escrita) e preflight local aprovados. Chromium/axe 320–1440px aprovado para layout, disclosures, senhas, foco, 422/419, identidade, rascunho e POST sem JS com revogação real; regressão do shell aprovada.
 - Previews settings-390.png/settings-1440.png e settings-security-390.png em storage/previews, fora do Git e inspecionados visualmente. Testes exclusivamente em banco/Mailpit descartáveis; sem aparelhos físicos/leitores de tela.
 - Próximo incremento autorizado: revisão integrada de UI/UX e acessibilidade dos fluxos migrados. Homologação operacional permanece adiada; nenhuma publicação autorizada.
+
+## Última entrega aprovada — revisão integrada e correção do hover
+
+- Revisão e correção aprovadas; commit de fechamento: `fix: preserva contraste do dashboard e registra revisão integrada` (hash no Git). A revisão inicial não exercitava hover persistente dos indicadores; correção desse estado concluída e validada após relato do usuário.
+- Novo teste ui-integration-browser.cjs: 11 rotas, cinco larguras, axe de páginas completas, texto 200%/espaçamento, teclado/jornada, movimento reduzido, assets/CSP e consulta sem JS. Evidência JSON em storage/previews, fora do Git.
+- Regressão PHP completa e preflight local aprovados; integração passou com 77 cenários estruturais e 25 auditorias axe. Suite de acesso aprovada (cadastro/confirmação/reset SMTP, teclado, erros e uso sem JS). Detalhes/limites em docs/UI_REVIEW.md.
+- Sem migration, alteração do .env ou publicação. Testes em banco/Mailpit descartáveis; homologação operacional segue adiada.
+- Correção atual: hover do card Pendentes herdava a cor genérica do link, igual ao fundo. CSS do card agora preserva branco; teste reproduziu a falha antes da alteração e verifica hover/foco, contagem positiva/zero e axe com hover. Chromium 320–1440px e axe com hover aprovados; preview dashboard-hover-1440.png inspecionado visualmente, fora do Git.
+- Desenvolvimento pausado a pedido explícito do usuário após o commit. Aguardar novas instruções, sem iniciar outro incremento. Homologação operacional permanece adiada.
 
 ## Documentação por módulo
 
@@ -103,3 +113,4 @@
 - Evolução funcional: CHANGELOG.md. Histórico de commits e continuidade: docs/DEVELOPMENT.md.
 - Preparação para produção: docs/PRODUCTION.md. Registro de validação: docs/VALIDATION.md.
 - UI/UX, componentes e navegação: docs/DESIGN_SYSTEM.md.
+- Revisão integrada de UI/UX e acessibilidade: docs/UI_REVIEW.md.

@@ -38,10 +38,19 @@ runBoardBrowser(async ({page, context, save, boardUrl}) => {
         assert.equal(await page.locator('.dash-deadline strong').innerText(), 'Preparar a próxima entrega');
         assert.equal(await page.locator('.dash-deadline time').getAttribute('datetime'), due);
         for (const date of await page.locator('.dash-activity-content time').evaluateAll(items => items.map(item => item.dateTime))) assert.equal(Number.isNaN(Date.parse(date)), false, 'Timestamp ISO em UTC');
+        const featured = page.locator('.dash-metric-featured');
+        await page.mouse.move(0, 0);
+        const numberColor = await featured.locator('strong').evaluate(node => getComputedStyle(node).color);
+        await featured.hover();
+        assert.equal(await featured.locator('strong').evaluate(node => getComputedStyle(node).color), numberColor, 'Número mantém a cor ao passar o mouse ' + width);
+        assert.notEqual(await featured.locator('strong').evaluate(node => getComputedStyle(node).color), await featured.evaluate(node => getComputedStyle(node).backgroundColor), 'Número tem contraste com o fundo');
         if (width === 390 || width === 1440) {
-            await audit('Dashboard ' + width);
+            await audit('Dashboard com hover ' + width);
             await page.screenshot({path: `${preview}/dashboard-${width}.png`, fullPage: false});
+            if (width === 1440) await page.screenshot({path: `${preview}/dashboard-hover-1440.png`, fullPage: false});
         }
+        await page.mouse.move(0, 0); await featured.focus();
+        assert.equal(await featured.locator('strong').evaluate(node => getComputedStyle(node).color), numberColor, 'Número mantém a cor no foco ' + width);
     }
     for (const [key, query] of [['pending', 'status=pending'], ['in_progress', 'status=in_progress'], ['completed', 'status=completed'], ['overdue', 'due=overdue']]) {
         await page.goto(base + '/dashboard');
@@ -81,7 +90,9 @@ runBoardBrowser(async ({page, context, save, boardUrl}) => {
         await empty.goto(base + '/dashboard');
         assert.deepEqual(await empty.locator('[data-metric]').allInnerTexts(), ['0', '0', '0', '0', '0']);
         assert.equal(await empty.locator('.dash-empty').count(), 3);
-        await audit('Dashboard vazio', empty); await empty.screenshot({path: `${preview}/dashboard-empty-390.png`, fullPage: false});
+        await empty.locator('.dash-metric-featured').hover();
+        assert.equal(await empty.locator('[data-metric="pending"]').evaluate(node => getComputedStyle(node).color), 'rgb(255, 255, 255)', 'Zero continua legível no hover');
+        await audit('Dashboard vazio com hover', empty); await empty.screenshot({path: `${preview}/dashboard-empty-390.png`, fullPage: false});
     } finally { await fresh.close(); }
-    console.log('OK: dashboard 320–1440px, axe A/AA, métricas/filtros, progresso nativo sem JS, prazos/deep links, datas UTC, XSS e conta vazia.');
+    console.log('OK: dashboard 320–1440px, axe A/AA, métricas/filtros, hover/foco com contagem/zero, progresso nativo sem JS, prazos/deep links, datas UTC, XSS e conta vazia.');
 }).catch(error => { console.error(error); process.exitCode = 1; });

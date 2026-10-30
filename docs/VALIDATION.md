@@ -51,3 +51,6 @@ São amostras únicas no ambiente local, sujeitas a aquecimento/cache; não demo
 - Gestão de organizações permanece uma expansão pendente; não há cobrança no MVP.
 
 A homologação operacional foi adiada a pedido do usuário. O usuário definiu a evolução de UI/UX como prioridade anterior à homologação, começando pelos fluxos de acesso. A implementação e validação deste incremento visual estão registradas em [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md); o roteiro de [produção](PRODUCTION.md) permanece pendente de execução operacional. Push, merge e deploy continuam dependendo de autorização explícita.
+
+
+A revisão integrada posterior à migração visual está registrada separadamente em [UI_REVIEW.md](UI_REVIEW.md). Ela não altera o resultado histórico da Fase 6 nem substitui a homologação operacional pendente.
