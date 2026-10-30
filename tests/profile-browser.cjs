@@ -47,7 +47,7 @@ runBoardBrowser(async ({page, context, boardUrl}) => {
         await page.setViewportSize({width: 390, height: 844});
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'Configurações responsivas');
         await page.getByRole('link', {name: 'Projetos', exact: true}).click();
-        assert.match(await page.locator('main').innerText(), /Projetos ativos/i);
+        assert.equal(await page.locator('.pl-filters [aria-current]').innerText(), 'Ativos');
     } finally { await observer.close(); }
     console.log('OK: perfil no Chromium, CSP, escape, troca de senha, revogação de sessões e mobile.');
 }).catch(error => { console.error(error); process.exitCode = 1; });

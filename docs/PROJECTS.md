@@ -51,3 +51,17 @@ AUTH_TEST_DATABASE=disposable AUTH_TEST_URL=http://127.0.0.1:8000 php tests/proj
 ```
 
 O teste cria usuários/projetos, atribui papéis diretamente no banco, valida FKs, revoga sessões e cria trigger temporário para testar rollback. Não execute no banco de uso diário ou produção.
+
+## UI da listagem — Fluxo Claro
+
+`/projects` e `/projects?status=archived` usam cards mobile first, com nome, papel atual, indicação de projeto próprio/compartilhado, prévia de descrição e prazo. A prévia tem até 160 caracteres e duas linhas visuais; o conteúdo completo permanece nos detalhes. Nomes ficam completos e podem quebrar linha. Não são exibidos progresso, participantes ou contagens de tarefas simulados.
+
+Ativos e Arquivados são links GET com indicação do estado selecionado; não exigem JavaScript. Cards oferecem quadro e detalhes. Arquivados deixam explícito que o quadro é de consulta; restaurar/editar continua dependendo das políticas e das telas existentes. O total mostra somente o filtro atual. Permanecem 25 projetos por página, ordem decrescente de ID e paginação preservando o filtro, inclusive ao voltar de página dois.
+
+Estados vazios diferenciam ausência de ativos e de arquivados. O aviso de sucesso da listagem tem componente próprio; formulários, detalhes e participantes mantêm os componentes anteriores neste incremento. HTML em Twig e estilo em projects-list.css; nenhum script novo ou estilo inline. Repository, queries e autorização não foram alterados.
+
+`tests/projects-list.php` integra o runner PHP e prepara contas/projetos fictícios em banco descartável. Verifica os quatro papéis, compartilhamento entre tenants, tenant sem participação no projeto, arquivados, exclusão lógica, paginação, XSS e estados vazios. Escreve somente dados de teste em storage/previews/projects-fixture.json (ignorado pelo Git), usados por `tests/projects-list-browser.cjs`.
+
+Para Chromium, após rodar esse teste PHP no mesmo ambiente descartável, instale playwright-core e @axe-core/playwright no ambiente de testes e defina AUTH_TEST_DATABASE=disposable/NODE_PATH. O teste usa AUTH_TEST_URL/CHROMIUM_PATH quando fornecidos; PROJECTS_UI_FIXTURE pode indicar o JSON de fixture e UI_PREVIEW_DIR o destino dos screenshots. Não use fixtures no banco diário ou contas reais. Arquivos temporários podem ser removidos ao descartar o ambiente.
+
+Próximo incremento: formulários de criação/edição; detalhes em entrega posterior. Homologação operacional permanece adiada.

@@ -4,7 +4,7 @@ Direção visual original para o Kanban SaaS: clareza, ritmo e foco no próximo 
 
 ## Escopo e evolução
 
-Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; próximo incremento proposto: listagem de projetos. Homologação operacional continua adiada.
+Primeiro incremento: login, cadastro, recuperação/redefinição de senha, confirmação/reenvio de e-mail e aviso pós-cadastro. Layout de acesso em `auth/layout.html.twig`. O segundo incremento implementa o shell autenticado em `layout.html.twig`, com header, navegação e footer próprios; o conteúdo dos módulos permanece para entregas posteriores. A página inicial `/` mantém o visual anterior. O terceiro incremento redesenha o dashboard; o quarto incremento trata a listagem de projetos; próximo incremento proposto: formulários de criação/edição. Homologação operacional continua adiada.
 
 O desenho deve servir às funções existentes. Não exibir busca global, notificações, calendário, assinatura, login social ou links de políticas sem a funcionalidade/conteúdo correspondente. Não há biblioteca de componentes remota, fonte externa, imagens geradas ou etapa de build.
 
@@ -137,6 +137,18 @@ Validação do segundo incremento: regressão PHP completa aprovada; Chromium ap
 - `resources/views/dashboard.html.twig` e `resources/views/dashboard/activity.html.twig`: estrutura/dados; `public/assets/css/dashboard.css`: apresentação. Não há arquivo JS novo neste incremento.
 - Consultas, permissões, limites (10 projetos, 5 prazos, 10 eventos) e escopos não foram alterados. Preflight verifica o novo CSS. Sem migration nova.
 - Teste de navegador em `tests/dashboard-browser.cjs`: 320–1440px, axe A/AA da página, filtros, links de tarefas, progresso nativo sem JS, datas UTC, XSS, projeto sem tarefas e conta vazia. Previews em storage/previews/dashboard-390.png, dashboard-1440.png e dashboard-empty-390.png, ignorados no Git.
-- Limitações: sem teste em dispositivos físicos/leitores de tela; módulos restantes continuam com seus componentes anteriores. Próxima entrega proposta: listagem de projetos, seguida de formulários/detalhes em incremento próprio.
+- Limitações: sem teste em dispositivos físicos/leitores de tela; módulos restantes continuam com seus componentes anteriores. A listagem foi tratada no quarto incremento; formulários/detalhes seguem em entregas próprias.
 
 Validação do terceiro incremento: regressão PHP completa e preflight local aprovados; Chromium aprovado para dashboard, relatórios e shell. Axe sem violações A/AA nos casos de dashboard preenchido e vazio verificados. Previews mobile/desktop inspecionados visualmente; não há certificação de conformidade ou teste em aparelhos físicos.
+
+## Quarto incremento — listagem de projetos
+
+- Hero com ação Novo projeto; links GET Ativos/Arquivados com aria-current. Contagem corresponde ao filtro atual, sem contagens fictícias nas abas.
+- Uma coluna no celular; duas a partir de 760px e três a partir de 1440px. Cards com nome completo, papel atual, vínculo, prévia de descrição (até 160 caracteres/duas linhas visuais) e prazo ou ausência dele.
+- Acesso ao quadro e aos detalhes com alvos confortáveis. Arquivados recebem ícone/contexto de arquivo e link Consultar quadro; os quatro papéis têm nomes claros. Permissões continuam no backend.
+- Estados vazios próprios por filtro; paginação por GET preserva estado e oferece limites não interativos. Feedback da listagem em componente próprio, preservando feedback antigo nos módulos ainda não migrados.
+- `resources/views/projects/index.html.twig`: estrutura; `public/assets/css/projects-list.css`: apresentação. Sem JS novo. Sem mudanças em consultas, schema, escopo ou política; sem estatísticas adicionais por card.
+- PHP `tests/projects-list.php` cria fixtures descartáveis para os quatro papéis, compartilhamento, arquivamento, nomes longos, XSS, vazios e paginação; browser `tests/projects-list-browser.cjs` testa 320–1440px, axe A/AA, teclado, links e navegação sem JS. Fixture e previews em storage/previews ficam fora do Git.
+- Próximo incremento: criação/edição de projetos; detalhes, participantes e Kanban serão migrados separadamente. Sem homologação operacional neste incremento.
+
+Validação do quarto incremento: regressão PHP completa, preflight local e Chromium da listagem/dashboard/perfil/shell aprovados. Axe sem violações A/AA nos casos verificados da listagem preenchida, arquivada, vazia e com textos longos. Previews inspecionados visualmente. Testes usaram exclusivamente banco descartável; aparelhos físicos e leitores de tela permanecem pendentes.

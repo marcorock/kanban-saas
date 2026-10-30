@@ -35,6 +35,7 @@
 - 58c0e2a — validação de segurança/desempenho e preparação para instalação.
 - 2f0fd5c — design system Fluxo Claro e telas de acesso.
 - 0460acf — estrutura autenticada: header, menus responsivos e footer.
+- 756af0e — dashboard Fluxo Claro.
 
 ## Entrega anterior — dashboard e históricos (Fase 5)
 
@@ -105,9 +106,9 @@
 - Limitações: conteúdo dos módulos não foi redesenhado; sem testes em aparelhos físicos/leitores de tela. Homologação operacional permanece adiada, sem deploy ou alteração do .env.
 - Próximo incremento após aprovação: redesenho do dashboard com os componentes e tokens definidos; depois módulos, um por vez.
 
-## Última entrega aprovada — UI/UX: dashboard
+## Entrega anterior — UI/UX: dashboard
 
-- Terceiro incremento visual aprovado; commit de fechamento: `feat: redesenha dashboard com Fluxo Claro`. Próximo incremento autorizado: listagem de projetos.
+- Terceiro incremento visual aprovado; commit de fechamento: `756af0e` — `feat: redesenha dashboard com Fluxo Claro`. Próximo incremento autorizado: listagem de projetos.
 - Quatro indicadores pessoais com filtros, prazos priorizados no celular, progresso e atividades compactas. Projetos ativos contam no cabeçalho da seção de progresso.
 - Progress nativo com valor/nome acessível, sem style inline, gráficos externos ou JS novo. CSS em dashboard.css e conteúdo em Twig separado.
 - Ordem prazos/projetos/atividades consistente no DOM e no layout. Estados vazios, projeto sem tarefas, links ao painel e datas UTC preservados.
@@ -115,6 +116,16 @@
 - Regressão PHP completa e preflight local aprovados. Chromium/axe da página em 320–1440px, filtros, prazos, progresso sem JS, UTC, XSS e conta vazia aprovados; regressões de relatórios e shell também aprovadas. Previews verificados visualmente.
 - Limitações: validação automatizada em Chromium, sem aparelhos físicos/leitores de tela. Ambiente descartável separado do banco de uso diário.
 - Próximo incremento após aprovação: listagem de projetos; formulários/detalhes em entrega posterior. Homologação operacional permanece adiada.
+
+## Última entrega aprovada — UI/UX: listagem de projetos
+
+- Quarto incremento aprovado; commit de fechamento: `feat: redesenha listagem de projetos`. Próximo incremento autorizado: formulários de criação/edição.
+- Cards responsivos com nome, papel/vínculo, prazo, descrição resumida e atalhos para quadro/detalhes. Filtros GET Ativos/Arquivados, vazios e paginação próprios.
+- Twig e CSS separados, sem JS novo. Sem mudanças em queries/políticas: 25 itens por página, mesmos vínculos de tenant/projeto e ordenação. Formulários/detalhes ainda não migrados.
+- Regressão PHP completa e preflight local aprovados. Chromium/axe da listagem aprovado em 320–1440px, com papéis, arquivados/viewer, paginação/filtro, teclado, XSS, vazios e sem JS; regressões de dashboard, perfil e shell também aprovadas.
+- Fixtures exclusivamente em banco descartável; previews em storage/previews/projects-390.png e projects-1440.png, fora do Git, inspecionados visualmente. Sem teste em aparelhos físicos/leitores de tela.
+- Nenhuma migration nova, mudança de .env ou publicação. Homologação operacional continua adiada.
+- Próximo incremento após aprovação: formulários de criação/edição de projetos; detalhes em entrega posterior.
 
 ## Documentação por módulo
 

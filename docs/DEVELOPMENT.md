@@ -22,6 +22,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 58c0e2a | Validação, segurança, desempenho e preparação de instalação |
 | 2f0fd5c | Design system Fluxo Claro e telas de acesso |
 | 0460acf | Header, menus responsivos e footer da área autenticada |
+| 756af0e | Dashboard Fluxo Claro com indicadores, prazos e progresso nativo |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -58,3 +59,11 @@ Aprovado pelo usuário e incluído no commit `feat: redesenha navegação da ár
 Iniciado após aprovação da navegação. Dashboard redesenhado com quatro indicadores pessoais e atalhos de filtro, prazos priorizados, progresso nativo e atividades compactas. Contagem de projetos ativos junto do progresso. Estados vazios e CTA de projeto, com mesma leitura mobile/desktop. Twig e CSS externos separados; removido o style inline da barra, sem JavaScript novo.
 
 ReportingService e suas regras permanecem iguais. Regressão PHP completa e preflight local aprovados. Chromium/axe da página em 320–1440px, filtros, deep links, progresso sem JS, datas UTC, XSS e conta vazia aprovados; regressões de relatórios e shell também aprovadas. Previews verificados visualmente; sem teste em aparelhos físicos/leitores de tela. Nenhuma migration nova, alteração de .env ou publicação. Homologação operacional continua adiada. Incremento aprovado e incluído no commit `feat: redesenha dashboard com Fluxo Claro`; próximo incremento autorizado: listagem de projetos.
+
+## UI/UX — quarto incremento: listagem de projetos
+
+Iniciado após aprovação do dashboard. Listagem ativa/arquivada redesenhada em cards responsivos com papel, vínculo, prazo e prévia de descrição; atalhos de quadro e detalhes. Estados vazios, paginação e feedback próprios. Twig e CSS externos, sem JS adicional. Repository e políticas permanecem iguais, com 25 itens por página.
+
+Regressão PHP completa e preflight local aprovados. Testes novos de listagem em PHP/Chromium/axe aprovados para quatro papéis, isolamento, paginação com filtro, XSS, estados vazios, 320–1440px e uso sem JavaScript. Regressões Chromium de dashboard, perfil e shell também aprovadas. Previews inspecionados visualmente; sem teste em dispositivos físicos/leitores de tela.
+
+Incremento aprovado e incluído no commit `feat: redesenha listagem de projetos`. Próximo incremento autorizado: formulários de criação/edição. Sem novas migrations, alteração do .env ou deploy; homologação operacional adiada.

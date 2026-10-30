@@ -1,22 +1,63 @@
 {% extends 'projects/layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/projects-list.css">{% endblock %}
+{% block project_notice %}
+    {% if notice %}<div class="pl-notice" role="status">{{ ui.icon('check') }}<p>{{ notice }}</p></div>{% endif %}
+{% endblock %}
 {% block projects %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h4 mb-0">Projetos {{ archived ? 'arquivados' : 'ativos' }}</h2>
-    <a href="/projects/new" class="btn btn-primary">Novo projeto</a>
+<div class="project-listing">
+    <div class="pl-welcome">
+        <div>
+            <p class="pl-eyebrow">UM ESPAÇO PARA CADA IDEIA</p>
+            <h2>Seus projetos, mais perto.</h2>
+            <p>{{ archived ? 'Revisite o que já foi arquivado e consulte o histórico do trabalho.' : 'Encontre seu projeto e continue de onde parou.' }}</p>
+        </div>
+        <a class="pl-button pl-button-primary" href="/projects/new">{{ ui.icon('plus') }} Novo projeto</a>
+    </div>
+    <div class="pl-toolbar">
+        <nav class="pl-filters" aria-label="Estado dos projetos">
+            <a href="/projects" {% if not archived %}aria-current="page"{% endif %}>{{ ui.icon('projects') }} Ativos</a>
+            <a href="/projects?status=archived" {% if archived %}aria-current="page"{% endif %}>{{ ui.icon('archive') }} Arquivados</a>
+        </nav>
+        <p class="pl-total"><strong>{{ result.total }}</strong> {{ result.total == 1 ? 'projeto' : 'projetos' }} {{ archived ? (result.total == 1 ? 'arquivado' : 'arquivados') : (result.total == 1 ? 'ativo' : 'ativos') }}</p>
+    </div>
+    {% set roles = {owner: 'Proprietário', admin: 'Administrador', member: 'Membro', viewer: 'Visualizador'} %}
+    {% if result.items %}
+    <section class="pl-grid" aria-label="Projetos {{ archived ? 'arquivados' : 'ativos' }}">
+        {% for project in result.items %}
+        <article class="pl-card {{ archived ? 'pl-card-archived' : '' }}">
+            <div class="pl-card-heading">
+                <span class="pl-project-icon">{{ ui.icon(archived ? 'archive' : 'projects') }}</span>
+                <span class="pl-role">{{ roles[project.role] }}</span>
+            </div>
+            <h3><a href="/projects/{{ project.id }}">{{ project.name }}</a></h3>
+            {% set description = project.description|trim %}
+            <p class="pl-description">{{ description ? (description|length > 160 ? description|slice(0, 160) ~ '…' : description) : 'Sem descrição.' }}</p>
+            <div class="pl-meta">
+                <span>{{ ui.icon('users') }} {{ project.owner_id == user.id ? 'Projeto próprio' : 'Compartilhado comigo' }}</span>
+                <span>{{ ui.icon('calendar') }} {% if project.due_on %}Previsão: <time datetime="{{ project.due_on }}">{{ project.due_on|date('d/m/Y', 'UTC') }}</time>{% else %}Sem prazo definido{% endif %}</span>
+                {% if archived %}<span>{{ ui.icon('archive') }} Arquivado · somente consulta no quadro</span>{% endif %}
+            </div>
+            <div class="pl-card-actions">
+                <a href="/projects/{{ project.id }}/board" aria-label="{{ archived ? 'Consultar quadro de ' : 'Abrir quadro de ' }}{{ project.name }}">{{ ui.icon('tasks') }} {{ archived ? 'Consultar quadro' : 'Abrir quadro' }}</a>
+                <a href="/projects/{{ project.id }}" aria-label="Ver detalhes de {{ project.name }}">Ver detalhes {{ ui.icon('chevron-right') }}</a>
+            </div>
+        </article>
+        {% endfor %}
+    </section>
+    {% else %}
+    <section class="pl-empty" aria-labelledby="pl-empty-title">
+        <span class="pl-empty-icon">{{ ui.icon(archived ? 'archive' : 'projects') }}</span>
+        <h3 id="pl-empty-title">{{ archived ? 'Nenhum projeto arquivado.' : 'Seu próximo projeto começa aqui.' }}</h3>
+        <p>{{ archived ? 'Os projetos arquivados aos quais você tem acesso aparecerão aqui para consulta.' : 'Crie um projeto para dar forma às suas ideias. Os projetos compartilhados com você também aparecerão aqui.' }}</p>
+        {% if archived %}<a class="pl-button pl-button-secondary" href="/projects">{{ ui.icon('arrow-left') }} Voltar aos ativos</a>
+        {% else %}<a class="pl-button pl-button-primary" href="/projects/new">{{ ui.icon('plus') }} Criar projeto</a>{% endif %}
+    </section>
+    {% endif %}
+    <nav class="pl-pagination" aria-label="Paginação de projetos {{ archived ? 'arquivados' : 'ativos' }}">
+        {% if result.page > 1 %}<a href="/projects?status={{ archived ? 'archived' : 'active' }}&amp;page={{ result.page - 1 }}">{{ ui.icon('arrow-left') }} Anterior</a>{% else %}<span class="pl-page-disabled" aria-disabled="true">{{ ui.icon('arrow-left') }} Anterior</span>{% endif %}
+        <span>Página {{ result.page }} de {{ result.pages }}</span>
+        {% if result.page < result.pages %}<a href="/projects?status={{ archived ? 'archived' : 'active' }}&amp;page={{ result.page + 1 }}">Próxima {{ ui.icon('arrow-right') }}</a>{% else %}<span class="pl-page-disabled" aria-disabled="true">Próxima {{ ui.icon('arrow-right') }}</span>{% endif %}
+    </nav>
 </div>
-<div class="d-flex gap-3 mb-3"><a href="/projects">Ativos</a><a href="/projects?status=archived">Arquivados</a></div>
-{% set roles = {owner: 'Proprietário', admin: 'Administrador', member: 'Membro', viewer: 'Visualizador'} %}
-<div class="list-group">
-{% for project in result.items %}
-<a class="list-group-item list-group-item-action" href="/projects/{{ project.id }}">
-    <div class="d-flex justify-content-between gap-3"><strong>{{ project.name }}</strong><span class="badge text-bg-secondary">{{ roles[project.role] }}</span></div>
-    <div class="small text-body-secondary mt-1">{{ project.owner_id == user.id ? 'Projeto próprio' : 'Compartilhado comigo' }}{% if project.due_on %} · Previsão: {{ project.due_on|date('d/m/Y') }}{% endif %}</div>
-</a>
-{% else %}<div class="alert alert-info">Nenhum projeto {{ archived ? 'arquivado' : 'ativo' }} disponível.</div>{% endfor %}
-</div>
-<nav class="d-flex justify-content-between mt-3" aria-label="Paginação">
-    {% if result.page > 1 %}<a href="/projects?status={{ archived ? 'archived' : 'active' }}&amp;page={{ result.page - 1 }}">Anterior</a>{% endif %}
-    <span>{{ result.total }} projeto(s) · Página {{ result.page }} de {{ result.pages }}</span>
-    {% if result.page < result.pages %}<a href="/projects?status={{ archived ? 'archived' : 'active' }}&amp;page={{ result.page + 1 }}">Próxima</a>{% endif %}
-</nav>
 {% endblock %}

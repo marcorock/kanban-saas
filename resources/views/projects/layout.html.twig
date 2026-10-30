@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 {% block content %}
 
-{% if notice %}<div class="alert alert-success" role="status">{{ notice }}</div>{% endif %}
+{% block project_notice %}{% if notice %}<div class="alert alert-success" role="status">{{ notice }}</div>{% endif %}{% endblock %}
 {% block projects %}{% endblock %}
 {% endblock %}

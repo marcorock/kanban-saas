@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Adicionado
+- Listagem de projetos Fluxo Claro: cards responsivos, papel/vínculo/prazo, filtros ativos/arquivados, paginação e acesso a quadro/detalhes.
+- Estados vazios, aviso de consulta de arquivados e feedback da listagem em CSS externo, sem JavaScript adicional.
+- Testes PHP/Chromium de listagem, quatro papéis, isolamento, paginação, XSS e navegação sem JS.
 - Dashboard Fluxo Claro: indicadores com filtros, prazos em destaque no celular, progresso nativo, atividades compactas e estados vazios.
 - CSS externo próprio e remoção do estilo inline nas barras do dashboard, sem JavaScript adicional ou alteração de consultas/métricas.
 - Regressão Chromium/axe do dashboard, com progresso sem JS, títulos escapados e conta vazia.
