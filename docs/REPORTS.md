@@ -31,6 +31,16 @@ O intervalo de datas filtra o prazo previsto, não a criação da tarefa. A orde
 
 Cada link abre o quadro com o painel da tarefa correta. Projetos arquivados continuam em modo de leitura. Projetos excluídos ou sem participação atual não aparecem.
 
+## UI de Minhas Tarefas — Fluxo Claro
+
+A lista exibe prioridade, estado textual, prazo, projeto e coluna. Ícones são informativos; não há checkbox de conclusão, que continua ocorrendo pelas colunas do Kanban. O título leva ao painel da tarefa correta; o nome do projeto leva aos seus detalhes.
+
+A navegação **Todas / Pendentes / Iniciadas / Concluídas** usa links GET, preserva os demais critérios e reinicia na primeira página. Iniciadas continuam sendo pendentes com início real, independentemente do nome da coluna. Não há contagens fictícias nos links: o total exibido corresponde à seleção inteira, não apenas aos itens da página.
+
+Filtros de projeto, prioridade, prazo, arquivo e datas ficam em details/summary nativo. Abrem quando há critérios adicionais ativos; o estado fica visível na navegação. Envio GET, limpeza e paginação funcionam sem JS. Detalhes da tarefa continuam dependendo de JS no quadro, como antes. Arquivados recebem aviso de consulta; vazio explica atribuições. Erros 422 usam apresentação própria, mantendo o status e a validação existente.
+
+Estrutura em reports/tasks.html.twig/tasks-error.html.twig, CSS em public/assets/css/my-tasks.css, sem JS novo. Uma coluna de resultados em todos os tamanhos; ações/títulos legíveis no celular. Filtros passam a duas colunas a partir de 640px e três em 1200px. Não houve alteração de SQL, autorização, limites ou ordenação.
+
 ## Históricos
 
 - **Meu Histórico** (`/history`): somente ações realizadas pelo usuário em projetos aos quais ele ainda tem acesso. Pode incluir projetos arquivados.
@@ -64,3 +74,6 @@ O teste verifica contagens e progresso sem duplicação, projetos vazios/arquiva
 Com Chromium e playwright-core no ambiente externo de testes já documentado, execute `node tests/reports-browser.cjs` com as mesmas variáveis. Ele reutiliza a regressão do Kanban e testa navegação, filtros, métricas, snapshots escapados, abertura direta do painel e layout móvel.
 
 Próxima pendência funcional: perfil e configurações pessoais. Depois: revisão final de segurança/desempenho e preparação para produção.
+
+
+Para validar o incremento de Minhas Tarefas, execute `AUTH_TEST_DATABASE=disposable php tests/my-tasks-ui.php` no ambiente descartável e depois `node tests/my-tasks-browser.cjs`, com as variáveis e ferramentas Chromium/playwright-core/@axe-core/playwright descritas em KANBAN.md. A fixture inclui atribuições próprias/alheias, conta vazia, viewer, projeto privado/arquivado, paginação, prazo e título longo com HTML literal. Previews my-tasks-390.png/my-tasks-1440.png e filtros/vazio em storage/previews, fora do Git.

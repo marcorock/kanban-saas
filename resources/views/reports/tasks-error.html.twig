@@ -1,0 +1,4 @@
+{% extends 'layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/my-tasks.css">{% endblock %}
+{% block content %}<div class="my-tasks-page"><header class="mt-intro"><h2>Minhas Tarefas</h2></header><div class="mt-empty" role="alert"><span aria-hidden="true">{{ ui.icon('alert') }}</span><h3>Revise os filtros.</h3><p>{{ message }}</p><a class="mt-button mt-secondary" href="{{ back }}">Limpar filtros {{ ui.icon('arrow-right') }}</a></div></div>{% endblock %}

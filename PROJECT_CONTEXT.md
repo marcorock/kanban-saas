@@ -41,6 +41,7 @@
 - 47d88da — detalhes do projeto Fluxo Claro.
 - b8f5fdb — participantes, convites e aceite Fluxo Claro.
 - 01eb9ea — quadro Kanban Fluxo Claro.
+- 46785c3 — painel de tarefas e checklist compacto.
 
 ## Módulos consolidados
 
@@ -49,7 +50,7 @@
 - Kanban transacional com board_version, tarefas, responsáveis, checklists e comentários: docs/KANBAN.md e docs/TASKS.md.
 - Dashboard, Minhas Tarefas e históricos com escopo de tenant/projeto: docs/REPORTS.md.
 - Fase 6 aprovada: preflight somente leitura, segurança, regressão e roteiro operacional em docs/PRODUCTION.md e docs/VALIDATION.md.
-- Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem, formulários, detalhes, equipe e quadro. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
+- Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem, formulários, detalhes, equipe e quadro e painel. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
 - Homologação operacional adiada pelo usuário para trabalhar UI/UX em incrementos pequenos. Sem publicação autorizada. Organizações seguem expansão pendente; sem cobrança no MVP.
 
 ## Entrega anterior — UI/UX: listagem de projetos
@@ -105,9 +106,9 @@
 - Previews kanban-390.png/kanban-1440.png em storage/previews, ignorados no Git e inspecionados visualmente. Sem teste em dispositivos físicos/leitores de tela.
 - Desenvolvimento retomado em 30/10/2026 a pedido do usuário, pelo UI/UX do painel de detalhes das tarefas.
 
-## Última entrega aprovada — UI/UX: painel de tarefas e checklist compacto
+## Entrega anterior — UI/UX: painel de tarefas e checklist compacto
 
-- Nono incremento aprovado; commit de fechamento: `feat: redesenha painel de tarefas e checklist compacto` (hash no Git).
+- Nono incremento aprovado; commit de fechamento: `46785c3` — `feat: redesenha painel de tarefas e checklist compacto`.
 - Revisão substitui o primeiro desenho não aprovado: fundo branco, resumo da tarefa e abas Subtarefas (inicial), Comentários e Detalhes; histórico em Detalhes. Tela cheia abaixo de 640px e lateral de até 680px acima.
 - Subtarefas com checkbox de gravação direta, título editável, editar/excluir na mesma linha; confirmação/cancelamento inline. Adição de item em linha única e gestão de lista no menu. Ações permanecem na linha inclusive no celular.
 - Resumo agregado no painel/card: concluídas/total de todas as listas e percentual arredondado. Sem itens mostra Sem subtarefas no painel e omite barra/card. Progresso não muda conclusão por coluna.
@@ -116,6 +117,17 @@
 - Regressão PHP completa, teste ampliado de progresso e preflight local aprovados. Snapshot mantém 5 consultas em carga de 100/1.000 tarefas. Chromium/axe 320–1440px aprovado para alinhamento, marcação/edição/cancelamento, falhas/rascunhos, abas, foco/Escape, exclusão, retry, paginação, quatro papéis e arquivados; regressões de relatórios, shell e dashboard aprovadas.
 - Previews reais task-panel-390.png/task-panel-1440.png e task-inline-edit-390.png em storage/previews, ignorados no Git e inspecionados visualmente. Fixtures só em banco/Mailpit descartáveis; sem aparelhos físicos/leitores de tela. Homologação operacional adiada.
 - Próximo incremento autorizado: UI/UX de Minhas Tarefas; históricos e configurações em entregas próprias.
+
+## Última entrega aprovada — UI/UX: Minhas Tarefas
+
+- Décimo incremento aprovado; commit de fechamento: `feat: redesenha Minhas Tarefas com Fluxo Claro` (hash no Git).
+- Lista clara com prioridade, estado textual, prazo e projeto/coluna; links abrem o painel correto. Ícones de estado são informativos, sem checkbox que simule conclusão fora do quadro.
+- Navegação GET Todas/Pendentes/Iniciadas/Concluídas mantém filtros e reinicia paginação. Filtros nativos recolhidos por padrão e abertos quando há critérios adicionais; total real dos resultados, vazios e aviso de arquivados.
+- Twig e CSS externo próprios, sem JS novo. Formulários/links funcionam sem JS; detalhes da tarefa continuam dependendo de JS no quadro. Erros 422 recebem apresentação própria, mantendo status/validação.
+- ReportingService, consultas, autorização, limites/ordem e schema preservados. Sem migration ou mudança do .env; homologação operacional adiada. Testes só em banco descartável.
+- Regressão PHP completa, fixture própria e preflight local aprovados. Chromium/axe em 320–1440px aprovado para filtros/estados, paginação, XSS, atribuições, viewer, conta vazia, arquivados, links, 422/404 e uso sem JS; regressões de relatórios e dashboard aprovadas.
+- Previews my-tasks-390.png/my-tasks-1440.png, filtros/vazio em storage/previews, fora do Git e inspecionados visualmente. Sem testes em aparelhos físicos/leitores de tela.
+- Próximo incremento autorizado: UI/UX dos históricos pessoal e do projeto; configurações pessoais em entrega posterior.
 
 ## Documentação por módulo
 

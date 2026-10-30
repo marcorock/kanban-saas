@@ -21,6 +21,7 @@ runBoardBrowser(async ({page, save, boardUrl}) => {
     assert.equal(await page.getByRole('progressbar').getAttribute('aria-valuenow'), '50');
     await page.getByRole('link', {name: 'Minhas Tarefas', exact: true}).click();
     assert.equal(await page.getByRole('link', {name: 'Tarefa consolidada', exact: true}).count(), 1);
+    await page.locator('#my-task-filters > summary').click();
     await page.locator('#priority').selectOption('low');
     await Promise.all([page.waitForURL(/priority=low/), page.getByRole('button', {name: 'Filtrar', exact: true}).click()]);
     assert.equal(await page.getByRole('link', {name: 'Tarefa consolidada', exact: true}).count(), 0);

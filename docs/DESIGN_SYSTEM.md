@@ -216,3 +216,14 @@ A primeira proposta não foi aprovada. A revisão segue o preview visual validad
 - BoardService agrega contagens no snapshot com escopo de tenant/projeto e consultas constantes. Sem migration nova, alteração de autoridade ou conclusão. Próximo incremento após aprovação da entrega: Minhas Tarefas; homologação operacional adiada.
 
 Validação da revisão: regressão PHP e preflight local aprovados. Chromium verifica 320, 390, 768, 1024 e 1440px, incluindo alinhamento de checkbox/texto/ações e foco nas abas; axe sem violações A/AA nos cenários auditados. Marcação direta, edição/cancelamento, rascunhos/falhas e progresso 3/5/60% aprovados, assim como papéis, arquivados e regressões de relatórios/shell/dashboard. Previews reais em storage/previews inspecionados visualmente; sem validação em aparelhos físicos/leitores de tela.
+
+
+## Décimo incremento — Minhas Tarefas
+
+- Lista única, branca, com separadores discretos; título e projeto clicáveis, prioridade compacta, estado textual e prazo. Sem checkbox de conclusão ou novos controles de escrita na visão pessoal.
+- Links GET de estado, com aria-current e sem simular tabs dinâmicas. Critérios preservados e página reiniciada. Total corresponde aos resultados filtrados, sem números simulados por estado.
+- Filtros em disclosure nativo, recolhidos por padrão e abertos com critérios adicionais. Campos 16px/48px, ações mínimas de 44px, foco visível e funcionamento sem JS. Paginação mantém critérios.
+- Arquivados avisam sobre consulta; estados vazios e erro 422 próprios. HTML em Twig, CSS externo my-tasks.css, sem JavaScript novo. Sem alteração de métricas, consultas ou schema.
+- Próximo incremento após aprovação: históricos pessoal e de projeto. Homologação operacional permanece adiada.
+
+Validação do décimo incremento: regressão PHP completa e preflight local aprovados. Chromium 320/390/768/1024/1440px e axe A/AA nos cenários auditados aprovados, incluindo lista, texto longo, vazios, filtros abertos, concluídas e 422. Filtros, paginação, atribuições, papéis, arquivados, deep link e uso sem JS aprovados; regressões de relatórios/dashboard aprovadas. Previews inspecionados visualmente; sem validação em aparelhos físicos/leitores de tela.

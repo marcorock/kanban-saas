@@ -28,6 +28,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 47d88da | Detalhes do projeto, planejamento e gerenciamento por papel |
 | b8f5fdb | Participantes, convites e aceite Fluxo Claro |
 | 01eb9ea | Quadro Kanban Fluxo Claro |
+| 46785c3 | Painel de tarefas, progresso agregado e checklist compacto |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -134,3 +135,17 @@ Validação da revisão: regressão PHP completa e teste ampliado de progresso a
 
 
 Nono incremento aprovado pelo usuário e incluído no commit `feat: redesenha painel de tarefas e checklist compacto` (hash no Git). Próximo incremento autorizado: UI/UX de Minhas Tarefas; históricos e configurações pessoais em entregas próprias.
+
+
+## UI/UX — décimo incremento: Minhas Tarefas
+
+Iniciado após aprovação e commit do painel/checklist compacto (`46785c3`). Lista clara com estado, prioridade, prazo, contexto e link direto à tarefa. Navegação GET de estados preserva critérios e reinicia página; filtros nativos recolhidos por padrão, abertos com critérios adicionais, total real e paginação de 25 itens. Vazios explicam atribuições e arquivados recebem aviso de consulta. Não há checkbox de conclusão nesta visão, pois o estado da tarefa continua sendo definido no quadro.
+
+HTML em reports/tasks.html.twig e reports/tasks-error.html.twig, CSS em my-tasks.css, sem JS novo. POST/mutações não são introduzidos; GET funciona sem JS. Retorno 422 usa a nova apresentação, mantendo validação/status. ReportingService, políticas, consultas, ordenação e limites preservados. Sem migration nova ou alteração do .env. Fixture e teste de navegador próprios em my-tasks-ui.php/my-tasks-browser.cjs, exclusivamente em banco descartável.
+
+Incremento concluído, aguardando aprovação própria para commit. Próximo passo após aprovação: UI/UX dos históricos pessoal e de projeto; configurações pessoais em entrega posterior. Homologação operacional permanece adiada.
+
+Validação do décimo incremento: regressão PHP completa, fixture própria e preflight local aprovados. Chromium/axe de Minhas Tarefas em 320–1440px aprovado para lista, título longo/HTML literal, filtros/estados e sua preservação, paginação, atribuições próprias/alheias, conta vazia, viewer, arquivados, deep link, 422/404 e navegação sem JS. Regressões de relatórios e dashboard aprovadas. Previews mobile/desktop, filtros e vazio inspecionados visualmente, fora do Git. Sem testes em aparelhos físicos/leitores de tela. Fixtures executadas exclusivamente em banco/Mailpit descartáveis.
+
+
+Décimo incremento aprovado pelo usuário e incluído no commit `feat: redesenha Minhas Tarefas com Fluxo Claro` (hash no Git). Próximo incremento autorizado: históricos pessoal e do projeto; configurações pessoais em entrega posterior.

@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Adicionado
+- Minhas Tarefas Fluxo Claro: lista compacta, prioridade/estado/prazo, contexto e links diretos ao painel da tarefa.
+- Navegação GET por estado com preservação de filtros, filtros nativos recolhidos, total real, paginação, vazios e aviso de arquivados; apresentação própria do erro 422.
+- CSS externo próprio, sem JavaScript adicional ou alteração de regras de consulta/atribuição; fixture e teste Chromium/axe de Minhas Tarefas.
 - Revisão do painel conforme preview aprovado: fundo branco, resumo e abas Subtarefas/Comentários/Detalhes, com checklist como visualização inicial.
 - Marcação direta, edição com confirmação/cancelamento e exclusão de subtarefas na mesma linha; adição compacta e gestão da lista em menu.
 - Contagem agregada de subtarefas concluídas/total e percentual no painel/card, com snapshot SQL limitado ao tenant/projeto, sem N+1; conclusão continua pela coluna.

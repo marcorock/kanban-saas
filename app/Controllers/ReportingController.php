@@ -37,7 +37,7 @@ final class ReportingController
         } catch (HttpException $exception) {
             if ($exception->getCode() !== 422) throw $exception;
             http_response_code(422);
-            return $this->views->render('reports/error.html.twig', $base + ['message' => $exception->getMessage(), 'back' => $mode === 'tasks' ? '/tasks' : ($mode === 'dashboard' ? '/dashboard' : '/history')]);
+            return $this->views->render($mode === 'tasks' ? 'reports/tasks-error.html.twig' : 'reports/error.html.twig', $base + ['message' => $exception->getMessage(), 'back' => $mode === 'tasks' ? '/tasks' : ($mode === 'dashboard' ? '/dashboard' : '/history')]);
         }
     }
 }

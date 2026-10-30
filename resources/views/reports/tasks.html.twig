@@ -1,25 +1,34 @@
 {% extends 'layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/my-tasks.css">{% endblock %}
 {% block content %}
-<h2 class="h4">Minhas Tarefas</h2>
-<p class="text-body-secondary">Tarefas atribuídas a você nos projetos acessíveis.</p>
-<form method="get" class="row g-3 mb-4">
-    <div class="col-sm-6"><label class="form-label" for="project">Projeto</label><select class="form-select" id="project" name="project_id"><option value="">Todos os projetos</option>{% for item in projects %}<option value="{{ item.id }}" {{ filters.project_id == item.id ? 'selected' : '' }}>{{ item.name }}{{ item.archived_at ? ' (arquivado)' : '' }}</option>{% endfor %}</select></div>
-    <div class="col-sm-6"><label class="form-label" for="priority">Prioridade</label><select class="form-select" id="priority" name="priority">{% for value, label in {'': 'Todas', low: 'Baixa', normal: 'Normal', high: 'Alta', urgent: 'Urgente'} %}<option value="{{ value }}" {{ filters.priority == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
-    <div class="col-sm-4"><label class="form-label" for="status">Estado</label><select class="form-select" id="status" name="status">{% for value, label in {pending: 'Pendentes', in_progress: 'Iniciadas', completed: 'Concluídas', all: 'Todas'} %}<option value="{{ value }}" {{ filters.status == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
-    <div class="col-sm-4"><label class="form-label" for="due">Prazo</label><select class="form-select" id="due" name="due">{% for value, label in {'': 'Todos', overdue: 'Atrasadas', upcoming: 'Próximos 7 dias', none: 'Sem prazo'} %}<option value="{{ value }}" {{ filters.due == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
-    <div class="col-sm-4"><label class="form-label" for="archived">Projetos</label><select class="form-select" id="archived" name="archived">{% for value, label in {active: 'Ativos', archived: 'Arquivados', all: 'Todos'} %}<option value="{{ value }}" {{ filters.archived == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
-    <div class="col-sm-6"><label class="form-label" for="from">Prazo a partir de</label><input class="form-control" type="date" id="from" name="from" value="{{ filters.from }}" min="1000-01-01" max="9999-12-31"></div>
-    <div class="col-sm-6"><label class="form-label" for="to">Prazo até</label><input class="form-control" type="date" id="to" name="to" value="{{ filters.to }}" min="1000-01-01" max="9999-12-31"></div>
-    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Filtrar</button><a class="btn btn-outline-secondary" href="/tasks">Limpar filtros</a></div>
-</form>
-<p>{{ result.total }} tarefa(s)</p>
 {% set priorities = {low: 'Baixa', normal: 'Normal', high: 'Alta', urgent: 'Urgente'} %}
-{% for task in result.items %}
-<article class="card card-body mb-3">
-    <div class="d-flex flex-wrap gap-2 justify-content-between"><a href="/projects/{{ task.project_id }}/board?task={{ task.id }}" class="fw-semibold">{{ task.title }}</a><span>{{ priorities[task.priority] }}</span></div>
-    <p class="small mb-1"><a href="/projects/{{ task.project_id }}">{{ task.project_name }}</a> · {{ task.column_name }}{{ task.archived_at ? ' · Projeto arquivado' : '' }}</p>
-    <p class="small mb-0 {{ task.overdue ? 'text-danger fw-semibold' : 'text-body-secondary' }}">{{ task.completed_at ? 'Concluída' : (task.overdue ? 'Atrasada' : 'Pendente') }} · Prazo: {{ task.due_on ? task.due_on|date('d/m/Y') : 'Não definido' }}</p>
-</article>
-{% else %}<p class="alert alert-info">Nenhuma tarefa encontrada.</p>{% endfor %}
-{% include 'reports/pagination.html.twig' %}
+{% set activeFilters = (filters.project_id ? 1 : 0) + (filters.priority ? 1 : 0) + (filters.due ? 1 : 0) + (filters.archived != 'active' ? 1 : 0) + (filters.from ? 1 : 0) + (filters.to ? 1 : 0) %}
+<div class="my-tasks-page">
+    <header class="mt-intro"><h2>Minhas Tarefas</h2><p>Seu próximo passo, em um só lugar. Veja as tarefas atribuídas a você nos projetos acessíveis.</p></header>
+    <nav class="mt-status" aria-label="Estado das minhas tarefas">{% for value, label in {all: 'Todas', pending: 'Pendentes', in_progress: 'Iniciadas', completed: 'Concluídas'} %}<a href="/tasks?{{ filters|merge({status: value, page: 1})|url_encode }}" {{ filters.status == value ? 'aria-current="page"' : '' }}>{{ label }}</a>{% endfor %}</nav>
+    <details id="my-task-filters" class="mt-filters" {{ activeFilters ? 'open' : '' }}><summary>{{ ui.icon('settings') }} Filtros <span>{{ activeFilters ? (activeFilters == 1 ? '1 ativo' : activeFilters ~ ' ativos') : 'Projeto, prioridade e prazo' }}</span></summary>
+<form method="get" action="/tasks" class="mt-filter-form"><input type="hidden" name="status" value="{{ filters.status }}">
+    <div class="mt-field"><label for="project">Projeto</label><select id="project" name="project_id"><option value="">Todos os projetos</option>{% for item in projects %}<option value="{{ item.id }}" {{ filters.project_id == item.id ? 'selected' : '' }}>{{ item.name }}{{ item.archived_at ? ' (arquivado)' : '' }}</option>{% endfor %}</select></div>
+    <div class="mt-field"><label for="priority">Prioridade</label><select id="priority" name="priority">{% for value, label in {'': 'Todas', low: 'Baixa', normal: 'Normal', high: 'Alta', urgent: 'Urgente'} %}<option value="{{ value }}" {{ filters.priority == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="mt-field"><label for="due">Prazo</label><select id="due" name="due">{% for value, label in {'': 'Todos', overdue: 'Atrasadas', upcoming: 'Próximos 7 dias', none: 'Sem prazo'} %}<option value="{{ value }}" {{ filters.due == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="mt-field"><label for="archived">Projetos</label><select id="archived" name="archived">{% for value, label in {active: 'Ativos', archived: 'Arquivados', all: 'Todos'} %}<option value="{{ value }}" {{ filters.archived == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="mt-field"><label for="from">Prazo a partir de</label><input type="date" id="from" name="from" value="{{ filters.from }}" min="1000-01-01" max="9999-12-31"></div>
+    <div class="mt-field"><label for="to">Prazo até</label><input type="date" id="to" name="to" value="{{ filters.to }}" min="1000-01-01" max="9999-12-31"></div>
+    <div class="mt-filter-actions"><button class="mt-button mt-primary" type="submit">Filtrar</button><a class="mt-button mt-secondary" href="/tasks">Limpar filtros</a></div>
+</form>
+        <p class="mt-filter-help">As datas filtram o prazo previsto da tarefa. Iniciadas são pendentes com início real registrado.</p>
+    </details>
+    {% if filters.archived != 'active' %}<p class="mt-context">{{ ui.icon('archive') }} {{ filters.archived == 'archived' ? 'Mostrando tarefas de projetos arquivados, disponíveis para consulta.' : 'Inclui projetos arquivados; suas tarefas ficam disponíveis para consulta.' }}</p>{% endif %}
+    <section aria-labelledby="my-task-results"><div class="mt-results-heading"><h3 id="my-task-results">Tarefas encontradas</h3><span class="mt-total">{{ result.total }} {{ result.total == 1 ? 'tarefa' : 'tarefas' }}</span></div>
+    {% if result.items %}<ul class="mt-list">
+    {% for task in result.items %}<li><article class="mt-task">
+        <span class="mt-state-icon {{ task.completed_at ? 'mt-is-complete' : '' }}" aria-hidden="true">{{ ui.icon(task.completed_at ? 'check' : (task.started_at ? 'play' : 'tasks')) }}</span>
+        <div class="mt-task-content"><a href="/projects/{{ task.project_id }}/board?task={{ task.id }}" class="mt-task-title">{{ task.title }}</a><p class="mt-task-project"><a href="/projects/{{ task.project_id }}">{{ task.project_name }}</a><span> · {{ task.column_name }}</span>{% if task.archived_at %}<span> · Projeto arquivado</span>{% endif %}</p><p class="mt-task-date {{ task.overdue ? 'mt-is-overdue' : '' }}">{{ task.completed_at ? 'Concluída' : (task.overdue ? 'Atrasada' : (task.started_at ? 'Iniciada' : 'Pendente')) }} · Prazo: {{ task.due_on ? task.due_on|date('d/m/Y') : 'Não definido' }}</p></div>
+        <span class="mt-priority" data-priority="{{ task.priority }}">{{ priorities[task.priority] }}</span>
+    </article></li>{% endfor %}</ul>
+    {% else %}<div class="mt-empty"><span aria-hidden="true">{{ ui.icon('tasks') }}</span><h4>Nenhuma tarefa nesta seleção.</h4><p>As tarefas atribuídas a você aparecem aqui conforme os filtros. Criar uma tarefa não a atribui automaticamente.</p><a class="mt-button mt-secondary" href="/projects">Explorar projetos {{ ui.icon('arrow-right') }}</a></div>{% endif %}
+    </section>
+    {% if result.pages > 1 %}<nav class="mt-pagination" aria-label="Paginação de tarefas">{% if result.page > 1 %}<a href="/tasks?{{ filters|merge({page: result.page - 1})|url_encode }}">{{ ui.icon('arrow-left') }} Anterior</a>{% else %}<span aria-disabled="true">Anterior</span>{% endif %}<span>Página {{ result.page }} de {{ result.pages }}</span>{% if result.page < result.pages %}<a href="/tasks?{{ filters|merge({page: result.page + 1})|url_encode }}">Próxima {{ ui.icon('arrow-right') }}</a>{% else %}<span aria-disabled="true">Próxima</span>{% endif %}</nav>{% endif %}
+</div>
 {% endblock %}
