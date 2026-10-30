@@ -43,6 +43,7 @@
 - 01eb9ea — quadro Kanban Fluxo Claro.
 - 46785c3 — painel de tarefas e checklist compacto.
 - 61b86a4 — Minhas Tarefas Fluxo Claro.
+- 4c5d3bc — históricos pessoal e de projeto Fluxo Claro.
 
 ## Módulos consolidados
 
@@ -51,7 +52,7 @@
 - Kanban transacional com board_version, tarefas, responsáveis, checklists e comentários: docs/KANBAN.md e docs/TASKS.md.
 - Dashboard, Minhas Tarefas e históricos com escopo de tenant/projeto: docs/REPORTS.md.
 - Fase 6 aprovada: preflight somente leitura, segurança, regressão e roteiro operacional em docs/PRODUCTION.md e docs/VALIDATION.md.
-- Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem, formulários, detalhes, equipe e quadro e painel. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
+- Fluxo Claro já aplicado a acesso, navegação, dashboard, listagem, formulários, detalhes, equipe, quadro, painel, Minhas Tarefas e históricos. Detalhes da evolução em docs/DESIGN_SYSTEM.md e docs/DEVELOPMENT.md.
 - Homologação operacional adiada pelo usuário para trabalhar UI/UX em incrementos pequenos. Sem publicação autorizada. Organizações seguem expansão pendente; sem cobrança no MVP.
 
 ## Continuidade recente
@@ -71,9 +72,9 @@
 - Previews my-tasks-390.png/my-tasks-1440.png, filtros/vazio em storage/previews, fora do Git e inspecionados visualmente. Sem testes em aparelhos físicos/leitores de tela.
 - Próximo incremento autorizado: UI/UX dos históricos pessoal e do projeto; configurações pessoais em entrega posterior.
 
-## Última entrega aprovada — UI/UX: históricos pessoal e do projeto
+## Entrega anterior — UI/UX: históricos pessoal e do projeto
 
-- Décimo primeiro incremento aprovado; commit de fechamento: `feat: redesenha históricos com Fluxo Claro` (hash no Git).
+- Décimo primeiro incremento aprovado; commit de fechamento: `4c5d3bc` — `feat: redesenha históricos com Fluxo Claro`.
 - Linha do tempo com ação, autor, horário UTC e links de projeto/tarefa. Meu Histórico segue só ações próprias; histórico do projeto mostra ações da equipe.
 - Filtros GET em disclosure nativo, preservação na paginação e totais reais. Antes/depois em comparações por campo, empilhadas no celular e lado a lado no desktop; textos longos sem rolagem horizontal.
 - Twig/CSS externos, sem JS novo. Vazios, consulta de arquivados e erro 422 próprios. Retorno 422 mantém validação/status e limpeza volta ao mesmo projeto; restrições de convites permanecem no ActivityPresenter.
@@ -81,6 +82,16 @@
 - Regressão PHP completa, fixture de históricos, teste de relatórios e preflight local aprovados. Chromium/axe 320–1440px aprovado para pessoal/projeto, antes/depois, textos longos/XSS, filtros/paginação/UTC, autores, quatro papéis, privacidade, arquivados, links, 422/404 e uso sem JS; regressão de relatórios no navegador aprovada.
 - Previews history-personal-390.png/history-project-390.png e versões 1440, history-changes-*.png/history-empty-390.png em storage/previews, fora do Git e inspecionados visualmente. Sem testes em aparelhos físicos/leitores de tela.
 - Próximo incremento autorizado: UI/UX de perfil e configurações pessoais. Homologação operacional segue adiada; testes apenas em banco/Mailpit descartáveis.
+
+## Última entrega aprovada — UI/UX: perfil e configurações pessoais
+
+- Décimo segundo incremento aprovado; commit de fechamento: `feat: redesenha perfil e configurações pessoais` (hash no Git).
+- Perfil/segurança no Fluxo Claro: resumo da conta, e-mail somente leitura e nome; troca de senha/sessões em disclosures nativos, recolhidos por padrão e abertos no erro correspondente.
+- Twig/CSS/JS separados; mostrar/ocultar senha, foco em erros e estado de envio progressivos. Formulários POST/CSRF funcionam sem JS e senhas não voltam ao HTML.
+- Nome UTF-8 seguro preservado em 419, com status/rejeição mantidos. ProfileService, autorização, rate limit, transações e revogação preservados; nenhuma migration ou alteração do .env.
+- Regressão PHP completa (incluindo 419 sem escrita) e preflight local aprovados. Chromium/axe 320–1440px aprovado para layout, disclosures, senhas, foco, 422/419, identidade, rascunho e POST sem JS com revogação real; regressão do shell aprovada.
+- Previews settings-390.png/settings-1440.png e settings-security-390.png em storage/previews, fora do Git e inspecionados visualmente. Testes exclusivamente em banco/Mailpit descartáveis; sem aparelhos físicos/leitores de tela.
+- Próximo incremento autorizado: revisão integrada de UI/UX e acessibilidade dos fluxos migrados. Homologação operacional permanece adiada; nenhuma publicação autorizada.
 
 ## Documentação por módulo
 

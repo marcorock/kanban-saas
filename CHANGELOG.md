@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Adicionado
+- Perfil/configurações Fluxo Claro: resumo da conta, e-mail somente leitura, nome e disclosures de senha/sessões, com contexto dos efeitos das ações.
+- CSS/JS externos próprios, mostrar/ocultar senha, resumo de erro com foco e envio progressivo; POST/CSRF continua sem JS e senhas não são reapresentadas.
+- Preservação de nome seguro no retorno 419, mantendo rejeição sem escrita, token atual e seção do erro aberta; testes PHP/Chromium de perfil, revogação e uso sem JS.
 - Históricos pessoal/de projeto Fluxo Claro, com linha do tempo, autor/horário UTC, contexto e navegação para projeto/tarefa.
 - Filtros nativos recolhidos, totais/paginação GET, vazios, aviso de arquivados e erro 422 próprios; comparação Antes/Depois por campo adaptada ao celular, sem tabela larga.
 - CSS externo próprio e remoção de stylesheet/template de paginação legados sem referências, preservando consultas e privacidade administrativa.

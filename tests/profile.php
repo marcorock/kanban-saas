@@ -13,7 +13,9 @@ request('/login', ['_token' => $csrf, 'email' => $email, 'password' => $password
 check(request('/settings')[0] === 403, 'Exige confirmação');
 $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
 $csrf = token(request('/settings')[1]);
-check(request('/settings', ['action' => 'profile', 'name' => 'Inválido'])[0] === 419, 'CSRF');
+[$status, $html] = request('/settings', ['action' => 'profile', 'name' => 'Inválido']);
+check($status === 419 && str_contains($html, 'value="Inválido"'), 'CSRF mantém status e rascunho do nome');
+check($auth->user($id)['name'] !== 'Inválido', 'CSRF inválido não altera o perfil');
 check(request('/settings', ['_token' => $csrf, 'action' => ['profile']])[0] === 422, 'Array inválido');
 check(request('/settings', ['_token' => $csrf, 'action' => 'profile', 'name' => 'A'])[0] === 422, 'Nome curto');
 $name = '<script>alert(1)</script>';

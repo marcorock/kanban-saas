@@ -77,6 +77,16 @@ Todos os formulários exigem CSRF. Limites por usuário e ação: 30 alteraçõe
 
 Teste em banco descartável com servidor HTTP no mesmo ambiente: `AUTH_TEST_DATABASE=disposable php tests/profile.php`. Cobre autorização, validação, CSRF, campos protegidos, XSS, senha atual, revogação, tokens e rollback. Não há alteração de e-mail, avatar, preferências de tema/fuso ou listagem individual de dispositivos neste incremento.
 
+## Interface de perfil — Fluxo Claro
+
+`/settings` reúne resumo da conta (nome/e-mail verificado), formulário de nome e seções nativas de senha/sessões recolhidas por padrão. E-mail não é editável; avatar é apenas uma inicial, sem upload. A partir de 1100px conta/formulários ficam lado a lado; abaixo, em uma coluna. Não há tema, notificações, fuso ou dispositivos fictícios.
+
+Erro abre a seção correspondente e apresenta resumo textual com foco via JS externo. Em 419, um nome UTF-8 de até 120 caracteres sem controles é reapresentado, mantendo status e rejeição sem escrita; o token atual permite tentar de novo. Senhas nunca são preenchidas de volta. A troca invalida demais sessões/links de recuperação e mantém a atual; encerrar demais sessões não altera a senha, como antes.
+
+Estrutura em resources/views/settings.html.twig/settings/fields.html.twig, apresentação em public/assets/css/settings.css, melhorias em settings.js. Mostrar/ocultar senha tem nome acessível e aria-pressed; estado de envio é restaurado ao voltar pelo histórico do navegador. Sem JS, os toggles ficam ocultos e os formulários/disclosures continuam funcionais. Nenhuma credencial é salva em localStorage.
+
+Teste `tests/settings-ui-browser.cjs` requer Chromium/playwright-core/@axe-core/playwright no ambiente descartável de KANBAN.md. Reutiliza profile-browser.cjs (agora exportável) e acrescenta 320–1440px, axe A/AA, disclosures, toggles, 422/419/foco, nome preservado sem escrita, senhas vazias e POST de perfil/senha/sessões sem JS, com revogação de uma segunda sessão. Previews settings-390.png/settings-1440.png e settings-security-390.png em storage/previews, fora do Git.
+
 ## Validação de segurança e instalação
 
 Cabeçalhos e configuração de produção verificados na Fase 6: [roteiro](PRODUCTION.md) e [evidências/limitações](VALIDATION.md). `tests/profile-browser.cjs` cobre agora o perfil em Chromium, incluindo troca de senha e revogação entre navegadores; `tests/security.php` cobre respostas e cookies da política HTTPS em instância descartável. A aplicação não ativa debug Twig nem exibe exceções por APP_DEBUG.

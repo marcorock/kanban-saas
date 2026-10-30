@@ -1,0 +1,5 @@
+{% macro password(id, label, name, autocomplete, minimum = 0, help = '') %}
+{% import 'ui/icons.html.twig' as ui %}
+{% set toggleLabel = id == 'session-password' ? 'senha atual para encerrar sessões' : (name == 'password_confirmation' ? 'confirmação da nova senha' : label|lower) %}
+<div class="sp-field"><label for="{{ id }}">{{ label }}</label><div class="sp-password"><input id="{{ id }}" type="password" name="{{ name }}" required autocomplete="{{ autocomplete }}" maxlength="72" {% if minimum %}minlength="{{ minimum }}"{% endif %} {% if help %}aria-describedby="{{ help }}"{% endif %}><button type="button" class="sp-password-toggle" data-settings-password data-label="{{ toggleLabel }}" aria-controls="{{ id }}" aria-label="Mostrar {{ toggleLabel }}" aria-pressed="false" hidden><span data-eye-show>{{ ui.icon('eye') }}</span><span data-eye-hide hidden>{{ ui.icon('eye-off') }}</span></button></div></div>
+{% endmacro %}

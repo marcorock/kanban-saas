@@ -1,0 +1,54 @@
+/* Perfil e segurança — Fluxo Claro. Estrutura em Twig, melhorias em settings.js. */
+.settings-page { min-width: 0; color: var(--ds-color-ink); }
+.sp-intro { margin-bottom: 1.5rem; }
+.sp-intro h2 { margin: 0 0 .75rem; font-size: clamp(1.75rem, 4vw, 2.25rem); line-height: 1.2; font-weight: 650; letter-spacing: -.045em; }
+.sp-intro p { margin: 0; color: var(--ds-color-muted); font-size: .875rem; line-height: 1.8; }
+.sp-layout { display: grid; gap: 1.25rem; min-width: 0; }
+.sp-account { min-width: 0; padding: 1.25rem; border: 1px solid var(--ds-color-border); border-radius: 1rem; background: #fff; }
+.sp-avatar { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--ds-color-accent); color: var(--ds-color-primary); font-size: 1.125rem; font-weight: 650; margin-bottom: 1rem; }
+.sp-account h3 { margin: 0 0 .5rem; color: var(--ds-color-muted); font-size: .75rem; font-weight: 500; }
+.sp-account-name { margin: 0 0 1rem; font-size: 1rem; font-weight: 650; line-height: 1.6; overflow-wrap: anywhere; }
+.sp-email { margin: 0 0 .875rem; color: var(--ds-color-muted); font-size: .75rem; line-height: 1.8; }
+.sp-email strong { color: var(--ds-color-ink); font-size: .8125rem; font-weight: 500; overflow-wrap: anywhere; }
+.sp-verified { display: inline-flex; align-items: center; gap: .375rem; padding: .375rem .5rem; color: var(--ds-color-primary); background: #eaf0dc; border-radius: .375rem; font-size: .6875rem; }
+.sp-verified .ds-icon { width: 14px; height: 14px; }
+.sp-account-help { margin: 1rem 0 0; padding-top: 1rem; border-top: 1px solid var(--ds-color-border); color: var(--ds-color-muted); font-size: .75rem; line-height: 1.8; }
+.sp-main { min-width: 0; }
+.sp-section { padding: 1rem; margin: 0 0 1rem; border: 1px solid var(--ds-color-border); border-radius: 1rem; background: #fff; }
+.sp-section-heading, .sp-disclosure > summary { display: flex; align-items: flex-start; gap: .75rem; }
+.sp-section-heading { margin-bottom: 1.25rem; }
+.sp-section-heading > span, .sp-disclosure > summary > span:first-child { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; color: var(--ds-color-primary); background: var(--ds-color-soft); border-radius: .625rem; }
+.sp-section-heading .ds-icon, .sp-disclosure > summary .ds-icon { width: 18px; height: 18px; }
+.sp-section-heading h3, .sp-disclosure h3 { font-size: 1rem; font-weight: 650; line-height: 1.5; margin: 0 0 .375rem; }
+.sp-section-heading p, .sp-disclosure > summary p { color: var(--ds-color-muted); font-size: .8125rem; line-height: 1.8; margin: 0; }
+.sp-disclosure > summary { align-items: center; min-height: 44px; cursor: pointer; list-style: none; }
+.sp-disclosure > summary::-webkit-details-marker { display: none; }
+.sp-disclosure > summary > div { min-width: 0; flex: 1; }
+.sp-chevron { color: var(--ds-color-muted); flex-shrink: 0; }
+.sp-disclosure[open] .sp-chevron { transform: rotate(90deg); }
+.sp-disclosure-body { padding-top: 1.25rem; }
+.sp-field { min-width: 0; margin: 0 0 1rem; }
+.sp-field label { display: block; margin-bottom: .5rem; font-size: .8125rem; font-weight: 600; }
+.sp-field input { display: block; width: 100%; min-width: 0; min-height: 48px; padding: .625rem .75rem; border: 1px solid var(--ds-color-control-border); border-radius: .625rem; color: var(--ds-color-ink); background: #fff; font: 400 1rem/1.6 var(--ds-font-body); }
+.sp-help { margin: .5rem 0 1rem; color: var(--ds-color-muted); font-size: .75rem; line-height: 1.8; }
+.sp-context { margin: 0 0 1.25rem; padding: .875rem; border-radius: .625rem; background: var(--ds-color-soft); color: var(--ds-color-muted); font-size: .8125rem; line-height: 1.8; }
+.sp-password { position: relative; }
+.sp-password.is-enhanced input { padding-right: 3.25rem; }
+.sp-password-toggle { display: grid; place-items: center; position: absolute; right: .25rem; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; padding: 0; border: 0; border-radius: .5rem; color: var(--ds-color-primary); background: transparent; }
+.sp-password-toggle:hover { background: var(--ds-color-soft); }
+.sp-password-toggle .ds-icon { width: 18px; height: 18px; }
+.settings-page .sp-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .75rem 1rem; border: 1px solid transparent; border-radius: .625rem; font: 600 .8125rem/1.5 var(--ds-font-body); }
+.settings-page .sp-primary { color: #fff; background: var(--ds-color-primary); }
+.settings-page .sp-primary:hover { background: var(--ds-color-primary-hover); }
+.settings-page .sp-danger { color: var(--ds-color-error); background: var(--ds-color-error-surface); border-color: var(--ds-color-error); }
+.settings-page button:disabled { opacity: .6; cursor: not-allowed; }
+.sp-notice { display: flex; gap: .75rem; padding: 1rem; margin-bottom: 1.25rem; border: 1px solid var(--ds-color-border); border-radius: .875rem; font-size: .875rem; line-height: 1.8; }
+.sp-notice .ds-icon { flex-shrink: 0; width: 18px; height: 18px; margin-top: .25rem; }
+.sp-notice p { margin: 0; }
+.sp-success { color: var(--ds-color-success); background: var(--ds-color-success-surface); }
+.sp-error { color: var(--ds-color-error); background: var(--ds-color-error-surface); border-color: #edcbc7; }
+.sp-error h3 { margin: 0 0 .375rem; font-size: .9375rem; font-weight: 650; }
+.sp-error ul { padding-left: 1.125rem; margin: 0; }
+.settings-page :is(button,input,summary,[tabindex]):focus-visible { outline: 3px solid var(--ds-color-primary); outline-offset: 3px; }
+@media (max-width: 639px) { .sp-account { display: grid; grid-template-columns: 48px minmax(0,1fr); gap: .875rem; padding: 1rem; } .sp-avatar { margin: 0; } .sp-account > div { min-width: 0; } .sp-account-help { display: none; } .sp-account-name { margin-bottom: .625rem; } .sp-email { margin-bottom: .5rem; } .sp-button[type="submit"] { width: 100%; } }
+@media (min-width: 1100px) { .sp-layout { grid-template-columns: minmax(220px, .75fr) minmax(0, 1.75fr); align-items: start; gap: 1.5rem; } .sp-section, .sp-account { padding: 1.5rem; } }

@@ -2,7 +2,8 @@
 const assert = require('node:assert/strict');
 const runBoardBrowser = require('./board-browser.cjs');
 
-runBoardBrowser(async ({page, context, boardUrl}) => {
+async function runProfileBrowser(extra = null) {
+return runBoardBrowser(async ({page, context, boardUrl}) => {
     const base = new URL(boardUrl).origin;
     const originalPassword = 'Senha-browser-segura-123';
     const newPassword = 'Nova-senha-browser-456';
@@ -29,6 +30,7 @@ runBoardBrowser(async ({page, context, boardUrl}) => {
             await otherPage.getByRole('button', {name: 'Entrar', exact: true}).click(); await otherPage.waitForURL('**/dashboard');
         }
         await login(originalPassword);
+        await page.locator('#password-settings > summary').click();
         await page.locator('#current-password').fill('Senha-incorreta-123');
         await page.locator('#password').fill(newPassword); await page.locator('#confirmation').fill(newPassword);
         await page.getByRole('button', {name: 'Alterar senha', exact: true}).click();
@@ -40,6 +42,7 @@ runBoardBrowser(async ({page, context, boardUrl}) => {
         await page.getByRole('status').filter({hasText: 'Senha alterada.'}).waitFor();
         await otherPage.goto(base + '/settings'); await otherPage.waitForURL('**/login');
         await login(newPassword);
+        await page.locator('#session-settings > summary').click();
         await page.locator('#session-password').fill(newPassword);
         await page.getByRole('button', {name: 'Encerrar demais sessões', exact: true}).click();
         await page.getByRole('status').filter({hasText: 'As demais sessões foram encerradas.'}).waitFor();
@@ -49,5 +52,9 @@ runBoardBrowser(async ({page, context, boardUrl}) => {
         await page.getByRole('link', {name: 'Projetos', exact: true}).click();
         assert.equal(await page.locator('.pl-filters [aria-current]').innerText(), 'Ativos');
     } finally { await observer.close(); }
+    if (extra) await extra({page, context, boardUrl, email, password: newPassword});
     console.log('OK: perfil no Chromium, CSP, escape, troca de senha, revogação de sessões e mobile.');
-}).catch(error => { console.error(error); process.exitCode = 1; });
+});
+}
+module.exports = runProfileBrowser;
+if (require.main === module) runProfileBrowser().catch(error => { console.error(error); process.exitCode = 1; });

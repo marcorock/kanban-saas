@@ -1,32 +1,26 @@
 {% extends 'layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% import 'settings/fields.html.twig' as fields %}
+{% block styles %}<link rel="stylesheet" href="/assets/css/settings.css">{% endblock %}
 {% block content %}
-<h2 class="h4">Perfil e configurações pessoais</h2>
-{% if success %}<div class="alert alert-success" role="status">{{ success }}</div>{% endif %}
-{% for error in errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
-<section class="card card-body mb-4" aria-labelledby="profile-title">
-<h3 class="h5" id="profile-title">Meu perfil</h3>
-<p>E-mail: <strong>{{ user.email }}</strong> <span class="badge text-bg-success">Verificado</span></p>
-<form method="post" action="/settings">
-<input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="action" value="profile">
-<label for="name" class="form-label">Nome</label><input id="name" class="form-control mb-3" name="name" value="{{ name }}" required minlength="2" maxlength="120" autocomplete="name">
-<button class="btn btn-primary">Salvar perfil</button>
-</form></section>
-<section class="card card-body mb-4" aria-labelledby="password-title">
-<h3 class="h5" id="password-title">Alterar senha</h3>
-<p>A nova senha deve ter pelo menos 12 caracteres e até 72 bytes. Ao alterar, as demais sessões serão encerradas e os links de recuperação anteriores perderão a validade.</p>
-<form method="post" action="/settings">
-<input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="action" value="password">
-<label for="current-password" class="form-label">Senha atual</label><input id="current-password" class="form-control mb-3" type="password" name="current_password" required autocomplete="current-password">
-<label for="password" class="form-label">Nova senha</label><input id="password" class="form-control mb-3" type="password" name="password" required minlength="12" maxlength="72" autocomplete="new-password">
-<label for="confirmation" class="form-label">Confirme a nova senha</label><input id="confirmation" class="form-control mb-3" type="password" name="password_confirmation" required minlength="12" maxlength="72" autocomplete="new-password">
-<button class="btn btn-primary">Alterar senha</button>
-</form></section>
-<section class="card card-body" aria-labelledby="sessions-title">
-<h3 class="h5" id="sessions-title">Segurança das sessões</h3>
-<p>Encerre o acesso em outros navegadores e dispositivos. Esta sessão continuará ativa.</p>
-<form method="post" action="/settings">
-<input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="action" value="sessions">
-<label for="session-password" class="form-label">Confirme sua senha atual</label><input id="session-password" class="form-control mb-3" type="password" name="current_password" required autocomplete="current-password">
-<button class="btn btn-outline-danger">Encerrar demais sessões</button>
-</form></section>
+<div class="settings-page">
+    <header class="sp-intro"><h2>Perfil e segurança</h2><p>Cuide dos seus dados e de como você acessa seu espaço.</p></header>
+    {% if success %}<div class="sp-notice sp-success" role="status">{{ ui.icon('check') }}<p>{{ success }}</p></div>{% endif %}
+    {% if errors %}<div class="sp-notice sp-error" role="alert" tabindex="-1" data-settings-errors><span>{{ ui.icon('alert') }}</span><div><h3>Não foi possível salvar.</h3><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div></div>{% endif %}
+    <div class="sp-layout">
+        <section class="sp-account" aria-labelledby="account-title"><span class="sp-avatar" aria-hidden="true">{{ user.name|slice(0,1)|upper }}</span><div><h3 id="account-title">Sua conta</h3><p class="sp-account-name">{{ user.name }}</p><p class="sp-email">E-mail de acesso (consulta)<br><strong>{{ user.email }}</strong></p><span class="sp-verified">{{ ui.icon('check') }} E-mail verificado</span></div><p class="sp-account-help">Seu e-mail é exibido apenas para consulta. As alterações de perfil são compartilhadas entre seus projetos.</p></section>
+        <div class="sp-main">
+            <section class="sp-section" aria-labelledby="profile-title"><div class="sp-section-heading"><span aria-hidden="true">{{ ui.icon('users') }}</span><div><h3 id="profile-title">Meu perfil</h3><p>Escolha como seu nome aparece para a equipe.</p></div></div>
+                <form method="post" action="/settings" data-settings-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="action" value="profile"><div class="sp-field"><label for="name">Nome</label><input id="name" name="name" value="{{ name }}" required minlength="2" maxlength="120" autocomplete="name" aria-describedby="profile-name-help"><p id="profile-name-help" class="sp-help">Use de 2 a 120 caracteres.</p></div><button type="submit" class="sp-button sp-primary" data-pending="Salvando…">Salvar perfil</button></form>
+            </section>
+            <details id="password-settings" class="sp-section sp-disclosure" {{ errors and formAction == 'password' ? 'open' : '' }}><summary><span aria-hidden="true">{{ ui.icon('lock') }}</span><div><h3 id="password-title">Alterar senha</h3><p>Atualize sua senha de acesso.</p></div><span class="sp-chevron" aria-hidden="true">{{ ui.icon('chevron-right') }}</span></summary><div class="sp-disclosure-body"><p class="sp-help" id="new-password-help">Use pelo menos 12 caracteres e até 72 bytes. Caracteres acentuados podem ocupar mais de um byte.</p><p class="sp-context">Ao alterar a senha, as demais sessões serão encerradas e os links de recuperação anteriores perderão a validade. Esta sessão continuará ativa.</p>
+                <form method="post" action="/settings" data-settings-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="action" value="password">{{ fields.password('current-password', 'Senha atual', 'current_password', 'current-password') }}{{ fields.password('password', 'Nova senha', 'password', 'new-password', 12, 'new-password-help') }}{{ fields.password('confirmation', 'Confirme a nova senha', 'password_confirmation', 'new-password', 12) }}<button type="submit" class="sp-button sp-primary" data-pending="Alterando…">Alterar senha</button></form>
+            </div></details>
+            <details id="session-settings" class="sp-section sp-disclosure" {{ errors and formAction == 'sessions' ? 'open' : '' }}><summary><span aria-hidden="true">{{ ui.icon('settings') }}</span><div><h3 id="sessions-title">Segurança das sessões</h3><p>Encerre o acesso em outros dispositivos.</p></div><span class="sp-chevron" aria-hidden="true">{{ ui.icon('chevron-right') }}</span></summary><div class="sp-disclosure-body"><p class="sp-context">Os outros navegadores e dispositivos precisarão entrar novamente. Esta sessão continuará ativa.</p>
+                <form method="post" action="/settings" data-settings-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="action" value="sessions">{{ fields.password('session-password', 'Confirme sua senha atual', 'current_password', 'current-password') }}<button type="submit" class="sp-button sp-danger" data-pending="Encerrando…">Encerrar demais sessões</button></form>
+            </div></details>
+        </div>
+    </div>
+</div>
 {% endblock %}
+{% block scripts %}<script src="/assets/js/settings.js" defer></script>{% endblock %}

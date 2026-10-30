@@ -20,15 +20,17 @@ final class ProfileController
         $auth = new AuthService($pdo);
         $user = $auth->currentUser();
         if (!$user) { header('Location: /login', true, 303); return ''; }
-        $base = ['projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf']];
+        $base = ['projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf'], 'wide' => true];
         if ($user['email_verified_at'] === null) { http_response_code(403); return $this->views->render('verify-notice.html.twig', $base); }
-        $errors = []; $name = $user['name'];
+        $errors = []; $name = $user['name']; $formAction = 'profile';
         $success = $_SESSION['profile_success'] ?? null;
         unset($_SESSION['profile_success']);
         if ($post) {
             $success = null;
+            if (is_string($_POST['action'] ?? null) && in_array($_POST['action'], ['profile', 'password', 'sessions'], true)) $formAction = $_POST['action'];
             if (!Session::verifyCsrf($_POST['_token'] ?? null)) {
-                http_response_code(419); $errors[] = 'Sessão do formulário expirada. Recarregue a página.';
+                http_response_code(419); $errors[] = 'Sessão do formulário expirada. Revise os dados e tente novamente.';
+                if ($formAction === 'profile' && is_string($_POST['name'] ?? null) && mb_check_encoding($_POST['name'], 'UTF-8') && mb_strlen($_POST['name']) <= 120 && !preg_match('/[\x00-\x1f\x7f]/', $_POST['name'])) $name = trim($_POST['name']);
             } else {
                 $data = [];
                 foreach (['action', 'name', 'current_password', 'password', 'password_confirmation'] as $key) {
@@ -65,6 +67,6 @@ final class ProfileController
                 }
             }
         }
-        return $this->views->render('settings.html.twig', $base + ['errors' => array_unique($errors), 'name' => $name, 'success' => $success]);
+        return $this->views->render('settings.html.twig', $base + ['errors' => array_unique($errors), 'name' => $name, 'success' => $success, 'formAction' => $formAction]);
     }
 }

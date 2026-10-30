@@ -30,6 +30,7 @@ Ao concluir um incremento, registrar implementação, testes, migrations aplicad
 | 01eb9ea | Quadro Kanban Fluxo Claro |
 | 46785c3 | Painel de tarefas, progresso agregado e checklist compacto |
 | 61b86a4 | Minhas Tarefas Fluxo Claro |
+| 4c5d3bc | Históricos pessoal e do projeto Fluxo Claro |
 
 Os requisitos completos originais foram preservados em [REQUIREMENTS.md](REQUIREMENTS.md); PROJECT_CONTEXT.md mantém somente estado conciso, etapa corrente e próximo incremento. `git log` é a fonte dos commits completos; CHANGELOG registra a evolução funcional.
 
@@ -164,3 +165,17 @@ Validação do décimo primeiro incremento: regressão PHP completa, fixture de 
 
 
 Décimo primeiro incremento aprovado e incluído no commit `feat: redesenha históricos com Fluxo Claro` (hash no Git). Próximo incremento autorizado: UI/UX de perfil e configurações pessoais.
+
+
+## UI/UX — décimo segundo incremento: perfil e configurações pessoais
+
+Iniciado após aprovação e commit dos históricos (`4c5d3bc`). Resumo da conta com e-mail verificado somente leitura e formulário de nome; troca de senha e segurança das sessões em disclosures nativos, recolhidos por padrão e abertos no retorno de erro correspondente. Conta/formulários lado a lado a partir de 1100px, em uma coluna abaixo. Efeitos da troca de senha e encerramento das demais sessões continuam explícitos.
+
+HTML em settings.html.twig/settings/fields.html.twig, CSS em settings.css e melhorias em settings.js (mostrar senha, foco em resumo e estado de envio). POST/CSRF permanece funcional sem JS. Resumo de erro unificado, nome seguro reapresentado em 419 sem gravar e sem preservar senhas. Controller fornece apenas contexto de apresentação/erro; ProfileService, políticas, limites e transações preservados. Preflight verifica os novos assets. Nenhuma migration ou mudança do .env.
+
+Teste settings-ui-browser.cjs reutiliza a regressão funcional de perfil e acrescenta verificações visuais/acessibilidade, foco, 419/422 e POST sem JS com revogação real de outro navegador, em banco descartável. Incremento concluído e aguardando aprovação própria para commit. Próximo incremento após aprovação: revisão integrada de UI/UX/acessibilidade, sem retomar automaticamente homologação operacional ou publicação.
+
+Validação do décimo segundo incremento: regressão PHP completa e preflight local aprovados. Chromium/axe 320–1440px aprovado para perfil, segurança expandida, mostrar/ocultar, foco, 422/419, nome preservado sem escrita e senhas vazias. POST de nome/senha/sessões sem JS e revogação real de outro navegador aprovados, assim como a regressão do shell. Previews mobile/desktop e segurança inspecionados visualmente, fora do Git. Fixtures exclusivamente em banco/Mailpit descartáveis; sem aparelhos físicos/leitores de tela. Nenhuma migration, alteração do .env ou publicação.
+
+
+Décimo segundo incremento aprovado e incluído no commit `feat: redesenha perfil e configurações pessoais` (hash no Git). Próximo incremento autorizado: revisão integrada de UI/UX e acessibilidade dos fluxos migrados, mantendo homologação operacional adiada.

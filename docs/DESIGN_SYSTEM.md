@@ -238,3 +238,14 @@ Validação do décimo incremento: regressão PHP completa e preflight local apr
 - Templates em reports/, CSS externo history.css; sem mudança de consultas ou privacidade. Estilos/template de paginação legados sem referências removidos. Próximo incremento após aprovação: perfil/configurações pessoais; homologação operacional adiada.
 
 Validação do décimo primeiro incremento: PHP, preflight local e Chromium 320/390/768/1024/1440px aprovados. Axe A/AA sem violações nos cenários auditados: pessoal/projeto, snapshots expandidos, papéis, arquivados, vazios e 422. Comparações, filtros, paginação, UTC, autoria, privacidade, links e uso sem JS aprovados; regressão de relatórios aprovada. Previews inspecionados visualmente; sem teste em aparelhos físicos/leitores de tela.
+
+
+## Décimo segundo incremento — perfil e configurações
+
+- Resumo da conta separado dos formulários; nome e e-mail verificado, inicial decorativa e consulta explícita do e-mail. Formulário de nome aberto; senha e sessões em disclosures nativos recolhidos, com efeitos das ações descritos antes de enviar.
+- Uma coluna abaixo de 1100px; resumo e formulários lado a lado acima. Campos 16px/48px, ações de pelo menos 44px e botões de largura total no celular.
+- Mostrar/ocultar senha com rótulo acessível, sem alterar o valor. Resumo de erros com foco, seção correspondente aberta, senhas não reapresentadas. Sucesso em role=status; envio progressivo e restauração no pageshow.
+- HTML em settings.html.twig/settings/fields.html.twig, CSS externo settings.css, JS externo settings.js. Sem JS, POST e disclosures funcionam, com toggles ocultos. Não há novos controles de e-mail/avatar/tema ou preferências sem suporte.
+- Preservação segura de nome em 419, com rejeição/token mantidos; serviços/transações/autorização preservados. Próxima etapa após aprovação: revisão integrada de UI/UX e acessibilidade dos fluxos migrados. Homologação operacional continua adiada.
+
+Validação do décimo segundo incremento: PHP, preflight local e Chromium 320/390/768/1024/1440px aprovados. Axe A/AA sem violações nos cenários auditados: perfil, segurança aberta e erros 422/419. Foco, toggles, rascunho sem escrita, senha não reapresentada, POST sem JS e revogação real de sessões aprovados; regressão do shell aprovada. Previews inspecionados visualmente, sem validação em aparelhos físicos/leitores de tela.
