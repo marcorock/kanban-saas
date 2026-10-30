@@ -1,0 +1,8 @@
+{% extends 'layout.html.twig' %}
+{% import 'ui/icons.html.twig' as ui %}
+{% block content %}
+<div class="nt-page"><header><h2>Notificações</h2><p>Avisos sobre suas tarefas e seus projetos.</p></header><nav class="nt-actions" aria-label="Ações de notificações"><a href="/notifications">Atualizar</a><a href="/settings#notification-settings">Preferências</a></nav>
+{% for item in result.items %}<article class="nt-item {{ item.read_at ? '' : 'nt-unread' }}"><div class="nt-heading"><h3>{{ item.title }}</h3><span>{{ item.read_at ? 'Lida' : 'Não lida' }}</span></div><time datetime="{{ item.notification_created_at|date('c','UTC') }}">{{ item.notification_created_at|date('d/m/Y H:i','America/Sao_Paulo') }} · São Paulo</time><ul>{% for link in item.links %}<li><a href="{{ link.url }}">{{ link.title }}</a></li>{% endfor %}</ul>{% if item.more_url %}<a class="nt-link" href="{{ item.more_url }}">Ver todas as tarefas deste dia</a>{% endif %}{% if not item.read_at %}<form method="post" action="/notifications/{{ item.notification_id }}/read"><input type="hidden" name="_token" value="{{ csrf }}"><button type="submit">Marcar como lida</button></form>{% endif %}</article>{% else %}<p class="nt-empty">Nenhuma notificação por aqui. Os avisos disponíveis aparecerão nesta central.</p>{% endfor %}
+{% if result.pages > 1 %}<nav class="nt-pagination" aria-label="Paginação de notificações">{% if result.page > 1 %}<a href="/notifications?page={{ result.page - 1 }}">Anterior</a>{% endif %}<span>Página {{ result.page }} de {{ result.pages }}</span>{% if result.page < result.pages %}<a href="/notifications?page={{ result.page + 1 }}">Próxima</a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}

@@ -18,5 +18,6 @@ final class ActivityLogger
             $before === null ? null : json_encode($before, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
             $after === null ? null : json_encode($after, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
         ]);
+        (new NotificationOutbox($this->pdo))->capture($project, $actorId, $action, $before, $after, $taskId, (int) $this->pdo->lastInsertId());
     }
 }

@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Adicionado
+- Notificações A: sino/central paginada, leitura com CSRF e três preferências por canal (sino ligado; push/e-mail desligados).
+- Migration 009 com outbox transacional, deduplicação, notificações, preferências e estrutura de assinaturas por dispositivo; worker CLI com concorrência, leases e retentativas limitadas.
+- Avisos de atribuição, comentário e papel excluem o autor; resumo de prazos às 08h de São Paulo e vencido único por tarefa/prazo, com reconferência de tenant/projeto/atribuição e preferências.
+- Testes de autorização, rollback, dedup, concorrência, prazos, preferências e UI/axe sem JS; documentação curta em docs/NOTIFICATIONS.md. Push/e-mail reservados ao Incremento B.
 - Suite integrada de UI/UX com 11 rotas, cinco larguras, axe de páginas completas, texto ampliado/espaçamento, teclado/jornada, movimento reduzido, assets/CSP e consulta sem JS.
 - Evidência JSON sem credenciais fora do Git e registro reproduzível da revisão em docs/UI_REVIEW.md, mantendo homologação operacional adiada.
 - Perfil/configurações Fluxo Claro: resumo da conta, e-mail somente leitura, nome e disclosures de senha/sessões, com contexto dos efeitos das ações.
@@ -97,3 +101,9 @@
 ### Alterado
 - Painel passa a exigir e-mail confirmado, inclusive em contas preexistentes.
 - Organização dos templates e remoção da apresentação genérica do gerador.
+
+### Correção das notificações locais e convites
+
+- Worker local agendado a cada minuto e fila pendente processada; entrega permanece fora das requisições.
+- Convite no sino para contas existentes, aceite interno seguro e recuperação de convites pendentes pela migration 010. Cancelamento, expiração, reemissão e aceite invalidam os avisos correspondentes.
+- Testes de convites internos, permissões, privacidade, preferências e regressão das suítes afetadas.

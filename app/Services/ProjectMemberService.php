@@ -163,11 +163,11 @@ final class ProjectMemberService
         } catch (Throwable $exception) { $this->pdo->rollBack(); throw $exception; }
     }
 
-    private function pending(string $raw): array|false
+    private function pending(string|int $raw): array|false
     {
-        if (!preg_match('/^[a-f0-9]{64}$/D', $raw)) { return false; }
-        $statement = $this->pdo->prepare('SELECT i.* FROM project_invitations i JOIN projects p ON p.id = i.project_id AND p.tenant_id = i.tenant_id WHERE i.token_hash = ? AND i.accepted_at IS NULL AND i.cancelled_at IS NULL AND i.expires_at > UTC_TIMESTAMP() AND p.deleted_at IS NULL AND p.archived_at IS NULL');
-        $statement->execute([hash('sha256', $raw)]);
+        if (!is_int($raw) && !preg_match('/^[a-f0-9]{64}$/D', $raw)) { return false; }
+        $statement = $this->pdo->prepare('SELECT i.* FROM project_invitations i JOIN projects p ON p.id = i.project_id AND p.tenant_id = i.tenant_id WHERE '.(is_int($raw) ? 'i.id' : 'i.token_hash').' = ? AND i.accepted_at IS NULL AND i.cancelled_at IS NULL AND i.expires_at > UTC_TIMESTAMP() AND p.deleted_at IS NULL AND p.archived_at IS NULL');
+        $statement->execute([is_int($raw) ? $raw : hash('sha256', $raw)]);
         return $statement->fetch();
     }
 
@@ -179,7 +179,7 @@ final class ProjectMemberService
         } catch (HttpException) { return false; }
     }
 
-    public function preview(int $userId, string $raw): array|false
+    public function preview(int $userId, string|int $raw): array|false
     {
         $invitation = $this->pending($raw);
         if (!$invitation || !$this->inviterAllowed($invitation)) { return false; }
@@ -190,7 +190,7 @@ final class ProjectMemberService
         return ['name' => $statement->fetchColumn(), 'role' => $invitation['role']];
     }
 
-    public function accept(int $userId, string $raw): int
+    public function accept(int $userId, string|int $raw): int
     {
         $invitation = $this->pending($raw);
         if (!$invitation) { throw new HttpException('Convite inválido ou expirado.', 422); }
@@ -201,7 +201,7 @@ final class ProjectMemberService
             $statement->execute([$invitation['tenant_id'], $invitation['project_id']]);
             $project = $statement->fetch();
             $statement = $this->pdo->prepare('SELECT * FROM project_invitations WHERE id = ? AND token_hash = ? AND accepted_at IS NULL AND cancelled_at IS NULL AND expires_at > UTC_TIMESTAMP() FOR UPDATE');
-            $statement->execute([$invitation['id'], hash('sha256', $raw)]);
+            $statement->execute([$invitation['id'], $invitation['token_hash']]);
             $invitation = $statement->fetch();
             if (!$project || $project['deleted_at'] !== null || $project['archived_at'] !== null || !$invitation || !$this->inviterAllowed($invitation)) { throw new HttpException('Convite indisponível.', 422); }
             $statement = $this->pdo->prepare('SELECT email, email_verified_at FROM users WHERE id = ? FOR UPDATE');

@@ -61,3 +61,8 @@ SimpleRouter::get('/projects/{id}/history', static fn (string $id): string => $r
 $profile = new \App\Controllers\ProfileController($views, $config);
 SimpleRouter::get('/settings', static fn (): string => $profile->handle(false));
 SimpleRouter::post('/settings', static fn (): string => $profile->handle(true));
+
+$notifications = new \App\Controllers\NotificationController($views, $config);
+SimpleRouter::get('/notifications', static fn (): string => $notifications->handle('index'));
+SimpleRouter::post('/notifications/{id}/read', static fn (string $id): string => $notifications->handle('read', $id));
+SimpleRouter::post('/settings/notifications', static fn (): string => $notifications->handle('preferences'));

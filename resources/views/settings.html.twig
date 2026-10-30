@@ -19,6 +19,7 @@
             <details id="session-settings" class="sp-section sp-disclosure" {{ errors and formAction == 'sessions' ? 'open' : '' }}><summary><span aria-hidden="true">{{ ui.icon('settings') }}</span><div><h3 id="sessions-title">Segurança das sessões</h3><p>Encerre o acesso em outros dispositivos.</p></div><span class="sp-chevron" aria-hidden="true">{{ ui.icon('chevron-right') }}</span></summary><div class="sp-disclosure-body"><p class="sp-context">Os outros navegadores e dispositivos precisarão entrar novamente. Esta sessão continuará ativa.</p>
                 <form method="post" action="/settings" data-settings-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="action" value="sessions">{{ fields.password('session-password', 'Confirme sua senha atual', 'current_password', 'current-password') }}<button type="submit" class="sp-button sp-danger" data-pending="Encerrando…">Encerrar demais sessões</button></form>
             </div></details>
+            {% include 'notifications/preferences.html.twig' %}
         </div>
     </div>
 </div>

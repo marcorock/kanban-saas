@@ -19,6 +19,13 @@ final class InvitationController
     public function handle(bool $post): string
     {
         header('Referrer-Policy: no-referrer');
+        if (!$post && isset($_GET['id'])) {
+            $id=$_GET['id'];
+            unset($_SESSION['pending_invitation']);
+            if (is_string($id) && ctype_digit($id) && strlen($id)<=18 && (int)$id>0) $_SESSION['pending_invitation']=(int)$id;
+            header('Location: /invitations/accept',true,303);
+            return '';
+        }
         if (!$post && isset($_GET['token'])) {
             if (is_string($_GET['token']) && preg_match('/^[a-f0-9]{64}$/D', $_GET['token'])) {
                 $_SESSION['pending_invitation'] = $_GET['token'];

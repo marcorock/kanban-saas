@@ -1,0 +1,25 @@
+/* Notificações Fluxo Claro — comportamento no JS externo, estrutura em Twig. */
+.notification-bell { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; width: 44px; min-height: 44px; margin-left: auto; color: var(--ds-color-primary); text-decoration: none; border-radius: .625rem; }
+.notification-bell:hover { color: var(--ds-color-primary-hover); background: var(--ds-color-soft); }
+.notification-bell .ds-icon { width: 21px; height: 21px; }
+.notification-badge { position: absolute; right: 0; top: 0; min-width: 18px; padding: .125rem .25rem; border-radius: 1rem; background: var(--ds-color-primary); color: #fff; font-size: .625rem; line-height: 1.4; text-align: center; }
+.app-header > .app-profile-link { margin-left: 0; }
+.notification-bell:focus-visible, .nt-page :is(a,button):focus-visible, .nt-choice input:focus-visible { outline: 3px solid var(--ds-color-primary); outline-offset: 3px; }
+.nt-page { min-width: 0; color: var(--ds-color-ink); }
+.nt-page h2 { font-size: 1.75rem; font-weight: 650; letter-spacing: -.04em; }
+.nt-page header p { color: var(--ds-color-muted); font-size: .875rem; line-height: 1.8; }
+.nt-actions, .nt-pagination { display: flex; align-items: center; gap: 1rem; justify-content: space-between; margin: .75rem 0; font-size: .8125rem; }
+.nt-page a { color: var(--ds-color-primary); overflow-wrap: anywhere; text-underline-offset: .2em; }
+.nt-actions a, .nt-pagination a, .nt-link { display: inline-flex; align-items: center; min-height: 44px; }
+.nt-item { margin: 0 0 .75rem; padding: 1rem; border: 1px solid var(--ds-color-border); border-radius: .875rem; background: #fff; }
+.nt-unread { border-left: 3px solid var(--ds-color-primary); }
+.nt-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.nt-heading h3 { font-size: .9375rem; line-height: 1.6; margin: 0; font-weight: 650; }
+.nt-heading > span, .nt-item time { color: var(--ds-color-muted); font-size: .6875rem; line-height: 1.8; }
+.nt-item ul { list-style: none; margin: .5rem 0; padding: 0; }
+.nt-item li a { display: flex; align-items: center; min-height: 44px; font-size: .875rem; line-height: 1.7; }
+.nt-page button { min-height: 44px; padding: .625rem .875rem; border: 1px solid var(--ds-color-control-border); border-radius: .625rem; color: var(--ds-color-primary); background: #fff; font: 600 .8125rem/1.5 var(--ds-font-body); }
+.nt-empty { padding: 1.5rem; border: 1px solid var(--ds-color-border); border-radius: .875rem; color: var(--ds-color-muted); background: #fff; font-size: .875rem; line-height: 1.8; }
+.nt-choice { display: flex; align-items: center; gap: .75rem; min-height: 48px; margin-bottom: .75rem; color: var(--ds-color-ink); font-size: .875rem; line-height: 1.6; }
+.nt-choice input { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--ds-color-primary); }
+.app-header .app-page-context { overflow-wrap: anywhere; }

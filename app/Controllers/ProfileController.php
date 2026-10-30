@@ -67,6 +67,6 @@ final class ProfileController
                 }
             }
         }
-        return $this->views->render('settings.html.twig', $base + ['errors' => array_unique($errors), 'name' => $name, 'success' => $success, 'formAction' => $formAction]);
+        return $this->views->render('settings.html.twig', $base + ['errors' => array_unique($errors), 'name' => $name, 'success' => $success, 'formAction' => $formAction, 'notificationPreferences' => (new \App\Services\NotificationService($pdo))->preferences((int) $user['id'])]);
     }
 }

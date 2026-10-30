@@ -17,7 +17,7 @@
 - Controllers, Services, Repository de projetos e Policy; ActivityLogger compartilhado grava eventos dentro das transações.
 - DocumentRoot public/; configuração em config/, bootstrap em bootstrap/, templates em resources/views/.
 - Ambiente local usa containers Coruja; PHP não está no PATH do host. Executar PHP no container web em /var/www/projects/kanbansaas.
-- Banco local configurado no .env (não versionado). Migrations 001–008 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
+- Banco local configurado no .env (não versionado). Migrations 001–010 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
 - Mailpit local: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; interface http://mail.localhost. Produção segue configurável por MAIL_*.
 - Branch de trabalho atual: Design-system. Não mudar/mesclar branches automaticamente.
 
@@ -45,6 +45,7 @@
 - 61b86a4 — Minhas Tarefas Fluxo Claro.
 - 4c5d3bc — históricos pessoal e de projeto Fluxo Claro.
 - 06a0407 — perfil e configurações pessoais Fluxo Claro.
+- 4486b12 — revisão integrada e correção do hover do dashboard.
 
 ## Módulos consolidados
 
@@ -62,46 +63,28 @@
 - Pausa após aprovação do Kanban (`01eb9ea`) e retomada em 30/10/2026. Painel revisado conforme preview aprovado, concluído/aprovado em `46785c3`.
 - A aprovação de Minhas Tarefas autorizou seu commit (`61b86a4`) e início dos históricos. Homologação operacional permanece adiada.
 
-## Entrega anterior — UI/UX: Minhas Tarefas
-
-- Décimo incremento aprovado; commit de fechamento: `61b86a4` — `feat: redesenha Minhas Tarefas com Fluxo Claro`.
-- Lista clara com prioridade, estado textual, prazo e projeto/coluna; links abrem o painel correto. Ícones de estado são informativos, sem checkbox que simule conclusão fora do quadro.
-- Navegação GET Todas/Pendentes/Iniciadas/Concluídas mantém filtros e reinicia paginação. Filtros nativos recolhidos por padrão e abertos quando há critérios adicionais; total real dos resultados, vazios e aviso de arquivados.
-- Twig e CSS externo próprios, sem JS novo. Formulários/links funcionam sem JS; detalhes da tarefa continuam dependendo de JS no quadro. Erros 422 recebem apresentação própria, mantendo status/validação.
-- ReportingService, consultas, autorização, limites/ordem e schema preservados. Sem migration ou mudança do .env; homologação operacional adiada. Testes só em banco descartável.
-- Regressão PHP completa, fixture própria e preflight local aprovados. Chromium/axe em 320–1440px aprovado para filtros/estados, paginação, XSS, atribuições, viewer, conta vazia, arquivados, links, 422/404 e uso sem JS; regressões de relatórios e dashboard aprovadas.
-- Previews my-tasks-390.png/my-tasks-1440.png, filtros/vazio em storage/previews, fora do Git e inspecionados visualmente. Sem testes em aparelhos físicos/leitores de tela.
-- Próximo incremento autorizado: UI/UX dos históricos pessoal e do projeto; configurações pessoais em entrega posterior.
-
-## Entrega anterior — UI/UX: históricos pessoal e do projeto
-
-- Décimo primeiro incremento aprovado; commit de fechamento: `4c5d3bc` — `feat: redesenha históricos com Fluxo Claro`.
-- Linha do tempo com ação, autor, horário UTC e links de projeto/tarefa. Meu Histórico segue só ações próprias; histórico do projeto mostra ações da equipe.
-- Filtros GET em disclosure nativo, preservação na paginação e totais reais. Antes/depois em comparações por campo, empilhadas no celular e lado a lado no desktop; textos longos sem rolagem horizontal.
-- Twig/CSS externos, sem JS novo. Vazios, consulta de arquivados e erro 422 próprios. Retorno 422 mantém validação/status e limpeza volta ao mesmo projeto; restrições de convites permanecem no ActivityPresenter.
-- ReportingService, autorização, consultas, ordenação e limites preservados. CSS de relatórios e paginação legados sem referências removidos. Sem migration, alteração do .env ou publicação.
-- Regressão PHP completa, fixture de históricos, teste de relatórios e preflight local aprovados. Chromium/axe 320–1440px aprovado para pessoal/projeto, antes/depois, textos longos/XSS, filtros/paginação/UTC, autores, quatro papéis, privacidade, arquivados, links, 422/404 e uso sem JS; regressão de relatórios no navegador aprovada.
-- Previews history-personal-390.png/history-project-390.png e versões 1440, history-changes-*.png/history-empty-390.png em storage/previews, fora do Git e inspecionados visualmente. Sem testes em aparelhos físicos/leitores de tela.
-- Próximo incremento autorizado: UI/UX de perfil e configurações pessoais. Homologação operacional segue adiada; testes apenas em banco/Mailpit descartáveis.
-
-## Entrega anterior — UI/UX: perfil e configurações pessoais
-
-- Décimo segundo incremento aprovado; commit de fechamento: `06a0407` — `feat: redesenha perfil e configurações pessoais`.
-- Perfil/segurança no Fluxo Claro: resumo da conta, e-mail somente leitura e nome; troca de senha/sessões em disclosures nativos, recolhidos por padrão e abertos no erro correspondente.
-- Twig/CSS/JS separados; mostrar/ocultar senha, foco em erros e estado de envio progressivos. Formulários POST/CSRF funcionam sem JS e senhas não voltam ao HTML.
-- Nome UTF-8 seguro preservado em 419, com status/rejeição mantidos. ProfileService, autorização, rate limit, transações e revogação preservados; nenhuma migration ou alteração do .env.
-- Regressão PHP completa (incluindo 419 sem escrita) e preflight local aprovados. Chromium/axe 320–1440px aprovado para layout, disclosures, senhas, foco, 422/419, identidade, rascunho e POST sem JS com revogação real; regressão do shell aprovada.
-- Previews settings-390.png/settings-1440.png e settings-security-390.png em storage/previews, fora do Git e inspecionados visualmente. Testes exclusivamente em banco/Mailpit descartáveis; sem aparelhos físicos/leitores de tela.
-- Próximo incremento autorizado: revisão integrada de UI/UX e acessibilidade dos fluxos migrados. Homologação operacional permanece adiada; nenhuma publicação autorizada.
-
 ## Última entrega aprovada — revisão integrada e correção do hover
 
-- Revisão e correção aprovadas; commit de fechamento: `fix: preserva contraste do dashboard e registra revisão integrada` (hash no Git). A revisão inicial não exercitava hover persistente dos indicadores; correção desse estado concluída e validada após relato do usuário.
+- Revisão e correção aprovadas; commit de fechamento: `4486b12` — revisão integrada e correção do hover. A revisão inicial não exercitava hover persistente dos indicadores; correção desse estado concluída e validada após relato do usuário.
 - Novo teste ui-integration-browser.cjs: 11 rotas, cinco larguras, axe de páginas completas, texto 200%/espaçamento, teclado/jornada, movimento reduzido, assets/CSP e consulta sem JS. Evidência JSON em storage/previews, fora do Git.
 - Regressão PHP completa e preflight local aprovados; integração passou com 77 cenários estruturais e 25 auditorias axe. Suite de acesso aprovada (cadastro/confirmação/reset SMTP, teclado, erros e uso sem JS). Detalhes/limites em docs/UI_REVIEW.md.
 - Sem migration, alteração do .env ou publicação. Testes em banco/Mailpit descartáveis; homologação operacional segue adiada.
 - Correção atual: hover do card Pendentes herdava a cor genérica do link, igual ao fundo. CSS do card agora preserva branco; teste reproduziu a falha antes da alteração e verifica hover/foco, contagem positiva/zero e axe com hover. Chromium 320–1440px e axe com hover aprovados; preview dashboard-hover-1440.png inspecionado visualmente, fora do Git.
-- Desenvolvimento pausado a pedido explícito do usuário após o commit. Aguardar novas instruções, sem iniciar outro incremento. Homologação operacional permanece adiada.
+- Pausa anterior encerrada pelo plano aprovado de notificações em dois incrementos. Homologação operacional permanece adiada.
+
+## Trabalho atual — notificações, Incremento A
+
+- Plano A/B aprovado. A implementa núcleo/sino; entrega e correções aprovadas pelo usuário, com regressão completa de fechamento aprovada (migrations 001–010). B só após aprovação/commit de A e terá ciclo próprio.
+- Migration 009: preferências (sino ligado; push/e-mail desligados), outbox com dedup por destinatário/evento/prazo/canal, notifications e push_subscriptions por dispositivo. Estrutura/execução em docs/NOTIFICATIONS.md.
+- ActivityLogger grava outbox na transação do evento: nova mensagem para responsáveis, novas atribuições e papel alterado (Membro/Visualizador/Administrador), sempre excluindo o autor.
+- bin/notify.php gera resumo diário a partir das 08h de São Paulo e vencido único por tarefa/prazo; worker com reserva/lease, cinco tentativas e revalidação de acesso/atribuição/preferências. Sem rede na requisição. A só entrega sino; push/e-mail podem ter preferências salvas, envio reservado a B.
+- Central paginada, contador no header e leitura por POST/CSRF; preferências em Configurações. Twig/CSS/JS externos; consulta/leitura/preferências funcionam sem JS. Conteúdo só de títulos/links, sem corpo, descrição ou e-mails de convite.
+- Validação concluída: todas as suítes PHP passaram em banco descartável com migrations 001–009; testes específicos de notificações e integração visual/axe em Chromium passaram (320–1440px). Cobertura inclui concorrência, dedup, fuso/08h, rollback, retries/leases, isolamento/CSRF e preferências. O teste de prazos esvazia os lotes da fila para coexistir com fixtures das demais suítes. Migration 009 aplicada no banco local; bin/check.php aprovado.
+- Incremento A aprovado e sendo commitado neste fechamento; Git registra o hash exato. Worker local agendado a cada minuto; operação descrita em docs/NOTIFICATIONS.md. Push e e-mail permanecem preparados apenas em schema/preferências; Incremento B começa após aprovação/commit do A.
+- Correção após teste do usuário: fila local tinha comentário/atribuição pendentes porque o worker não estava agendado. Processamento inicial executado; cron do usuário marco instalado a cada minuto via Docker, com log em storage/logs/notifications.log. Nenhum cron de produção alterado.
+- Migration 010 adiciona convite no sino e recupera convites ainda pendentes para contas existentes. Aviso/link de aceite disponíveis sem participação prévia no tenant; aceite exige conta correspondente verificada, CSRF e permissões atuais do remetente. Reemissão invalida o aviso anterior; cancelamento/expiração/aceite ocultam o convite. Atribuições continuam notificando; comentários notificam responsáveis, exceto autor.
+- Correção validada em banco/Mailpit descartáveis nas suítes notifications, notification-invitations e members. Migration 010 e worker aplicados localmente; primeira execução automática do cron confirmada pelo log, sem falhas e sem pendências. Sem alteração do .env ou publicação.
+- Próximo passo autorizado: iniciar B (Web Push/VAPID e SMTP), com validação e aprovação próprias antes do commit.
 
 ## Documentação por módulo
 
@@ -114,3 +97,5 @@
 - Preparação para produção: docs/PRODUCTION.md. Registro de validação: docs/VALIDATION.md.
 - UI/UX, componentes e navegação: docs/DESIGN_SYSTEM.md.
 - Revisão integrada de UI/UX e acessibilidade: docs/UI_REVIEW.md.
+
+- Notificações A/B e operação do worker: docs/NOTIFICATIONS.md.
