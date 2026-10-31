@@ -20,12 +20,13 @@ final class BoardController
     {
         http_response_code($status);
         header('Content-Type: application/json; charset=UTF-8');
+        header('Cache-Control: private, no-store');
         return json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
     }
 
-    public function handle(string $id, bool $post, ?string $taskId = null): string
+    public function handle(string $id, bool $post, ?string $taskId = null, ?string $resource = null): string
     {
-        $api = $post || $taskId !== null;
+        $api = $post || $taskId !== null || $resource !== null;
         try {
             if (!isset($_SESSION['user_id'])) { throw new HttpException('Entre novamente para acessar o quadro.', 401); }
             $pdo = Database::connect($this->config['database']);
@@ -38,6 +39,8 @@ final class BoardController
             }
             if (!ctype_digit($id) || strlen($id) > 18 || (int) $id < 1) { throw new HttpException('Quadro não encontrado.', 404); }
             $service = new BoardService($pdo);
+            if (!$post && $resource==='version')return $this->json(['ok'=>true]+$service->version((int)$user['id'],(int)$id));
+            if (!$post && $resource==='state')return $this->json(['ok'=>true,'board'=>$service->state((int)$user['id'],(int)$id)]);
             if (!$post && $taskId !== null) {
                 if (!ctype_digit($taskId) || strlen($taskId) > 18 || (int) $taskId < 1) { throw new HttpException('Tarefa não encontrada.', 404); }
                 $page = static fn (string $key): int => filter_var($_GET[$key] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 1;

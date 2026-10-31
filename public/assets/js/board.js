@@ -5,7 +5,9 @@
     const message = document.getElementById('board-message');
     let board = JSON.parse(document.getElementById('board-state').textContent);
     let sortables = [];
-    let saving = false;
+    let saving = false; let dragging = false; let loadingTask = false; let syncDenied = false;
+    let sync; let manualRefresh = false; let refreshTask = false; let taskVersion = null;
+    const boardDrafts = new Set(); const filterValues = new Map();
     const panel = document.getElementById('task-panel');
     const panelContent = document.getElementById('task-content');
     const taskMessage = document.getElementById('task-message');
@@ -50,6 +52,10 @@
     }
     function render() {
         const scrollLeft = root.scrollLeft;
+        document.querySelector('.kb-intro h2').textContent = board.name;
+        const context = document.getElementById('board-access-context');
+        context.replaceChildren(); if (board.archived || !board.can_write) context.append(element('p', 'kb-context', board.archived ? 'Projeto arquivado. O quadro está disponível somente para consulta.' : 'Você possui acesso de leitura a este quadro.'));
+        const create = document.getElementById('column-create'); if (create) create.closest('details').hidden = !board.can_manage;
         sortables.forEach(sortable => sortable.destroy()); sortables = [];
         fillFilter(filters.assignee, [['', 'Todos os responsáveis'], ...(board.members || []).map(member => [member.id, member.name])]);
         fillFilter(filters.column, [['', 'Todas as colunas'], ...board.columns.map(column => [column.id, column.name])]);
@@ -104,13 +110,16 @@
             root.append(section);
             if (board.can_write && !filtered) sortables.push(Sortable.create(list, {
                 group: 'tasks', draggable: '.kanban-task', handle: '.kanban-task-handle', animation: 150, ghostClass: 'kanban-ghost',
-                onEnd: event => save('task.move', {task_id: Number(event.item.dataset.id), column_id: Number(event.to.dataset.columnId), position: event.newDraggableIndex})
+                onStart: () => { dragging = true; }, onMove: () => !boardDrafts.size && !dirtyForms.size,
+                onEnd: event => { dragging = false; return save('task.move', {task_id: Number(event.item.dataset.id), column_id: Number(event.to.dataset.columnId), position: event.newDraggableIndex}); }
             }));
         }
         if (board.can_manage && !filtered) sortables.push(Sortable.create(root, {
             draggable: '.kanban-column', handle: '.kanban-column > div > .kanban-handle', animation: 150, direction: 'horizontal', ghostClass: 'kanban-ghost',
-            onEnd: () => save('columns.reorder', {column_ids: Array.from(root.children, child => Number(child.dataset.id))})
+            onStart: () => { dragging = true; }, onMove: () => !boardDrafts.size && !dirtyForms.size,
+            onEnd: () => { dragging = false; return save('columns.reorder', {column_ids: Array.from(root.children, child => Number(child.dataset.id))}); }
         }));
+        for (const field of Object.values(filters)) filterValues.set(field, field.value);
         root.scrollLeft = scrollLeft; updateColumnNavigation();
     }
     function focusTarget() {
@@ -128,8 +137,10 @@
             control.focus({preventScroll: true});
         }
     }
-    async function save(action, payload) {
-        if (saving) return;
+    async function save(action, payload, source = null, expectedVersion = board.version) {
+        if (saving || syncDenied) return false;
+        if ([...boardDrafts].some(form => form !== source)) { notify('Salve a outra edição antes de continuar.', true); return false; }
+        const originalDisabled = new Map([...document.querySelectorAll('#kanban input, #kanban select, #kanban button, #column-create input, #column-create button')].map(control => [control, control.disabled]));
         const focus = focusTarget();
         const panelDisabled = new Map([...panelContent.querySelectorAll('input,select,textarea,button')].map(control => [control, control.disabled]));
         saving = true;
@@ -142,11 +153,11 @@
         try {
             const response = await fetch(root.dataset.endpoint, {
                 method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-                body: JSON.stringify({...payload, action, version: board.version, _token: root.dataset.csrf})
+                body: JSON.stringify({...payload, action, version: expectedVersion, _token: root.dataset.csrf})
             });
             const result = await response.json();
-            if (!response.ok || !result.ok) throw new Error(result.message || 'Não foi possível salvar. Atualize o quadro para conferir o estado atual.');
-            board = result.board;
+            if (!response.ok || !result.ok) throw new Error(response.status === 409 ? ('Outro participante alterou o quadro. Seu rascunho foi mantido. Use ' + (panel.classList.contains('show') ? 'Atualizar detalhes' : 'Atualizar quadro') + ' para conferir e tentar novamente.') : (result.message || 'Não foi possível salvar. Atualize o quadro para conferir o estado atual.'));
+            board = result.board; boardDrafts.clear();
             success = true;
             if (action === 'column.create') document.getElementById('column-create').reset();
             notify('Quadro atualizado.');
@@ -155,14 +166,14 @@
             notify(error instanceof TypeError ? 'A conexão falhou. Atualize o quadro para conferir o estado atual antes de tentar novamente.' : error.message, true);
         } finally {
             saving = false;
-            // Reconstrói a última versão confirmada, inclusive após falha ou conflito.
-            render();
-            document.querySelectorAll('#column-create input, #column-create button').forEach(item => { item.disabled = false; });
+            if (success || !source) render();
+            originalDisabled.forEach((disabled, control) => { if (control.isConnected) control.disabled = disabled; });
             root.removeAttribute('aria-busy');
             document.querySelectorAll('#board-filters select, #clear-board-filters').forEach(item => { item.disabled = false; });
             restoreFocus(focus);
             document.getElementById('task-panel-close').disabled = false;
-            panelContent.querySelectorAll('input,select,textarea,button').forEach(item => { item.disabled = panelDisabled.get(item) || (!board.can_write && !item.dataset.page); });
+            panelContent.querySelectorAll('input,select,textarea,button').forEach(item => { item.disabled = panelDisabled.get(item) || (!board.can_write && !item.dataset.page && !(item.hasAttribute('data-task-delete') && !board.archived && taskDetails?.can_delete)); });
+            sync?.requestNow();
         }
         return success;
     }
@@ -188,12 +199,12 @@
             action = 'columns.reorder'; payload = {column_ids: ids};
         }
         if (action === 'column.delete' && !window.confirm('Excluir esta coluna vazia?')) return;
-        save(action, payload);
+        save(action, payload, event.target);
     });
     document.getElementById('column-create')?.addEventListener('submit', event => {
         event.preventDefault();
         const data = new FormData(event.target);
-        save('column.create', {name: data.get('name'), is_done: data.has('is_done')});
+        save('column.create', {name: data.get('name'), is_done: data.has('is_done')}, event.target);
     });
     function taskNotify(text, error = false) {
         taskMessage.hidden = false; taskMessage.className = `tp-notice tp-notice-${error ? 'error' : 'success'}`;
@@ -238,6 +249,7 @@
         const data = taskDetails; const task = data.task; const writable = board.can_write;
         const content = cloneTemplate('task-details-template');
         content.querySelector('[data-task-heading]').textContent = task.title;
+        content.querySelector('[data-task-delete]').hidden = !data.can_delete;
         const column = board.columns.find(column => column.tasks.some(item => item.id === task.id));
         content.querySelector('[data-task-meta]').textContent = [column?.name, task.due_on ? 'Prazo: ' + task.due_on.split('-').reverse().join('/') : 'Sem prazo', ...data.members.filter(member => task.assignee_ids.includes(member.id)).map(member => member.name)].filter(Boolean).join(' · ');
         const allItems = data.checklists.flatMap(list => list.items); const doneItems = allItems.filter(item => item.is_done).length;
@@ -247,6 +259,7 @@
         totalProgress.setAttribute('aria-label', `${doneItems} de ${allItems.length} subtarefas concluídas`);
         content.querySelector('[data-task-stamp]').textContent = `Criada em ${stamp(task.created_at)} · Conclusão: ${task.completed_at ? stamp(task.completed_at) : 'Pendente'}`;
         content.querySelector('[data-readonly]').hidden = writable;
+        if (!writable && data.can_delete) content.querySelector('[data-readonly]').textContent = 'Você pode consultar esta tarefa e excluí-la porque é quem a criou.';
         const edit = content.querySelector('#task-edit'); edit.querySelector('fieldset').disabled = !writable;
         for (const name of ['title', 'description', 'priority', 'starts_on', 'due_on']) edit.elements[name].value = task[name] || '';
         edit.elements.started_at.value = task.started_at?.replace(' ', 'T') || '';
@@ -316,7 +329,9 @@
         panel.querySelector('.offcanvas-body').scrollTop = position.scroll;
     }
     async function openTask(id, page = {}, force = false, position = null) {
-        if (saving || (!force && !discard())) return;
+        if (saving || syncDenied || (!force && !discard())) return;
+        if (boardDrafts.size) { notify('Salve a edição do quadro antes de abrir a tarefa.', true); return; }
+        loadingTask = true;
         if (taskId !== Number(id)) taskTab = 'subtasks';
         taskId = Number(id); const sequence = ++taskRequest;
         panelContent.replaceChildren(); dirtyForms.clear(); taskDetails = null;
@@ -329,24 +344,26 @@
             const result = await response.json();
             if (sequence !== taskRequest) return;
             if (!response.ok || !result.ok) throw new Error(result.message || 'Não foi possível carregar a tarefa.');
-            board = result.board; taskDetails = result.details; render(); renderTask(); taskMessage.hidden = true;
+            taskVersion = result.board.version; if (result.board.version >= board.version) board = result.board; taskDetails = result.details; render(); renderTask(); taskMessage.hidden = true;
             if (position) restorePanelPosition(position); else panel.querySelector('.offcanvas-body').scrollTop = 0;
         } catch (error) { if (sequence === taskRequest) { taskNotify(error.message, true); document.getElementById('task-retry').hidden = false; } }
-        finally { if (sequence === taskRequest) panelContent.removeAttribute('aria-busy'); }
+        finally { if (sequence === taskRequest) { panelContent.removeAttribute('aria-busy'); loadingTask = false; sync?.requestNow(); } }
     }
     async function taskSave(action, payload, source = null) {
         if (saving) return false;
         if (Array.from(dirtyForms).some(form => form !== source) && !window.confirm('Há alterações em outros campos. Descartá-las e continuar?')) return false;
-        if (action.endsWith('.delete') && !window.confirm('Confirmar a exclusão?')) return false;
+        if (action.endsWith('.delete') && !window.confirm(action === 'task.delete' ? 'Excluir esta tarefa, suas subtarefas e comentários? Esta ação não pode ser desfeita.' : 'Confirmar a exclusão?')) return false;
         if (action.endsWith('.delete')) payload.confirm = true;
         const position = panelPosition();
-        const success = await save(action, {task_id: taskId, ...payload});
-        if (success) await openTask(taskId, {}, true, position);
+        const success = await save(action, {task_id: taskId, ...payload}, null, taskVersion);
+        if (success && action === 'task.delete') { dirtyForms.clear(); closeTask(); taskDetails = null; const url = new URL(location.href); url.searchParams.delete('task'); history.replaceState(null, '', url); notify('Tarefa excluída.'); }
+        else if (success) await openTask(taskId, {}, true, position);
         return success;
     }
-    for (const field of Object.values(filters)) field.addEventListener('change', () => { if (!saving) render(); });
+    for (const field of Object.values(filters)) field.addEventListener('change', () => { if (boardDrafts.size) { field.value = filterValues.get(field); notify('Salve a edição antes de alterar os filtros.', true); return; } if (!saving) render(); });
     document.getElementById('clear-board-filters').addEventListener('click', () => {
         if (saving) return;
+        if (boardDrafts.size) { notify('Salve a edição antes de alterar os filtros.', true); return; }
         Object.values(filters).forEach(field => { field.value = ''; }); render();
     });
     for (const [id, direction] of [['previous-column', -1], ['next-column', 1]]) document.getElementById(id).addEventListener('click', () => {
@@ -402,16 +419,74 @@
     let returnTaskId = null;
     function closeTask() {
         if (saving || !discard()) return;
-        returnTaskId = taskId; ++taskRequest; dirtyForms.clear(); bootstrap.Offcanvas.getOrCreateInstance(panel).hide(); taskId = null;
+        returnTaskId = taskId; ++taskRequest; loadingTask = false; dirtyForms.clear(); bootstrap.Offcanvas.getOrCreateInstance(panel).hide(); taskId = null;
     }
     document.getElementById('task-panel-close').addEventListener('click', closeTask);
     document.getElementById('task-retry').addEventListener('click', () => { if (taskId) openTask(taskId); });
     panel.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); closeTask(); } });
     panel.addEventListener('hidden.bs.offcanvas', () => {
         const trigger = [...root.querySelectorAll('[data-task-open]')].find(control => Number(control.dataset.taskOpen) === returnTaskId);
-        (trigger || root).focus({preventScroll: true});
+        (trigger || root).focus({preventScroll: true}); sync?.requestNow();
     });
-    window.addEventListener('beforeunload', event => { if (dirtyForms.size || saving) { event.preventDefault(); event.returnValue = ''; } });
+    window.addEventListener('beforeunload', event => { if (dirtyForms.size || boardDrafts.size || saving) { event.preventDefault(); event.returnValue = ''; } });
+
+    function markDraft(event) { const form = event.target.closest('form'); if (form && (root.contains(form) || form.id === 'column-create')) boardDrafts.add(form); }
+    root.addEventListener('input', markDraft); root.addEventListener('change', markDraft);
+    document.getElementById('column-create')?.addEventListener('input', markDraft);
+    document.getElementById('column-create')?.addEventListener('change', markDraft);
+    function canSync() {
+        const control = document.activeElement;
+        return !saving && !dragging && !loadingTask && !boardDrafts.size && !dirtyForms.size && (manualRefresh || !((control?.matches('select,[contenteditable="true"]') || (control?.matches('input,textarea') && control.value !== '')) && (root.contains(control) || panel.contains(control) || control.closest('#column-create,#board-filters'))));
+    }
+    function rememberBoard() {
+        const nodes = [...root.querySelectorAll('.kanban-column,.kanban-task')];
+        const state = nodes.map(node => ({type: node.classList.contains('kanban-task') ? 'task' : 'column', id: node.dataset.id, open: [...node.querySelectorAll('details')].filter(item => item.closest('.kanban-task,.kanban-column') === node).map(item => item.open), scroll: node.querySelector('.kanban-tasks')?.scrollTop}));
+        const active = document.activeElement; const base = active?.closest('.kanban-task,.kanban-column');
+        const controls = base ? [...base.querySelectorAll('button,a,input,select,textarea,summary')].filter(item => item.closest('.kanban-task,.kanban-column') === base) : [];
+        return {state, left: root.scrollLeft, x: window.scrollX, y: window.scrollY, focus: base ? {type: base.classList.contains('kanban-task') ? 'task' : 'column', id: base.dataset.id, index: controls.indexOf(active)} : null};
+    }
+    function restoreBoard(position) {
+        for (const item of position.state) {
+            const node = root.querySelector(`.kanban-${item.type}[data-id="${item.id}"]`); if (!node) continue;
+            [...node.querySelectorAll('details')].filter(detail => detail.closest('.kanban-task,.kanban-column') === node).forEach((detail, index) => { detail.open = item.open[index] || false; });
+            if (item.scroll !== undefined) node.querySelector('.kanban-tasks').scrollTop = item.scroll;
+        }
+        if (position.focus) {
+            const item = position.focus; const node = root.querySelector(`.kanban-${item.type}[data-id="${item.id}"]`);
+            const control = node && [...node.querySelectorAll('button,a,input,select,textarea,summary')].filter(child => child.closest('.kanban-task,.kanban-column') === node)[item.index];
+            if (control && !control.disabled) control.focus({preventScroll: true}); else root.focus({preventScroll: true});
+        }
+        root.scrollLeft = position.left; window.scrollTo(position.x, position.y); updateColumnNavigation();
+    }
+    document.querySelector('[data-board-refresh]')?.addEventListener('click', event => {
+        event.preventDefault(); if (saving || dragging || loadingTask || syncDenied) return;
+        if ((boardDrafts.size || dirtyForms.size) && !confirm('Atualizar o quadro descarta os rascunhos ainda não salvos. Continuar?')) return;
+        boardDrafts.clear(); dirtyForms.clear(); manualRefresh = true; refreshTask = panel.classList.contains('show'); sync?.requestNow();
+    });
+    if (window.FluxoSync && typeof Sortable !== 'undefined') sync = FluxoSync.create({
+        interval: root.dataset.syncInterval, busy: () => saving || dragging || loadingTask,
+        async run(signal) {
+            const meta = await FluxoSync.json(root.dataset.endpoint + '/version', signal);
+            if (meta.token === board.sync_token && !manualRefresh) return;
+            if (!canSync()) return;
+            const result = await FluxoSync.json(root.dataset.endpoint + '/state', signal);
+            if (!canSync() || result.board.version < board.version) return;
+            const position = rememberBoard(); const permissionsChanged = board.can_write !== result.board.can_write || board.can_manage !== result.board.can_manage;
+            board = result.board; render(); restoreBoard(position);
+            if (refreshTask && taskId) { refreshTask = false; await openTask(taskId, {}, true, panelPosition()); }
+            else if (permissionsChanged && taskDetails && panel.classList.contains('show')) { const place = panelPosition(); taskDetails.can_delete = taskDetails.can_delete && !board.archived; renderTask(); restorePanelPosition(place); }
+            manualRefresh = false;
+        },
+        onError(error) {
+            if ([401,403,404].includes(error.status)) {
+                syncDenied = true; board.can_write = false; board.can_manage = false; ++taskRequest; loadingTask = false; taskId = null; dirtyForms.clear(); boardDrafts.clear();
+                root.replaceChildren(); panelContent.replaceChildren(); bootstrap.Offcanvas.getInstance(panel)?.hide();
+                const create = document.getElementById('column-create'); if (create) create.closest('details').hidden = true;
+                notify('Seu acesso ao quadro não está mais disponível. Entre novamente ou verifique sua participação no projeto.', true);
+            } else notify('A sincronização foi interrompida. Tentaremos reconectar automaticamente; seus rascunhos foram mantidos.', true);
+        },
+        onRecover() { if (message.textContent.startsWith('A sincronização foi interrompida.')) notify('Sincronização restabelecida.'); }
+    });
 
     if (typeof Sortable === 'undefined') { notify('Não foi possível carregar o quadro. Atualize a página.', true); return; }
     document.querySelectorAll('[data-board-enhancement]').forEach(node => { node.hidden = false; });

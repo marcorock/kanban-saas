@@ -2,6 +2,7 @@
 <header class="app-header">
     <a class="app-mobile-brand" href="/dashboard" aria-label="{{ projectName }} — início"><img src="/assets/brand/mark.svg" width="28" height="32" alt=""></a>
     <div class="app-page-context"><p>{{ navigation.caption }}</p><h1>{{ navigation.title }}</h1></div>
+    <a class="qn-header-button" href="/notes/new" data-note-open aria-keyshortcuts="Control+K N" aria-haspopup="dialog" aria-controls="quick-note-dialog">{{ ui.icon('note') }} Nova nota</a>
     <a class="notification-bell" href="/notifications" aria-label="Notificações" {% if navigation.section == 'notifications' %}aria-current="page"{% endif %} data-notification-bell>{{ ui.icon('bell') }}<span class="notification-badge" data-notification-count aria-hidden="true" hidden></span></a>
     <a class="app-profile-link" href="/settings" aria-label="Abrir configurações de {{ user.name }}"><span class="app-avatar" aria-hidden="true">{{ user.name|slice(0, 1)|upper }}</span><span class="app-profile-name">{{ user.name }}</span></a>
 </header>

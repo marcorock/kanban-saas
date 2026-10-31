@@ -1,0 +1,32 @@
+{% import 'ui/icons.html.twig' as noteUi %}
+<dialog id="quick-note-dialog" class="qn-dialog qn-postit" aria-labelledby="quick-note-title" data-note-dialog>
+    <header class="qn-modal-header"><div><p>GUARDE A IDEIA</p><h2 id="quick-note-title">Nota rápida</h2></div><button type="button" class="qn-icon-button" data-note-close aria-label="Fechar nota rápida">{{ noteUi.icon('close') }}</button></header>
+    <form method="post" action="/notes" data-note-form>
+        <input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="revision" value="">
+{% include 'notes/appearance.html.twig' with {noteFieldPrefix: 'quick-note'} %}        <label for="quick-note-body">Sua ideia</label><textarea id="quick-note-body" name="body" maxlength="5000" rows="6" required placeholder="O que não pode escapar?" autofocus></textarea>
+        <label for="quick-note-project">Onde guardar</label><select id="quick-note-project" name="project_id"><option value="">Sem projeto / Inbox pessoal</option></select>
+        {% include 'notes/visibility.html.twig' with {noteFieldPrefix: 'quick-note'} %}
+        <p class="qn-help" data-note-privacy-help>Privado por padrão. Enter salva · Shift+Enter quebra a linha.</p><p class="qn-error" data-note-error role="alert" hidden></p>
+        <div class="qn-modal-actions"><button class="qn-button" type="button" data-note-close>Cancelar</button><button class="qn-button qn-primary" type="submit">Salvar nota</button></div>
+    </form>
+</dialog>
+<dialog id="quick-note-convert" class="qn-dialog" aria-labelledby="quick-note-convert-title" data-note-convert-dialog>
+    <header class="qn-modal-header"><div><p>DA IDEIA À AÇÃO</p><h2 id="quick-note-convert-title">Converter em tarefa</h2></div><button type="button" class="qn-icon-button" data-note-close aria-label="Fechar conversão">{{ noteUi.icon('close') }}</button></header>
+    <form method="post" data-note-convert-form>
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <p class="qn-help">A nota vira uma tarefa atribuída a você. O texto completo fica na descrição; a nota é removida após a conversão.</p>
+        <input id="quick-note-target" type="hidden" name="project_id"><input type="hidden" name="revision">
+        <label for="quick-note-task-title">Título da tarefa</label><input id="quick-note-task-title" name="title" type="text" maxlength="200" required>
+        <label for="quick-note-column">Coluna do Kanban</label><select id="quick-note-column" name="column_id" required disabled><option value="">Carregando colunas</option></select>
+        <p class="qn-error" data-note-error role="alert" hidden></p><div class="qn-modal-actions"><button type="button" class="qn-button" data-note-close>Cancelar</button><button type="submit" class="qn-button qn-primary">Criar tarefa</button></div>
+    </form>
+</dialog>
+<dialog id="quick-note-transfer" class="qn-dialog" aria-labelledby="quick-note-transfer-title" data-note-transfer-dialog>
+    <header class="qn-modal-header"><h2 id="quick-note-transfer-title">Transferir nota</h2><button type="button" class="qn-icon-button" data-note-close aria-label="Fechar transferência">{{ noteUi.icon('close') }}</button></header>
+    <form method="post" data-note-transfer-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="project_id"><input type="hidden" name="revision">
+        <label for="quick-note-recipient">Transferir para</label><select id="quick-note-recipient" name="recipient_id" required><option value="">Selecione um membro</option></select>
+        <label class="qn-transfer-confirm"><input type="checkbox" name="confirm" value="1" required><span>Confirmo a transferência. Deixarei de ser proprietário desta nota.</span></label>
+        <p class="qn-error" data-note-error role="alert" hidden></p><div class="qn-modal-actions"><button type="button" class="qn-button" data-note-close>Cancelar</button><button type="submit" class="qn-button qn-primary">Transferir</button></div>
+    </form>
+</dialog>
+<p class="qn-toast" data-note-toast role="status" aria-live="polite" hidden></p>

@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     {% if appAuthenticated %}
     <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="stylesheet" href="/assets/css/quick-notes.css">
+    <script src="/assets/js/quick-notes.js" defer></script>
     <script src="/assets/js/push-settings.js" defer></script>
     <meta name="theme-color" content="#194f43">
     <link rel="icon" type="image/svg+xml" href="/assets/brand/mark.svg">
@@ -36,6 +38,7 @@
         <footer class="app-footer"><p>Seu trabalho, no seu ritmo.</p><span>{{ projectName }}</span></footer>
     </div>
     {% include 'app/mobile-navigation.html.twig' %}
+    {% include 'notes/modal.html.twig' %}
     {% endif %}
     {% block scripts %}{% endblock %}
 </body>

@@ -5,7 +5,20 @@
 ### Correção operacional de VAPID
 - Gerador preserva permissões do .env existente; restauração de leitura pelo Apache local e teste como www-data evitam falha geral de conexão nas rotas após geração das chaves.
 
+### Corrigido
+- Texto e ícone do botão Nova nota mantêm contraste branco no projeto, inclusive em hover/foco, sem interferência das cores genéricas dos links.
+
 ### Adicionado
+- Sincronização automática do Kanban: polling reutilizável de 7s com consulta leve de versão, snapshot apenas quando há mudanças, pausa em abas inativas, retomada imediata e reconexão com backoff. Preserva filtros, rolagem, foco e painéis; rascunhos adiam a aplicação e conflitos mantêm o texto para revisão explícita. Endpoints JSON autenticados reconferem projeto/tenant e acesso revogado interrompe a sincronização. Sem migration ou dependência adicional.
+- Post-its (incremento 3): transferência confirmada para outro membro verificado do mesmo projeto, com novo proprietário, criador e histórico preservados; conversão somente no projeto da nota, com título obrigatório/editável e revisão conferida; envolvidos derivados da auditoria, filtrados pelo acesso atual, com iniciais e agrupamento +N. Sem migration adicional.
+- Post-its (incremento 2): visibilidade Privado/Projeto, movimentação entre Inbox e projetos acessíveis, proprietário original preservado, controle de versão e auditoria privada na mesma transação. Leitores de notas compartilhadas não recebem ações de edição/exclusão/conversão; Público permanece indisponível. Migration 015 mantém as notas existentes privadas e importa seu histórico inicial sem copiar o conteúdo.
+- Seletor original dos Post-its restaurado, com rótulos Média (padrão), Alta e Baixa, sem nomes das cores ou explicações.
+- Post-its (incremento 1): título opcional, urgência baixa (verde), média (amarelo padrão) e alta (laranja), com cores persistidas, cabeçalho com data, anotação com rolagem interna, menu de edição, ações compactas e identificação do proprietário. Migration 013 preserva as notas antigas privadas e amarelas; migration 014 substitui azul por laranja; conversão aproveita o título quando preenchido.
+- Edição das próprias notas pelo lápis, preservando destino e privacidade; conversão usa o texto atualizado.
+- Exclusão de tarefas exclusivamente pelo criador, incluindo as convertidas de notas, com confirmação, limpeza de dependências, cancelamento de avisos pendentes e preservação do histórico do projeto.
+- Notas Rápidas (Brainstorm): captura global no header e bottom bar, Ctrl+K/N, modal Post-it com foco e Enter para salvar (Shift+Enter para nova linha).
+- Inbox pessoal e notas privadas por projeto, grid responsivo/paginação, exclusão e conversão atômica em tarefa atribuída ao autor, com coluna selecionável e texto integral na descrição.
+- Migration 012, isolamento por tenant/usuário, CSRF, permissões, rollback/concorrência e testes Chromium/axe 320–1440px.
 - Notificações B: SMTP com resumo de prazos por ciclo, Web Push por dispositivo, ativação explícita, manifest/service worker e CSP mínima.
 - Migration 011 para recibos por dispositivo, remoção 404/410, retries externos e testes Mailpit/concorrência/privacidade/ativação.
 - VAPID configurável em .env com gerador que preserva chaves existentes; integração com cron local e preferências por canal.
@@ -113,3 +126,7 @@
 - Worker local agendado a cada minuto e fila pendente processada; entrega permanece fora das requisições.
 - Convite no sino para contas existentes, aceite interno seguro e recuperação de convites pendentes pela migration 010. Cancelamento, expiração, reemissão e aceite invalidam os avisos correspondentes.
 - Testes de convites internos, permissões, privacidade, preferências e regressão das suítes afetadas.
+
+### Integração de branches
+
+- Consolidação de main e post-its: preservados Brainstorm com edição/exclusão pelo proprietário, prioridades, compartilhamento/transferência e sincronização do Kanban. Resoluções preparadas para revisão, sem commit automático.

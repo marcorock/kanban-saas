@@ -3,6 +3,7 @@
     <a class="app-bottom-link" href="/dashboard" {% if navigation.section == 'dashboard' %}aria-current="page"{% endif %}>{{ ui.icon('home') }}<span>Início</span></a>
     <a class="app-bottom-link" href="/projects" {% if navigation.section == 'projects' %}aria-current="{{ navigation.path == '/projects' ? 'page' : 'location' }}"{% endif %}>{{ ui.icon('projects') }}<span>Projetos</span></a>
     <a class="app-bottom-link" href="/tasks" {% if navigation.section == 'tasks' %}aria-current="page"{% endif %}>{{ ui.icon('tasks') }}<span>Tarefas</span></a>
+    <a class="app-bottom-link" href="/notes/new" data-note-open aria-haspopup="dialog" aria-controls="quick-note-dialog">{{ ui.icon('note') }}<span>Nova nota</span></a>
     <button class="app-bottom-link" type="button" aria-haspopup="dialog" aria-controls="app-more-dialog" aria-expanded="false" data-more-open data-active="{{ navigation.section in ['history', 'settings'] ? 'true' : 'false' }}" hidden>{{ ui.icon('more') }}<span>Mais</span></button>
     <details class="app-more-fallback"><summary class="app-bottom-link" data-active="{{ navigation.section in ['history', 'settings'] ? 'true' : 'false' }}">{{ ui.icon('more') }}<span>Mais</span></summary><div class="app-fallback-panel"><p>Mais opções</p>{% include 'app/secondary-links.html.twig' %}</div></details>
 </nav>

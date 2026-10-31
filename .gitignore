@@ -3,5 +3,5 @@
 /storage/logs/*
 !/storage/logs/.gitkeep
 .DS_Store
-
+/x_brainstorm/
 /storage/previews/

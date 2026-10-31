@@ -1,0 +1,6 @@
+<label for="{{ noteFieldPrefix }}-heading">Título <span class="qn-optional">(opcional)</span></label>
+<input id="{{ noteFieldPrefix }}-heading" name="title" type="text" maxlength="200" placeholder="Dê um nome à ideia">
+<fieldset class="qn-colors"><legend>Prioridade</legend>
+{% for value, label in {'yellow': 'Média', 'orange': 'Alta', 'green': 'Baixa'} %}
+<label class="qn-color-choice" data-color="{{ value }}"><input type="radio" name="color" value="{{ value }}"{% if value == 'yellow' %} checked{% endif %}><span>{{ label }}</span></label>
+{% endfor %}</fieldset>

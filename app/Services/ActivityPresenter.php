@@ -9,7 +9,7 @@ final class ActivityPresenter
     public const LABELS = [
         'project.created' => 'Projeto criado', 'project.updated' => 'Projeto alterado', 'project.archived' => 'Projeto arquivado', 'project.restored' => 'Projeto restaurado', 'project.deleted' => 'Projeto excluído', 'project.ownership_transferred' => 'Propriedade transferida',
         'board.initialized' => 'Quadro inicializado', 'column.created' => 'Coluna criada', 'column.updated' => 'Coluna alterada', 'column.deleted' => 'Coluna excluída', 'columns.reordered' => 'Colunas reordenadas',
-        'task.created' => 'Tarefa criada', 'task.updated' => 'Tarefa alterada', 'task.moved' => 'Tarefa movimentada', 'task.completed' => 'Tarefa concluída', 'task.reopened' => 'Tarefa reaberta', 'task.assignees_changed' => 'Responsáveis alterados',
+        'task.created' => 'Tarefa criada', 'task.deleted' => 'Tarefa excluída', 'task.updated' => 'Tarefa alterada', 'task.moved' => 'Tarefa movimentada', 'task.completed' => 'Tarefa concluída', 'task.reopened' => 'Tarefa reaberta', 'task.assignees_changed' => 'Responsáveis alterados',
         'checklist.created' => 'Lista criada', 'checklist.updated' => 'Lista alterada', 'checklist.deleted' => 'Lista excluída', 'checklist.item_created' => 'Item criado', 'checklist.item_updated' => 'Item alterado', 'checklist.item_deleted' => 'Item excluído',
         'comment.created' => 'Comentário adicionado', 'comment.updated' => 'Comentário alterado', 'comment.deleted' => 'Comentário excluído',
         'invitation.created' => 'Convite enviado', 'invitation.reissued' => 'Convite reenviado', 'invitation.cancelled' => 'Convite cancelado', 'invitation.accepted' => 'Convite aceito',

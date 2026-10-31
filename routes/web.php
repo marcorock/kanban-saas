@@ -72,3 +72,19 @@ SimpleRouter::get('/notifications/push-config', static fn (): string => $push->h
 SimpleRouter::get('/notifications/push-context', static fn (): string => $push->handle('context'));
 SimpleRouter::post('/settings/notifications/push', static fn (): string => $push->handle('save'));
 SimpleRouter::post('/settings/notifications/push/remove', static fn (): string => $push->handle('remove'));
+
+$notes = new \App\Controllers\QuickNoteController($views,$config);
+SimpleRouter::get('/notes/new', static fn (): string => $notes->handle('new'));
+SimpleRouter::get('/notes/projects', static fn (): string => $notes->handle('projects'));
+SimpleRouter::get('/notes/columns', static fn (): string => $notes->handle('columns'));
+SimpleRouter::post('/notes', static fn (): string => $notes->handle('create'));
+SimpleRouter::post('/notes/{id}/delete', static fn (string $id): string => $notes->handle('delete',$id));
+SimpleRouter::post('/notes/{id}/convert', static fn (string $id): string => $notes->handle('convert',$id));
+
+SimpleRouter::post('/notes/{id}/update', static fn (string $id): string => $notes->handle('update',$id));
+
+SimpleRouter::get('/notes/{id}/recipients', static fn (string $id): string => $notes->handle('recipients',$id));
+SimpleRouter::post('/notes/{id}/transfer', static fn (string $id): string => $notes->handle('transfer',$id));
+
+SimpleRouter::get('/projects/{id}/board/version', static fn (string $id): string => $board->handle($id,false,null,'version'));
+SimpleRouter::get('/projects/{id}/board/state', static fn (string $id): string => $board->handle($id,false,null,'state'));

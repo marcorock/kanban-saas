@@ -23,6 +23,17 @@ final class BoardService
         (new ActivityLogger($pdo))->record($project, $actorId, 'board.initialized', null, ['column_count' => 5]);
     }
 
+    private function syncToken(array $project):string
+    {
+        return hash('sha256',json_encode([$project['id'],$project['board_version'],$project['role'],$project['archived_at'],$project['name'],gmdate('Y-m-d')],JSON_THROW_ON_ERROR));
+    }
+
+    public function version(int $userId,int $projectId):array
+    {
+        $project=(new ProjectRepository($this->pdo))->find($userId,$projectId);
+        return ['version'=>(int)$project['board_version'],'token'=>$this->syncToken($project)];
+    }
+
     public function state(int $userId, int $projectId): array
     {
         $this->pdo->beginTransaction();
@@ -81,7 +92,7 @@ final class BoardService
         }
         $active = $project['archived_at'] === null;
         return [
-            'project_id' => (int) $project['id'], 'name' => $project['name'], 'version' => (int) $project['board_version'],
+            'sync_token' => $this->syncToken($project), 'project_id' => (int) $project['id'], 'name' => $project['name'], 'version' => (int) $project['board_version'],
             'archived' => !$active, 'can_manage' => $active && ProjectPolicy::canManage($project, $userId),
             'members' => (new TaskService($this->pdo))->members($project),
             'can_write' => $active && ($project['role'] === 'member' || ProjectPolicy::canManage($project, $userId)), 'columns' => $result,
@@ -146,7 +157,7 @@ final class BoardService
             $project = (new ProjectRepository($this->pdo))->find($userId, $projectId, true);
             if ($project['archived_at'] !== null) { throw new HttpException('Restaure o projeto antes de alterar o quadro.', 409); }
             $canManage = ProjectPolicy::canManage($project, $userId);
-            if (($columnAction && !$canManage) || (!$columnAction && !$canManage && $project['role'] !== 'member')) { throw new HttpException('Permissão insuficiente.', 403); }
+            if (($columnAction && !$canManage) || (!$columnAction && !$canManage && $project['role'] !== 'member' && $action !== 'task.delete')) { throw new HttpException('Permissão insuficiente.', 403); }
             if ((int) $project['board_version'] !== $version) { throw new HttpException('O quadro foi alterado por outro participante. Atualize a página e tente novamente.', 409); }
             $now = $this->pdo->query('SELECT UTC_TIMESTAMP()')->fetchColumn();
             if (in_array($action, TaskService::ACTIONS, true)) {
