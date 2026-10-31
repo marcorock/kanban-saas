@@ -7,7 +7,14 @@
     const convertForm = convertDialog.querySelector('form');
     const text = form.elements.body;
     const destination = form.elements.project_id;
+    const visibility = form.elements.visibility;
     const target = convertForm.elements.project_id;
+    function syncVisibility() {
+        const option = visibility.querySelector('[value="project"]'); option.disabled = !destination.value;
+        if (option.disabled && visibility.value === 'project') visibility.value = 'private';
+        dialog.querySelector('[data-note-privacy-help]').textContent = (visibility.value === 'project' ? 'Visível aos membros do projeto.' : 'Só você vê esta nota.') + ' Enter salva · Shift+Enter quebra a linha.';
+    }
+    destination.addEventListener('change', syncVisibility); visibility.addEventListener('change', syncVisibility);
     const column = convertForm.elements.column_id;
     const toast = document.querySelector('[data-note-toast]');
     let timer; let opener; let editing = false; let loading = 0; let columnsLoading = 0;
@@ -44,30 +51,40 @@
     }
     async function openNote(button) {
         if (document.querySelector('dialog[open]')) return;
-        if (editing) { form.reset(); text.value = ''; } editing = false; form.action = '/notes'; destination.disabled = false; document.getElementById('quick-note-title').textContent = 'Nota rápida';
+        if (editing) { form.reset(); text.value = ''; } editing = false; form.elements.revision.value = ''; form.action = '/notes'; destination.disabled = false; document.getElementById('quick-note-title').textContent = 'Nota rápida';
         opener = button || document.activeElement; const sequence = ++loading;
         error(dialog); destination.replaceChildren(new Option('Sem projeto / Inbox pessoal', ''));
-        previewColor(); dialog.showModal(); text.focus();
+        previewColor(); syncVisibility(); dialog.showModal(); text.focus();
         try {
             const result = await get('/notes/projects'); if (sequence !== loading || !dialog.open) return;
             for (const item of result.projects) destination.add(new Option(item.name, String(item.id)));
             const selected = button?.dataset.noteProject || '';
             if ([...destination.options].some(option => option.value === selected)) destination.value = selected;
+            syncVisibility();
         } catch (issue) { if (dialog.open) error(dialog, issue.message + ' Você ainda pode salvar no Inbox pessoal.'); }
     }
-    function editNote(button) {
+    async function editNote(button) {
         if (document.querySelector('dialog[open]')) return;
-        ++loading; opener = button.closest('details')?.querySelector('summary') || button; editing = true; error(dialog);
+        const sequence = ++loading; opener = button.closest('details')?.querySelector('summary') || button; editing = true; error(dialog);
         form.action = '/notes/' + button.dataset.noteEdit + '/update';
         const card = button.closest('.qn-card');
         text.value = card.querySelector('.qn-body').textContent;
         form.elements.title.value = card.dataset.noteTitle;
         form.elements.color.value = card.dataset.color;
+        form.elements.visibility.value = card.dataset.noteVisibility;
+        form.elements.revision.value = card.dataset.noteRevision;
         card.querySelector('details').open = false;
         const project = button.dataset.noteProject || '';
-        destination.replaceChildren(new Option(project ? 'Projeto atual · nota privada' : 'Sem projeto / Inbox pessoal', project)); destination.disabled = true;
+        destination.replaceChildren(new Option(project ? 'Projeto atual' : 'Sem projeto / Inbox pessoal', project)); destination.disabled = false;
         document.getElementById('quick-note-title').textContent = 'Editar nota';
-        previewColor(); dialog.showModal(); text.focus();
+        previewColor(); syncVisibility(); dialog.showModal(); text.focus();
+        try {
+            const result = await get('/notes/projects'); if (sequence !== loading || !dialog.open) return;
+            destination.replaceChildren(new Option('Sem projeto / Inbox pessoal', ''));
+            for (const item of result.projects) destination.add(new Option(item.name, String(item.id)));
+            if (project && ![...destination.options].some(option => option.value === project)) destination.add(new Option('Projeto atual (arquivado)', project));
+            destination.value = project; syncVisibility();
+        } catch (issue) { if (dialog.open && sequence === loading) error(dialog, issue.message); }
     }
     async function loadColumns() {
         const sequence = ++columnsLoading; const project = target.value;

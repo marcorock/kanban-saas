@@ -6,6 +6,7 @@
 - Gerador preserva permissões do .env existente; restauração de leitura pelo Apache local e teste como www-data evitam falha geral de conexão nas rotas após geração das chaves.
 
 ### Adicionado
+- Post-its (incremento 2): visibilidade Privado/Projeto, movimentação entre Inbox e projetos acessíveis, proprietário original preservado, controle de versão e auditoria privada na mesma transação. Leitores de notas compartilhadas não recebem ações de edição/exclusão/conversão; Público permanece indisponível. Migration 015 mantém as notas existentes privadas e importa seu histórico inicial sem copiar o conteúdo.
 - Seletor original dos Post-its restaurado, com rótulos Média (padrão), Alta e Baixa, sem nomes das cores ou explicações.
 - Post-its (incremento 1): título opcional, urgência baixa (verde), média (amarelo padrão) e alta (laranja), com cores persistidas, cabeçalho com data, anotação com rolagem interna, menu de edição, ações compactas e identificação do proprietário. Migration 013 preserva as notas antigas privadas e amarelas; migration 014 substitui azul por laranja; conversão aproveita o título quando preenchido.
 - Edição das próprias notas pelo lápis, preservando destino e privacidade; conversão usa o texto atualizado.

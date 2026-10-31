@@ -29,9 +29,9 @@ final class QuickNoteController
             if($mode==='new')return $this->views->render('notes/new.html.twig',['projectName'=>$this->config['name'],'user'=>$user,'csrf'=>$_SESSION['csrf'],'destinations'=>$service->projects($uid)]);
             if(!Session::verifyCsrf($_POST['_token']??null))throw new HttpException('Sessão do formulário expirada. Recarregue a página.',419);
             $project=$this->id($_POST['project_id']??null,true);
-            if($mode==='create'){$service->create($uid,$_POST['body']??null,$project,$_POST['title']??'',$_POST['color']??'yellow');$message='Nota salva.';}
-            elseif($mode==='update'){$project=$service->update($uid,$this->id($id),$_POST['body']??null,array_intersect_key($_POST,array_flip(['title','color'])));$message='Nota atualizada.';}
-            elseif($mode==='delete'){$service->delete($uid,$this->id($id));$message='Nota excluída.';}
+            if($mode==='create'){$service->create($uid,$_POST['body']??null,$project,$_POST['title']??'',$_POST['color']??'yellow',$_POST['visibility']??'private');$message='Nota salva.';}
+            elseif($mode==='update'){$project=$service->update($uid,$this->id($id),$_POST['body']??null,array_replace(array_intersect_key($_POST,array_flip(['title','color','visibility','revision'])),array_key_exists('project_id',$_POST)?['project_id'=>$project]:[]));$message='Nota atualizada.';}
+            elseif($mode==='delete'){$service->delete($uid,$this->id($id),$_POST['revision']??null);$message='Nota excluída.';}
             else{$task=$service->convert($uid,$this->id($id),$this->id($_POST['project_id']??null),$this->id($_POST['column_id']??null));$message='Nota convertida em tarefa.';}
             if($json)return $this->json(['ok'=>true,'message'=>$message,'task_url'=>isset($task)?'/projects/'.$project.'/board?task='.$task:null]);
             header('Location: '.($project?'/projects/'.$project:'/tasks').'#brainstorm',true,303);return '';

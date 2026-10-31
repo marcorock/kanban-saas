@@ -17,7 +17,7 @@
 - Controllers, Services, Repository de projetos e Policy; ActivityLogger compartilhado grava eventos dentro das transações.
 - DocumentRoot public/; configuração em config/, bootstrap em bootstrap/, templates em resources/views/.
 - Ambiente local usa containers Coruja; PHP não está no PATH do host. Executar PHP no container web em /var/www/projects/kanbansaas.
-- Banco local configurado no .env (não versionado). Migrations 001–014 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
+- Banco local configurado no .env (não versionado). Migrations 001–015 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
 - Mailpit local: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; interface http://mail.localhost. Produção segue configurável por MAIL_*.
 - Branch de trabalho atual: post-its (estado encontrado ao implementar Brainstorm; sem troca automática). Não mudar/mesclar branches automaticamente.
 
@@ -190,3 +190,18 @@
 - Commit autorizado exclusivamente para título, prioridade/cores e visual do incremento 1 e documentação/testes correspondentes. composer.json e .vscode/ continuam fora do escopo.
 - Próximo trabalho autorizado após o commit: incremento 2, com Privado/Projeto, movimentação entre destinos acessíveis e auditoria privada/transacional. Público permanece indisponível. Transferência e confirmação da conversão ficam no incremento 3.
 - Fechamento aprovado: regressão PHP completa executada novamente em banco descartável novo, migrations 001–014, todas as suítes aprovadas. Incremento 1 concluído; próximo incremento autorizado conforme acima.
+
+## Post-its — incremento 2 implementado, aguardando aprovação
+
+- Último incremento aprovado e commitado: título, Prioridade (nome alterado pelo usuário), cores e visual dos Post-its, commit cceafaa. composer.json e .vscode/ preservados fora do commit.
+- Trabalho atual: Privado por padrão; Projeto visível apenas aos membros com acesso válido ao projeto/tenant. Público indisponível. Somente o proprietário atual pode editar, mover, excluir ou converter; leitores não recebem botões de mutação. As iniciais identificam o proprietário real da nota.
+- Edição permite mover entre Inbox e projetos acessíveis, inclusive de outro tenant somente com associação válida ao destino. Inbox exige Privado; origem/destino arquivados bloqueiam movimentação. Edição simples/exclusão de nota própria arquivada mantém o comportamento anterior. Permissões de criação de notas próprias dos visualizadores preservadas; conversão continua exigindo papel de escrita.
+- Migration 015: created_by preserva o criador original, visibility padrão private, revision e índice para compartilhamento; quick_note_events guarda auditoria privada de criação/edição/movimentação/exclusão/conversão e importação das notas anteriores. Registros ficam na mesma transação, preservados após remover a nota, sem copiar título/corpo para o histórico público ou para a auditoria privada. Não há nova tela de histórico neste incremento.
+- Projetos são bloqueados em ordem estável antes da nota; identidade/tenant/destino são revalidados sob lock. A interface envia revision na edição/exclusão para rejeitar formulários obsoletos. Movimentação concorrente invalidada pelo MariaDB (1020) retorna conflito 409 com orientação para recarregar, preservando a operação vencedora.
+- Testes afetados aprovados em banco descartável limpo: autorização/tenant, Privado/Projeto, CSRF/IDOR, público inválido, revogação, defaults, migração das notas existentes, movimentação entre tenants autorizados, arquivos, versões, rollback de criação/edição/exclusão/conversão por falha da auditoria e movimentos concorrentes/cruzados. Chromium/axe do Brainstorm e teste específico de visibilidade aprovados em 320–1440px, incluindo leitores sem ações, proprietário correto, privatização, seletor original de prioridade e criação compartilhada sem JS. Preflight local como www-data aprovado com migration 015; fixtures somente nos bancos descartáveis.
+- Próximo passo: concluir regressão final e aguardar aprovação do incremento 2 para commit. Depois, incremento 3: transferência, confirmação de título na conversão restrita a projeto e indicadores dos envolvidos autorizados. Sem push, merge ou deploy.
+- Fechamento do incremento 2: regressão PHP completa aprovada em novo banco descartável (001–015), incluindo a suíte notes-visibility e as suítes anteriores. Chromium/axe de aparência também aprovado após as mudanças de visibilidade, preservando o título Prioridade, layout, edição e três cores. Aguarda aprovação para commit; próximo incremento ainda não iniciado.
+
+## Aprovação do incremento 2
+
+- Incremento 2 aprovado pelo usuário: commit autorizado com validações completas registradas acima. Próxima etapa autorizada: transferência no mesmo projeto, conversão com título confirmado apenas em projeto e envolvidos derivados da auditoria. Preservar composer.json e .vscode/ fora do escopo.

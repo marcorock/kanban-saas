@@ -3,9 +3,8 @@
 declare(strict_types=1);
 require __DIR__.'/notes-revision.php';
 // Verifica a atualização de uma linha antiga sem tocar no banco de uso diário.
-$pdo->exec('CREATE TEMPORARY TABLE quick_notes_legacy_test LIKE quick_notes');
+$pdo->exec('CREATE TEMPORARY TABLE quick_notes_legacy_test (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,tenant_id BIGINT UNSIGNED NOT NULL,user_id BIGINT UNSIGNED NOT NULL,project_id BIGINT UNSIGNED NULL,body TEXT NOT NULL)');
 try {
-    $pdo->exec('ALTER TABLE quick_notes_legacy_test DROP COLUMN title, DROP COLUMN color');
     $pdo->prepare('INSERT INTO quick_notes_legacy_test(tenant_id,user_id,project_id,body) VALUES (?,?,?,?)')->execute([$tenant,$owner,$projectId,'Nota anterior à migration']);
     $pdo->exec(str_replace('ALTER TABLE quick_notes','ALTER TABLE quick_notes_legacy_test',file_get_contents(dirname(__DIR__).'/database/migrations/013_quick_note_appearance.sql')));
     $pdo->exec("UPDATE quick_notes_legacy_test SET color='blue'");
