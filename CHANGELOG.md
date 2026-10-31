@@ -6,6 +6,11 @@
 - Gerador preserva permissões do .env existente; restauração de leitura pelo Apache local e teste como www-data evitam falha geral de conexão nas rotas após geração das chaves.
 
 ### Adicionado
+- Edição das próprias notas pelo lápis, preservando destino e privacidade; conversão usa o texto atualizado.
+- Exclusão de tarefas exclusivamente pelo criador, incluindo as convertidas de notas, com confirmação, limpeza de dependências, cancelamento de avisos pendentes e preservação do histórico do projeto.
+- Notas Rápidas (Brainstorm): captura global no header e bottom bar, Ctrl+K/N, modal Post-it com foco e Enter para salvar (Shift+Enter para nova linha).
+- Inbox pessoal e notas privadas por projeto, grid responsivo/paginação, exclusão e conversão atômica em tarefa atribuída ao autor, com coluna selecionável e texto integral na descrição.
+- Migration 012, isolamento por tenant/usuário, CSRF, permissões, rollback/concorrência e testes Chromium/axe 320–1440px.
 - Notificações B: SMTP com resumo de prazos por ciclo, Web Push por dispositivo, ativação explícita, manifest/service worker e CSP mínima.
 - Migration 011 para recibos por dispositivo, remoção 404/410, retries externos e testes Mailpit/concorrência/privacidade/ativação.
 - VAPID configurável em .env com gerador que preserva chaves existentes; integração com cron local e preferências por canal.

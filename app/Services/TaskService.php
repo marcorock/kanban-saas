@@ -11,7 +11,7 @@ use Pecee\SimpleRouter\Exceptions\HttpException;
 
 final class TaskService
 {
-    public const ACTIONS = ['task.update', 'checklist.create', 'checklist.update', 'checklist.delete', 'item.create', 'item.update', 'item.delete', 'comment.create', 'comment.update', 'comment.delete'];
+    public const ACTIONS = ['task.update', 'task.delete', 'checklist.create', 'checklist.update', 'checklist.delete', 'item.create', 'item.update', 'item.delete', 'comment.create', 'comment.update', 'comment.delete'];
 
     public function __construct(private PDO $pdo) {}
 
@@ -70,6 +70,18 @@ final class TaskService
         $taskId = $this->id($data, 'task_id');
         $task = $this->row('tasks', $project, $taskId, $taskId);
         $scope = [$project['tenant_id'], $project['id'], $taskId];
+        if ($action === 'task.delete') {
+            if ((int)$task['created_by'] !== $actor) throw new HttpException('Somente quem criou a tarefa pode excluí-la.',403);
+            if (($data['confirm'] ?? null) !== true) throw new HttpException('Confirme a exclusão da tarefa e de seu conteúdo.',422);
+            // Mantém o histórico do projeto e os recibos; remove links para a tarefa excluída.
+            $this->pdo->prepare('UPDATE activity_logs SET task_id=NULL WHERE tenant_id=? AND project_id=? AND task_id=?')->execute($scope);
+            $this->pdo->prepare("UPDATE notification_outbox SET task_id=NULL,status=CASE WHEN status IN ('pending','processing','retry') THEN 'cancelled' ELSE status END,lock_token=NULL,locked_until=NULL WHERE tenant_id=? AND project_id=? AND task_id=?")->execute($scope);
+            foreach (['task_comments','task_checklists','task_assignees'] as $table) $this->pdo->prepare('DELETE FROM '.$table.' WHERE tenant_id=? AND project_id=? AND task_id=?')->execute($scope);
+            $this->pdo->prepare('DELETE FROM tasks WHERE tenant_id=? AND project_id=? AND id=?')->execute($scope);
+            $this->pdo->prepare('UPDATE tasks SET position=position-1 WHERE tenant_id=? AND project_id=? AND column_id=? AND position>?')->execute([$project['tenant_id'],$project['id'],$task['column_id'],$task['position']]);
+            (new ActivityLogger($this->pdo))->record($project,$actor,'task.deleted',['title'=>$task['title'],'column_id'=>(int)$task['column_id'],'position'=>(int)$task['position']],null);
+            return;
+        }
         if ($action === 'task.update') {
             $next = [
                 'title' => $this->text($data, 'title', 200), 'description' => $this->text($data, 'description', 16000, true),
@@ -204,6 +216,6 @@ final class TaskService
         $page = max(1, min($activityPage, $pages)); $offset = ($page - 1) * 20;
         $statement = $this->pdo->prepare("SELECT a.id, a.action, u.name AS author, a.created_at FROM activity_logs a JOIN users u ON u.id = a.actor_id WHERE a.tenant_id = ? AND a.project_id = ? AND a.task_id = ? ORDER BY a.id DESC LIMIT 20 OFFSET {$offset}");
         $statement->execute($scope); $activity = ['items' => $statement->fetchAll(), 'page' => $page, 'pages' => $pages];
-        return ['task' => $task, 'members' => $members, 'checklists' => $checklists, 'comments' => $comments, 'activity' => $activity, 'actor_id' => $actor];
+        return ['task' => $task, 'members' => $members, 'checklists' => $checklists, 'comments' => $comments, 'activity' => $activity, 'actor_id' => $actor, 'can_delete' => $project['archived_at'] === null && $task['created_by'] === $actor];
     }
 }

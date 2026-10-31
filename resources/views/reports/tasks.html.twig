@@ -31,4 +31,5 @@
     </section>
     {% if result.pages > 1 %}<nav class="mt-pagination" aria-label="Paginação de tarefas">{% if result.page > 1 %}<a href="/tasks?{{ filters|merge({page: result.page - 1})|url_encode }}">{{ ui.icon('arrow-left') }} Anterior</a>{% else %}<span aria-disabled="true">Anterior</span>{% endif %}<span>Página {{ result.page }} de {{ result.pages }}</span>{% if result.page < result.pages %}<a href="/tasks?{{ filters|merge({page: result.page + 1})|url_encode }}">Próxima {{ ui.icon('arrow-right') }}</a>{% else %}<span aria-disabled="true">Próxima</span>{% endif %}</nav>{% endif %}
 </div>
+{% include 'notes/section.html.twig' %}
 {% endblock %}

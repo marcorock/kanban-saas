@@ -54,7 +54,7 @@ final class ProjectController
         }
         if (in_array($action, ['edit', 'update'], true)) { ProjectPolicy::authorize($project, $userId, 'update'); }
         if ($action === 'show') {
-            return $this->views->render('projects/show.html.twig', $base + ['project' => $project, 'canManage' => ProjectPolicy::canManage($project, $userId), 'isOwner' => ProjectPolicy::isOwner($project, $userId)]);
+            return $this->views->render('projects/show.html.twig', $base + ['project' => $project, 'canManage' => ProjectPolicy::canManage($project, $userId), 'isOwner' => ProjectPolicy::isOwner($project, $userId), 'brainstorm' => (new \App\Services\QuickNoteService($pdo))->page($userId,(int)$id,filter_var($_GET['notes_page']??1,FILTER_VALIDATE_INT)?:1), 'noteProjectId'=>(int)$id, 'noteCanCreate'=>$project['archived_at']===null, 'noteCanConvert'=>$project['archived_at']===null&&in_array($project['role'],['owner','admin','member'],true), 'notesBase'=>'/projects/'.$id]);
         }
         $blank = ['name' => '', 'description' => '', 'starts_on' => '', 'due_on' => ''];
         if (in_array($action, ['new', 'edit'], true)) {

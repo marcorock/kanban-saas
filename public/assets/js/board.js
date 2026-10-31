@@ -162,7 +162,7 @@
             document.querySelectorAll('#board-filters select, #clear-board-filters').forEach(item => { item.disabled = false; });
             restoreFocus(focus);
             document.getElementById('task-panel-close').disabled = false;
-            panelContent.querySelectorAll('input,select,textarea,button').forEach(item => { item.disabled = panelDisabled.get(item) || (!board.can_write && !item.dataset.page); });
+            panelContent.querySelectorAll('input,select,textarea,button').forEach(item => { item.disabled = panelDisabled.get(item) || (!board.can_write && !item.dataset.page && !(item.hasAttribute('data-task-delete') && taskDetails?.can_delete)); });
         }
         return success;
     }
@@ -238,6 +238,7 @@
         const data = taskDetails; const task = data.task; const writable = board.can_write;
         const content = cloneTemplate('task-details-template');
         content.querySelector('[data-task-heading]').textContent = task.title;
+        content.querySelector('[data-task-delete]').hidden = !data.can_delete;
         const column = board.columns.find(column => column.tasks.some(item => item.id === task.id));
         content.querySelector('[data-task-meta]').textContent = [column?.name, task.due_on ? 'Prazo: ' + task.due_on.split('-').reverse().join('/') : 'Sem prazo', ...data.members.filter(member => task.assignee_ids.includes(member.id)).map(member => member.name)].filter(Boolean).join(' · ');
         const allItems = data.checklists.flatMap(list => list.items); const doneItems = allItems.filter(item => item.is_done).length;
@@ -247,6 +248,7 @@
         totalProgress.setAttribute('aria-label', `${doneItems} de ${allItems.length} subtarefas concluídas`);
         content.querySelector('[data-task-stamp]').textContent = `Criada em ${stamp(task.created_at)} · Conclusão: ${task.completed_at ? stamp(task.completed_at) : 'Pendente'}`;
         content.querySelector('[data-readonly]').hidden = writable;
+        if (!writable && data.can_delete) content.querySelector('[data-readonly]').textContent = 'Você pode consultar esta tarefa e excluí-la porque é quem a criou.';
         const edit = content.querySelector('#task-edit'); edit.querySelector('fieldset').disabled = !writable;
         for (const name of ['title', 'description', 'priority', 'starts_on', 'due_on']) edit.elements[name].value = task[name] || '';
         edit.elements.started_at.value = task.started_at?.replace(' ', 'T') || '';
@@ -337,11 +339,12 @@
     async function taskSave(action, payload, source = null) {
         if (saving) return false;
         if (Array.from(dirtyForms).some(form => form !== source) && !window.confirm('Há alterações em outros campos. Descartá-las e continuar?')) return false;
-        if (action.endsWith('.delete') && !window.confirm('Confirmar a exclusão?')) return false;
+        if (action.endsWith('.delete') && !window.confirm(action === 'task.delete' ? 'Excluir esta tarefa, suas subtarefas e comentários? Esta ação não pode ser desfeita.' : 'Confirmar a exclusão?')) return false;
         if (action.endsWith('.delete')) payload.confirm = true;
         const position = panelPosition();
         const success = await save(action, {task_id: taskId, ...payload});
-        if (success) await openTask(taskId, {}, true, position);
+        if (success && action === 'task.delete') { dirtyForms.clear(); closeTask(); taskDetails = null; const url = new URL(location.href); url.searchParams.delete('task'); history.replaceState(null, '', url); notify('Tarefa excluída.'); }
+        else if (success) await openTask(taskId, {}, true, position);
         return success;
     }
     for (const field of Object.values(filters)) field.addEventListener('change', () => { if (!saving) render(); });

@@ -31,7 +31,7 @@ final class ReportingController
             if ($projectId !== null) $input['project_id'] = $projectId;
             $filters = ReportFilters::parse($input, $mode === 'history');
             if ($mode === 'dashboard') return $this->views->render('dashboard.html.twig', $base + $service->dashboard($userId, $filters['page']));
-            if ($mode === 'tasks') return $this->views->render('reports/tasks.html.twig', $base + ['filters' => $filters, 'projects' => $service->projects($userId), 'result' => $service->tasks($userId, $filters)]);
+            if ($mode === 'tasks') return $this->views->render('reports/tasks.html.twig', $base + ['filters' => $filters, 'projects' => $service->projects($userId), 'result' => $service->tasks($userId, $filters), 'brainstorm'=>(new \App\Services\QuickNoteService($pdo))->page($userId,null,filter_var($_GET['notes_page']??1,FILTER_VALIDATE_INT)?:1), 'noteProjectId'=>null, 'noteCanCreate'=>true, 'noteCanConvert'=>true, 'notesBase'=>'/tasks']);
             $project = $projectId === null ? null : (new ProjectRepository($pdo))->find($userId, (int) $projectId);
             return $this->views->render('reports/history.html.twig', $base + ['filters' => $filters, 'project' => $project, 'projects' => $service->projects($userId), 'actions' => ActivityPresenter::LABELS, 'result' => $service->history($userId, $filters, $projectId === null)]);
         } catch (HttpException $exception) {

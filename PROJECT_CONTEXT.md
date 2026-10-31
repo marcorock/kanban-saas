@@ -17,9 +17,9 @@
 - Controllers, Services, Repository de projetos e Policy; ActivityLogger compartilhado grava eventos dentro das transações.
 - DocumentRoot public/; configuração em config/, bootstrap em bootstrap/, templates em resources/views/.
 - Ambiente local usa containers Coruja; PHP não está no PATH do host. Executar PHP no container web em /var/www/projects/kanbansaas.
-- Banco local configurado no .env (não versionado). Migrations 001–011 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
+- Banco local configurado no .env (não versionado). Migrations 001–012 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
 - Mailpit local: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; interface http://mail.localhost. Produção segue configurável por MAIL_*.
-- Branch de trabalho atual: Plush-notification (estado encontrado no fechamento de A; sem troca automática). Não mudar/mesclar branches automaticamente.
+- Branch de trabalho atual: post-its (estado encontrado ao implementar Brainstorm; sem troca automática). Não mudar/mesclar branches automaticamente.
 
 ## Incrementos aprovados e commitados
 
@@ -124,3 +124,26 @@
 ## Fechamento e pausa solicitada
 
 - Usuário autorizou o commit de B e suas correções mesmo sem concluir todos os testes manuais; aguardar novas instruções após versionar. Validação automática completa anterior e teste final do gerador como www-data aprovados. Nenhum novo incremento, push, merge ou deploy autorizado.
+
+## Trabalho atual — Notas Rápidas (Brainstorm)
+
+- Retomada autorizada pelo pedido de implementação. Último commit de notificações: 0d25219 (B e correções), autorizado mesmo com testes manuais incompletos; validação real de Push permanece pendente. Incremento Brainstorm e revisão aprovados pelo usuário em 31/10/2026; commit de fechamento autorizado, com hash registrado pelo Git.
+- Captura global em todas as páginas autenticadas: header desktop junto ao sino e bottom bar mobile, atalhos Ctrl+K (também Cmd+K) ou N fora de campos editáveis/outros diálogos. Modal Post-it com foco automático, texto de até 5.000 caracteres, projetos ativos acessíveis (inclusive visualizador) e padrão Inbox pessoal. Enter salva, Shift+Enter quebra linha; erro preserva rascunho e envio em curso bloqueia duplicação/fechamento acidental. Formulário /notes/new funciona sem JS.
+- Minhas Tarefas: Brainstorm abaixo da listagem, somente notas pessoais sem projeto. Detalhes do projeto: seção entre Sobre e Gerenciar, somente notas explicitamente vinculadas ao projeto. Notas são privadas do autor em ambos os lugares, com grid responsivo, 20 por página e exclusão. Arquivados mantêm consulta/exclusão, sem criação/conversão.
+- Conversão de Inbox escolhe projeto gravável e coluna; nota vinculada só converte naquele projeto. Visualizador pode guardar nota privada, mas não criar tarefa. Conversão atribui tarefa ao autor, gera título de até 200 caracteres e mantém texto integral na descrição; remove nota, grava auditoria/atribuição e incrementa board_version na mesma transação. Locks de projeto/nota impedem conversão duplicada e preservam ordenação/concorrência do Kanban.
+- Migration 012 quick_notes com FKs de tenant/autor e tenant/projeto, validada em banco descartável e aplicada localmente sem limpar dados existentes. API com autenticação/e-mail confirmado, CSRF, validação de IDs/texto, PDO parametrizado, revalidação de acesso/papel/coluna e escape de texto. Twig/CSS/JS externos no padrão Fluxo Claro.
+- Testes notes.php: privacidade entre usuários/tenants, projetos/colunas forjados, papéis, arquivamento, revogação, CSRF, validação, rollback, duas conversões concorrentes, versão do quadro e paginação aprovados. notes-browser.cjs: 320/390/768/1024/1440px, axe, posição das seções, foco/Escape, teclado, Enter/Shift+Enter, erro/rascunho/envio único, conversão/exclusão e fallback sem JS aprovados. Suítes afetadas de quadro/tarefas/relatórios/shell/segurança e preflight como www-data aprovados. Regressão PHP completa de fechamento aprovada em banco descartável novo com migrations 001–012; sem fixtures no banco local.
+- Alteração preexistente em .env.example encontrada ao iniciar: preservada e fora do escopo deste incremento; não incluir no commit do Brainstorm. Nenhuma alteração de credenciais, deploy, push ou merge.
+- Próximo passo: aguardar novas instruções após o commit aprovado, sem iniciar outro incremento; preservar pendência dos testes manuais de notificações.
+
+## Revisão do Brainstorm — edição e exclusão pelo criador
+
+- Retorno do usuário em 31/10/2026 incorporado ao incremento aprovado no fechamento: edição privada pelo ícone de lápis no Inbox/projeto, no mesmo modal e com as mesmas regras de texto/CSRF. Destino é mantido; não é possível editar ou excluir nota alheia, inclusive por parâmetros forjados. Projeto arquivado continua permitindo manutenção da própria nota privada.
+- Tarefas criadas diretamente ou pela conversão agora têm Excluir tarefa no painel do Kanban, somente para created_by igual ao usuário autenticado. Dono/admin não excluem tarefas de terceiros. Autor que passou a visualizador mantém apenas essa exclusão sobre sua tarefa; os demais controles continuam de leitura. Acesso atual ao projeto é obrigatório; arquivados precisam ser restaurados.
+- Exclusão exige confirmação explícita, CSRF e versão atual do quadro; remove tarefa/listas/itens/comentários/atribuições, recompõe posições e atualiza board_version na transação serializada do Kanban. Mantém histórico do projeto com evento task.deleted e remove vínculos de auditoria/notificações para a tarefa removida; avisos pendentes são cancelados. Sem restauração automática da nota original após excluir tarefa convertida.
+- Nenhuma migration adicional necessária além da 012 já aplicada. Testes notes-revision.php incluem edição, texto convertido, propriedade, criador visualizador, rollback com dependências/outbox/histórico, CSRF e exclusões concorrentes; suites de quadro/tarefas/relatórios/notificações aprovadas em banco descartável. Regressão PHP completa aprovada em banco descartável novo (001–012), incluindo notes-revision.php. UI/axe 320–1440px aprovada com edição no Inbox/projeto, exclusão de tarefa convertida e exclusão pelo autor que virou visualizador; outro usuário não vê a ação. Preflight local executado como www-data aprovado; sem alteração de credenciais ou fixtures no banco local.
+- Próximo passo: revisão aprovada; aguardar novas instruções após o commit, conforme pedido explícito do usuário. Preservar alteração preexistente em .env.example fora do escopo.
+
+## Fechamento do Brainstorm e pausa
+
+- Brainstorm, edição privada e exclusão de tarefas pelo criador aprovados para commit em 31/10/2026. Validações completas registradas acima; nenhum novo incremento iniciado. Aguardar instruções. Alteração preexistente em .env.example preservada fora deste commit; sem push, merge ou deploy.

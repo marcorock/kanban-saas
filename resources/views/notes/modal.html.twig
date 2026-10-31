@@ -1,0 +1,22 @@
+{% import 'ui/icons.html.twig' as noteUi %}
+<dialog id="quick-note-dialog" class="qn-dialog qn-postit" aria-labelledby="quick-note-title" data-note-dialog>
+    <header class="qn-modal-header"><div><p>GUARDE A IDEIA</p><h2 id="quick-note-title">Nota rápida</h2></div><button type="button" class="qn-icon-button" data-note-close aria-label="Fechar nota rápida">{{ noteUi.icon('close') }}</button></header>
+    <form method="post" action="/notes" data-note-form>
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <label for="quick-note-body">Sua ideia</label><textarea id="quick-note-body" name="body" maxlength="5000" rows="6" required placeholder="O que não pode escapar?" autofocus></textarea>
+        <label for="quick-note-project">Onde guardar</label><select id="quick-note-project" name="project_id"><option value="">Sem projeto / Inbox pessoal</option></select>
+        <p class="qn-help">Só você vê esta nota. Enter salva · Shift+Enter quebra a linha.</p><p class="qn-error" data-note-error role="alert" hidden></p>
+        <div class="qn-modal-actions"><button class="qn-button" type="button" data-note-close>Cancelar</button><button class="qn-button qn-primary" type="submit">Salvar nota</button></div>
+    </form>
+</dialog>
+<dialog id="quick-note-convert" class="qn-dialog" aria-labelledby="quick-note-convert-title" data-note-convert-dialog>
+    <header class="qn-modal-header"><div><p>DA IDEIA À AÇÃO</p><h2 id="quick-note-convert-title">Converter em tarefa</h2></div><button type="button" class="qn-icon-button" data-note-close aria-label="Fechar conversão">{{ noteUi.icon('close') }}</button></header>
+    <form method="post" data-note-convert-form>
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <p class="qn-help">A nota vira uma tarefa atribuída a você. O texto completo fica na descrição; a nota é removida após a conversão.</p>
+        <label for="quick-note-target">Projeto</label><select id="quick-note-target" name="project_id" required><option value="">Selecione um projeto</option></select>
+        <label for="quick-note-column">Coluna do Kanban</label><select id="quick-note-column" name="column_id" required disabled><option value="">Selecione um projeto primeiro</option></select>
+        <p class="qn-error" data-note-error role="alert" hidden></p><div class="qn-modal-actions"><button type="button" class="qn-button" data-note-close>Cancelar</button><button type="submit" class="qn-button qn-primary">Criar tarefa</button></div>
+    </form>
+</dialog>
+<p class="qn-toast" data-note-toast role="status" aria-live="polite" hidden></p>
