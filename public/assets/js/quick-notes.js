@@ -30,6 +30,8 @@
             throw issue;
         } finally { clearTimeout(timeout); }
     }
+    function previewColor() { dialog.dataset.color = form.elements.color.value || 'yellow'; }
+    form.addEventListener('change', previewColor);
     function close(modal) { if (modal.querySelector('form')?.dataset.busy) return; modal.close(); if (opener?.isConnected) opener.focus(); }
     async function refresh() {
         const section = document.querySelector('[data-note-section]'); if (!section) return;
@@ -45,7 +47,7 @@
         if (editing) { form.reset(); text.value = ''; } editing = false; form.action = '/notes'; destination.disabled = false; document.getElementById('quick-note-title').textContent = 'Nota rápida';
         opener = button || document.activeElement; const sequence = ++loading;
         error(dialog); destination.replaceChildren(new Option('Sem projeto / Inbox pessoal', ''));
-        dialog.showModal(); text.focus();
+        previewColor(); dialog.showModal(); text.focus();
         try {
             const result = await get('/notes/projects'); if (sequence !== loading || !dialog.open) return;
             for (const item of result.projects) destination.add(new Option(item.name, String(item.id)));
@@ -55,13 +57,17 @@
     }
     function editNote(button) {
         if (document.querySelector('dialog[open]')) return;
-        ++loading; opener = button; editing = true; error(dialog);
+        ++loading; opener = button.closest('details')?.querySelector('summary') || button; editing = true; error(dialog);
         form.action = '/notes/' + button.dataset.noteEdit + '/update';
-        text.value = button.closest('.qn-card').querySelector('.qn-body').textContent;
+        const card = button.closest('.qn-card');
+        text.value = card.querySelector('.qn-body').textContent;
+        form.elements.title.value = card.dataset.noteTitle;
+        form.elements.color.value = card.dataset.color;
+        card.querySelector('details').open = false;
         const project = button.dataset.noteProject || '';
         destination.replaceChildren(new Option(project ? 'Projeto atual · nota privada' : 'Sem projeto / Inbox pessoal', project)); destination.disabled = true;
         document.getElementById('quick-note-title').textContent = 'Editar nota';
-        dialog.showModal(); text.focus();
+        previewColor(); dialog.showModal(); text.focus();
     }
     async function loadColumns() {
         const sequence = ++columnsLoading; const project = target.value;

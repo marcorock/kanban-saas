@@ -17,7 +17,7 @@
 - Controllers, Services, Repository de projetos e Policy; ActivityLogger compartilhado grava eventos dentro das transações.
 - DocumentRoot public/; configuração em config/, bootstrap em bootstrap/, templates em resources/views/.
 - Ambiente local usa containers Coruja; PHP não está no PATH do host. Executar PHP no container web em /var/www/projects/kanbansaas.
-- Banco local configurado no .env (não versionado). Migrations 001–012 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
+- Banco local configurado no .env (não versionado). Migrations 001–014 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
 - Mailpit local: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; interface http://mail.localhost. Produção segue configurável por MAIL_*.
 - Branch de trabalho atual: post-its (estado encontrado ao implementar Brainstorm; sem troca automática). Não mudar/mesclar branches automaticamente.
 
@@ -147,3 +147,46 @@
 ## Fechamento do Brainstorm e pausa
 
 - Brainstorm, edição privada e exclusão de tarefas pelo criador aprovados para commit em 31/10/2026. Validações completas registradas acima; nenhum novo incremento iniciado. Aguardar instruções. Alteração preexistente em .env.example preservada fora deste commit; sem push, merge ou deploy.
+
+## Refatoração dos Post-its — planejamento inicial
+
+- Documento x_brainstorm/IMPLEMENTACAO_POSTIT_REFACTOR.md lido; por instrução explícita dele, nenhuma implementação iniciada antes da aprovação do planejamento. Base existente: commit c36b863, QuickNoteService/Controller, Twig e assets externos.
+- Planejar título/cor/visibilidade com migração compatível (notas atuais privadas/amarelas), propriedade atual separada do criador original, auditoria privada, transferência no mesmo projeto e conversão somente de notas vinculadas com título confirmado. Sem Workspaces neste incremento.
+- Decisão pendente: Público não pode significar todos os usuários nem automaticamente todos de tenant_users, pois inclui convidados de projetos diferentes. Recomendação inicial: Privado e Projeto funcionais, Público indisponível até aprovação de uma audiência explícita e segura. Envolvidos: criador/proprietário e destinatários registrados nas transferências, apenas se ainda autorizados; sem nova associação de colaboradores.
+- Proposta em três incrementos: título/cores/visual; visibilidade/movimentação/auditoria; transferência/conversão/avatares. Imagem referenciada não consta no diretório consultado; proposta visual baseada na descrição do documento. Próximo passo: aprovação do planejamento e do escopo de Público.
+- Alterações preexistentes encontradas em composer.json e .vscode/ preservadas; nenhum código, banco ou credencial alterado nesta leitura/planejamento.
+
+## Post-its — incremento 1 implementado, aguardando aprovação
+
+- Planejamento aprovado com imagem em 31/10/2026. Implementado somente o primeiro incremento: título opcional (200 caracteres), corpo preservado (5.000), urgências baixa/verde, média/amarelo (padrão) e alta/laranja e composição do card com cabeçalho/data, rolagem interna, menu, ações compactas e inicial do proprietário. Twig, CSS e JS externos; formulário sem JavaScript também oferece título e cores.
+- Migration 013 compatível com notas existentes (título vazio, amarelo); aplicada no ambiente local após validação em banco descartável. Atualizações de clientes antigos preservam título/cor; conversão aproveita título existente e mantém descrição integral.
+- Privacidade e permissões permanecem as atuais. Menu oferece edição; a inicial representa apenas o proprietário real. Visibilidade/movimentação/auditoria ficam no incremento 2; transferência, envolvidos derivados do histórico e conversão restrita a projeto com título confirmado ficam no 3. Por isso, a conversão no Inbox permanece temporariamente com o fluxo anterior. Público continua indisponível; sem Workspaces.
+- Alterações preexistentes em composer.json e .vscode/ preservadas. Sem commit deste incremento antes da aprovação; sem push, merge ou deploy.
+- Validação: regressão PHP completa aprovada em banco descartável novo (001–013), incluindo migração de linha antiga, limites/UTF-8, cores, compatibilidade de atualização, XSS/CSRF, autorização, tenant, rollback e concorrência. Chromium/axe do Brainstorm aprovado em 320–1440px, incluindo atalhos, foco, conversão, exclusão e fallback sem JS. Teste específico de aparência validou persistência/edição das cores, rolagem e ações dentro do card; capturas locais em storage/previews/postit-mobile.png e postit-desktop.png. Corrigidos contraste do texto de ajuda e prioridade das cinco colunas da navegação mobile. Preflight local como www-data aprovado com migration 013; nenhuma fixture no banco local.
+- Próximo passo: aprovação deste incremento para commit; depois iniciar o incremento 2 (visibilidade, movimentação e auditoria), mantendo Público indisponível.
+
+### Ajuste solicitado antes da aprovação — urgência dos Post-its
+
+- As cores representam urgência: Verde · Baixa (“Pode ser realizada sem pressa.”), Amarelo · Média (“Requer atenção e planejamento.”) e Laranja · Alta (“Precisa ser resolvida em breve.”). Amarelo/média permanece selecionado por padrão, inclusive após salvar ou sair da edição. O card identifica a urgência também por texto.
+- Migration 014 mantém o padrão amarelo e converte as notas azuis existentes em laranja, preservando título, corpo e propriedade. Validada em banco descartável e aplicada localmente; testes PHP de aparência/Brainstorm aprovados e checagem local como www-data aprovada.
+- O incremento 1 continua aguardando aprovação; nenhum commit ou avanço de incremento neste ajuste. Validação Chromium/axe aprovada em 320–1440px, com persistência de laranja/verde, padrão amarelo, rótulos e contraste das três urgências. Regressão completa não repetida neste ajuste; apenas as suítes afetadas.
+
+### Simplificação visual das opções de urgência
+
+- Ajuste solicitado antes da aprovação: seletor compacto em uma linha, somente Baixa, Média e Alta, com as cores correspondentes e Média/amarelo selecionada por padrão. Removidos os nomes das cores e as explicações dos formulários de criação e edição, incluindo o fallback sem JS. Mantidos alvos de toque de 44px, foco e radios nativos.
+- Alteração apenas em apresentação, sem mudança de dados ou migration adicional. Incremento 1 continua aguardando aprovação; sem commit e sem iniciar o incremento 2.
+- Validação deste ajuste: renderização Twig dos dois formulários confirmou os três rótulos, ausência das explicações e seleção única de Média/amarelo; git diff --check aprovado. Teste Chromium existente atualizado aos novos rótulos; não reexecutado neste ajuste de apresentação.
+
+### Restauração do seletor original
+
+- A tentativa de grid deixou o legend do fieldset ocupar uma das colunas, quebrando a disposição. Restaurados o flex com quebra responsiva e as dimensões dos controles da primeira implementação, retirando as regras posteriores de expansão/centralização. Mantido o título original “Cor da nota”; somente os rótulos das opções passam a Média, Alta e Baixa, com amarelo selecionado por padrão. Cores e dados preservados.
+- Incremento 1 segue aguardando aprovação, sem commit nem avanço para o próximo incremento.
+- Removido também o texto adicional de urgência no card, introduzido após a primeira implementação, para manter a composição original.
+- Validação em Chromium com Twig real e folhas de estilo do app, sem banco/fixtures de usuários: opções alinhadas na mesma linha em 320, 390, 768 e 1024px, alvos de toque de 44px, padrão amarelo e ausência de overflow horizontal. Captura revisada em storage/previews/postit-selector-restored.png.
+
+## Aprovação do incremento 1 dos Post-its
+
+- Incremento aprovado pelo usuário, incluindo o título “Prioridade” editado por ele no seletor. Confirmada a renderização dos dois formulários, com Média/amarelo como padrão; teste visual existente ajustado ao título final. Layout e rótulos simples preservados.
+- Commit autorizado exclusivamente para título, prioridade/cores e visual do incremento 1 e documentação/testes correspondentes. composer.json e .vscode/ continuam fora do escopo.
+- Próximo trabalho autorizado após o commit: incremento 2, com Privado/Projeto, movimentação entre destinos acessíveis e auditoria privada/transacional. Público permanece indisponível. Transferência e confirmação da conversão ficam no incremento 3.
+- Fechamento aprovado: regressão PHP completa executada novamente em banco descartável novo, migrations 001–014, todas as suítes aprovadas. Incremento 1 concluído; próximo incremento autorizado conforme acima.

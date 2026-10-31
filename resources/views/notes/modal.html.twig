@@ -3,7 +3,7 @@
     <header class="qn-modal-header"><div><p>GUARDE A IDEIA</p><h2 id="quick-note-title">Nota rápida</h2></div><button type="button" class="qn-icon-button" data-note-close aria-label="Fechar nota rápida">{{ noteUi.icon('close') }}</button></header>
     <form method="post" action="/notes" data-note-form>
         <input type="hidden" name="_token" value="{{ csrf }}">
-        <label for="quick-note-body">Sua ideia</label><textarea id="quick-note-body" name="body" maxlength="5000" rows="6" required placeholder="O que não pode escapar?" autofocus></textarea>
+{% include 'notes/appearance.html.twig' with {noteFieldPrefix: 'quick-note'} %}        <label for="quick-note-body">Sua ideia</label><textarea id="quick-note-body" name="body" maxlength="5000" rows="6" required placeholder="O que não pode escapar?" autofocus></textarea>
         <label for="quick-note-project">Onde guardar</label><select id="quick-note-project" name="project_id"><option value="">Sem projeto / Inbox pessoal</option></select>
         <p class="qn-help">Só você vê esta nota. Enter salva · Shift+Enter quebra a linha.</p><p class="qn-error" data-note-error role="alert" hidden></p>
         <div class="qn-modal-actions"><button class="qn-button" type="button" data-note-close>Cancelar</button><button class="qn-button qn-primary" type="submit">Salvar nota</button></div>

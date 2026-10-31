@@ -34,14 +34,24 @@ final class QuickNoteService
         if(!is_string($body)||!mb_check_encoding($body,'UTF-8')||trim($body)===''||mb_strlen(trim($body))>5000||preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/',$body))throw new HttpException('Escreva uma nota de até 5.000 caracteres.',422);
         return trim($body);
     }
-    public function create(int $user,mixed $body,?int $project):int
+    private function title(mixed $title):string
     {
-        $body=$this->body($body);
+        if(!is_string($title)||!mb_check_encoding($title,'UTF-8')||mb_strlen(trim($title))>200||preg_match('/[\x00-\x1f\x7f]/',$title))throw new HttpException('Use um título de até 200 caracteres, sem quebras de linha.',422);
+        return trim($title);
+    }
+    private function color(mixed $color):string
+    {
+        if(!is_string($color)||!in_array($color,['yellow','orange','green'],true))throw new HttpException('Escolha um dos três graus de urgência disponíveis.',422);
+        return $color;
+    }
+    public function create(int $user,mixed $body,?int $project,mixed $title='',mixed $color='yellow'):int
+    {
+        $body=$this->body($body);$title=$this->title($title);$color=$this->color($color);
         $this->pdo->beginTransaction();
         try {
             if($project===null)$tenant=$this->personal($user);
             else{$p=$this->project($user,$project);if($p['archived_at'])throw new HttpException('Escolha um projeto ativo.',409);$tenant=(int)$p['tenant_id'];}
-            $q=$this->pdo->prepare('INSERT INTO quick_notes(tenant_id,user_id,project_id,body) VALUES (?,?,?,?)');$q->execute([$tenant,$user,$project,trim($body)]);$id=(int)$this->pdo->lastInsertId();$this->pdo->commit();return $id;
+            $q=$this->pdo->prepare('INSERT INTO quick_notes(tenant_id,user_id,project_id,body,title,color) VALUES (?,?,?,?,?,?)');$q->execute([$tenant,$user,$project,$body,$title,$color]);$id=(int)$this->pdo->lastInsertId();$this->pdo->commit();return $id;
         }catch(Throwable $e){$this->pdo->rollBack();throw $e;}
     }
     public function page(int $user,?int $project,int $page=1):array
@@ -49,7 +59,7 @@ final class QuickNoteService
         $tenant=$project===null?$this->personal($user):(int)$this->project($user,$project)['tenant_id'];
         $where=' FROM quick_notes WHERE tenant_id=? AND user_id=? AND project_id <=> ?';$params=[$tenant,$user,$project];
         $q=$this->pdo->prepare('SELECT COUNT(*)'.$where);$q->execute($params);$total=(int)$q->fetchColumn();$pages=max(1,(int)ceil($total/20));$page=max(1,min($page,$pages));
-        $q=$this->pdo->prepare('SELECT id,project_id,body,created_at'.$where.' ORDER BY id DESC LIMIT 20 OFFSET '.(($page-1)*20));$q->execute($params);return ['items'=>$q->fetchAll(),'total'=>$total,'page'=>$page,'pages'=>$pages];
+        $q=$this->pdo->prepare('SELECT id,project_id,body,title,color,created_at'.$where.' ORDER BY id DESC LIMIT 20 OFFSET '.(($page-1)*20));$q->execute($params);return ['items'=>$q->fetchAll(),'total'=>$total,'page'=>$page,'pages'=>$pages];
     }
     private function owned(int $user,int $id,bool $lock=false,?array $known=null):array
     {
@@ -58,13 +68,16 @@ final class QuickNoteService
         elseif((int)$n['tenant_id']!==$this->personal($user))throw new HttpException('Nota não encontrada.',404);
         return $n;
     }
-    public function update(int $user,int $id,mixed $body):?int
+    public function update(int $user,int $id,mixed $body,array $appearance=[]):?int
     {
-        $body=$this->body($body);$hint=$this->owned($user,$id);
+        $body=$this->body($body);
+        $title=array_key_exists('title',$appearance)?$this->title($appearance['title']):null;
+        $color=array_key_exists('color',$appearance)?$this->color($appearance['color']):null;
+        $hint=$this->owned($user,$id);
         $this->pdo->beginTransaction();
         try {
             $p=$hint['project_id']===null?null:$this->project($user,(int)$hint['project_id']);$n=$this->owned($user,$id,true,$p);
-            $this->pdo->prepare('UPDATE quick_notes SET body=? WHERE id=? AND tenant_id=? AND user_id=?')->execute([$body,$id,$n['tenant_id'],$user]);
+            $this->pdo->prepare('UPDATE quick_notes SET body=?,title=?,color=? WHERE id=? AND tenant_id=? AND user_id=?')->execute([$body,$title??$n['title'],$color??$n['color'],$id,$n['tenant_id'],$user]);
             $this->pdo->commit();return $n['project_id']===null?null:(int)$n['project_id'];
         }catch(Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}
     }
@@ -85,7 +98,7 @@ final class QuickNoteService
             if($n['project_id']!==null&&(int)$n['project_id']!==$project)throw new HttpException('Converta no projeto ao qual a nota pertence.',422);
             $q=$this->pdo->prepare('SELECT id,is_done FROM kanban_columns WHERE tenant_id=? AND project_id=? AND id=?');$q->execute([$p['tenant_id'],$project,$column]);$c=$q->fetch();if(!$c)throw new HttpException('Coluna indisponível neste projeto.',422);
             $q=$this->pdo->prepare('SELECT COUNT(*) FROM tasks WHERE tenant_id=? AND project_id=? AND column_id=?');$q->execute([$p['tenant_id'],$project,$column]);$position=(int)$q->fetchColumn();
-            $title=mb_substr(preg_replace('/\s+/u',' ',$n['body']),0,200);$done=$c['is_done']?$this->pdo->query('SELECT UTC_TIMESTAMP()')->fetchColumn():null;
+            $title=$n['title']!==''?$n['title']:mb_substr(preg_replace('/\s+/u',' ',$n['body']),0,200);$done=$c['is_done']?$this->pdo->query('SELECT UTC_TIMESTAMP()')->fetchColumn():null;
             $this->pdo->prepare('INSERT INTO tasks(tenant_id,project_id,column_id,created_by,title,description,position,completed_at) VALUES (?,?,?,?,?,?,?,?)')->execute([$p['tenant_id'],$project,$column,$user,$title,$n['body'],$position,$done]);$task=(int)$this->pdo->lastInsertId();
             $this->pdo->prepare('INSERT INTO task_assignees(tenant_id,project_id,task_id,user_id) VALUES (?,?,?,?)')->execute([$p['tenant_id'],$project,$task,$user]);
             $logger=new ActivityLogger($this->pdo);$logger->record($p,$user,'task.created',null,['title'=>$title,'column_id'=>$column,'position'=>$position,'completed_at'=>$done],$task);
