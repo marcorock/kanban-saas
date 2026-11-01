@@ -85,3 +85,6 @@ SimpleRouter::post('/notes/{id}/update', static fn (string $id): string => $note
 
 SimpleRouter::get('/notes/{id}/recipients', static fn (string $id): string => $notes->handle('recipients',$id));
 SimpleRouter::post('/notes/{id}/transfer', static fn (string $id): string => $notes->handle('transfer',$id));
+
+SimpleRouter::get('/projects/{id}/board/version', static fn (string $id): string => $board->handle($id,false,null,'version'));
+SimpleRouter::get('/projects/{id}/board/state', static fn (string $id): string => $board->handle($id,false,null,'state'));

@@ -9,6 +9,7 @@
 - Texto e ícone do botão Nova nota mantêm contraste branco no projeto, inclusive em hover/foco, sem interferência das cores genéricas dos links.
 
 ### Adicionado
+- Sincronização automática do Kanban: polling reutilizável de 7s com consulta leve de versão, snapshot apenas quando há mudanças, pausa em abas inativas, retomada imediata e reconexão com backoff. Preserva filtros, rolagem, foco e painéis; rascunhos adiam a aplicação e conflitos mantêm o texto para revisão explícita. Endpoints JSON autenticados reconferem projeto/tenant e acesso revogado interrompe a sincronização. Sem migration ou dependência adicional.
 - Post-its (incremento 3): transferência confirmada para outro membro verificado do mesmo projeto, com novo proprietário, criador e histórico preservados; conversão somente no projeto da nota, com título obrigatório/editável e revisão conferida; envolvidos derivados da auditoria, filtrados pelo acesso atual, com iniciais e agrupamento +N. Sem migration adicional.
 - Post-its (incremento 2): visibilidade Privado/Projeto, movimentação entre Inbox e projetos acessíveis, proprietário original preservado, controle de versão e auditoria privada na mesma transação. Leitores de notas compartilhadas não recebem ações de edição/exclusão/conversão; Público permanece indisponível. Migration 015 mantém as notas existentes privadas e importa seu histórico inicial sem copiar o conteúdo.
 - Seletor original dos Post-its restaurado, com rótulos Média (padrão), Alta e Baixa, sem nomes das cores ou explicações.

@@ -6,7 +6,7 @@
     <a class="kb-back" href="/projects/{{ board.project_id }}">{{ ui.icon('arrow-left') }} Detalhes do projeto</a>
     <div class="kb-intro"><p class="kb-eyebrow">UM PASSO DE CADA VEZ</p><h2>{{ board.name }}</h2><p>Organize o que vem a seguir. Veja suas entregas ganharem movimento.</p></div>
     <nav class="kb-navigation" aria-label="Navegação do projeto"><a href="/projects/{{ board.project_id }}/board" aria-current="page">{{ ui.icon('tasks') }} Quadro</a><a href="/projects/{{ board.project_id }}/members">{{ ui.icon('users') }} Participantes</a><a href="/projects/{{ board.project_id }}/history">{{ ui.icon('history') }} Histórico do projeto</a></nav>
-    {% if board.archived %}<p class="kb-context">{{ ui.icon('archive') }} Projeto arquivado. O quadro está disponível somente para consulta.</p>{% elseif not board.can_write %}<p class="kb-context">{{ ui.icon('lock') }} Você possui acesso de leitura a este quadro.</p>{% endif %}
+    <div id="board-access-context">{% if board.archived %}<p class="kb-context">{{ ui.icon('archive') }} Projeto arquivado. O quadro está disponível somente para consulta.</p>{% elseif not board.can_write %}<p class="kb-context">{{ ui.icon('lock') }} Você possui acesso de leitura a este quadro.</p>{% endif %}</div>
     <div id="board-message" class="kb-notice d-none" role="status" aria-live="polite"></div>
     <div class="kb-toolbar" data-board-enhancement hidden>
         <details id="board-filters" class="kb-disclosure"><summary>{{ ui.icon('tasks') }} Filtrar tarefas <span id="filter-count">Nenhum filtro</span></summary>
@@ -18,12 +18,12 @@
             </div><button class="kb-button kb-secondary" type="button" id="clear-board-filters">Limpar filtros</button>
         </details>
         {% if board.can_manage %}<details class="kb-disclosure"><summary>{{ ui.icon('plus') }} Nova coluna</summary><form id="column-create"><label class="kb-field" for="new-column-name">Nova coluna<input id="new-column-name" name="name" maxlength="80" required></label><label class="kb-check" for="new-column-done"><input id="new-column-done" name="is_done" type="checkbox"><span>Conclui tarefas</span></label><button class="kb-button kb-primary" type="submit">Adicionar coluna</button></form></details>{% endif %}
-        <a href="/projects/{{ board.project_id }}/board" class="kb-button kb-secondary">Atualizar quadro {{ ui.icon('arrow-right') }}</a>
+        <a href="/projects/{{ board.project_id }}/board" class="kb-button kb-secondary" data-board-refresh>Atualizar quadro {{ ui.icon('arrow-right') }}</a>
     </div>
     <p id="filter-note" class="kb-context d-none">Limpe os filtros para arrastar tarefas e colunas. Você pode continuar usando os formulários para mover.</p>
     <div class="kb-board-caption"><p>Deslize para ver as colunas. Abra uma tarefa para consultar os detalhes.</p><div class="kb-column-navigation" data-board-enhancement hidden><button type="button" id="previous-column" aria-label="Coluna anterior">{{ ui.icon('arrow-left') }}</button><button type="button" id="next-column" aria-label="Próxima coluna">{{ ui.icon('arrow-right') }}</button></div></div>
     <noscript><p class="kb-context">Sem JavaScript, o quadro fica disponível para consulta. Ative-o para criar, editar ou movimentar tarefas.</p></noscript>
-    <div id="kanban" class="kanban" role="region" aria-label="Colunas do quadro" tabindex="0" data-endpoint="/projects/{{ board.project_id }}/board" data-csrf="{{ csrf }}">
+    <div id="kanban" class="kanban" role="region" aria-label="Colunas do quadro" tabindex="0" data-sync-interval="7000" data-endpoint="/projects/{{ board.project_id }}/board" data-csrf="{{ csrf }}">
         {% for column in board.columns %}<section class="kanban-column"><div class="kb-column-heading"><h3 class="kanban-title">{{ column.name }}</h3></div><p class="kb-column-count">{{ column.tasks|length }} tarefa(s){% if column.is_done %} · Conclusão{% endif %}</p><div class="kanban-tasks">{% for task in column.tasks %}<article class="kanban-task"><p class="kanban-title">{{ task.title }}</p></article>{% else %}<p class="kb-empty">Nenhuma tarefa nesta coluna.</p>{% endfor %}</div></section>{% endfor %}
     </div>
 </div>
@@ -34,5 +34,6 @@
 {% block scripts %}
 <script src="/assets/vendor/sortablejs/Sortable.min.js" defer></script>
 <script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+<script src="/assets/js/live-sync.js" defer></script>
 <script src="/assets/js/board.js" defer></script>
 {% endblock %}
