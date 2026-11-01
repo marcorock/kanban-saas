@@ -15,9 +15,18 @@
     <form method="post" data-note-convert-form>
         <input type="hidden" name="_token" value="{{ csrf }}">
         <p class="qn-help">A nota vira uma tarefa atribuída a você. O texto completo fica na descrição; a nota é removida após a conversão.</p>
-        <label for="quick-note-target">Projeto</label><select id="quick-note-target" name="project_id" required><option value="">Selecione um projeto</option></select>
-        <label for="quick-note-column">Coluna do Kanban</label><select id="quick-note-column" name="column_id" required disabled><option value="">Selecione um projeto primeiro</option></select>
+        <input id="quick-note-target" type="hidden" name="project_id"><input type="hidden" name="revision">
+        <label for="quick-note-task-title">Título da tarefa</label><input id="quick-note-task-title" name="title" type="text" maxlength="200" required>
+        <label for="quick-note-column">Coluna do Kanban</label><select id="quick-note-column" name="column_id" required disabled><option value="">Carregando colunas</option></select>
         <p class="qn-error" data-note-error role="alert" hidden></p><div class="qn-modal-actions"><button type="button" class="qn-button" data-note-close>Cancelar</button><button type="submit" class="qn-button qn-primary">Criar tarefa</button></div>
+    </form>
+</dialog>
+<dialog id="quick-note-transfer" class="qn-dialog" aria-labelledby="quick-note-transfer-title" data-note-transfer-dialog>
+    <header class="qn-modal-header"><h2 id="quick-note-transfer-title">Transferir nota</h2><button type="button" class="qn-icon-button" data-note-close aria-label="Fechar transferência">{{ noteUi.icon('close') }}</button></header>
+    <form method="post" data-note-transfer-form><input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="project_id"><input type="hidden" name="revision">
+        <label for="quick-note-recipient">Transferir para</label><select id="quick-note-recipient" name="recipient_id" required><option value="">Selecione um membro</option></select>
+        <label class="qn-transfer-confirm"><input type="checkbox" name="confirm" value="1" required><span>Confirmo a transferência. Deixarei de ser proprietário desta nota.</span></label>
+        <p class="qn-error" data-note-error role="alert" hidden></p><div class="qn-modal-actions"><button type="button" class="qn-button" data-note-close>Cancelar</button><button type="submit" class="qn-button qn-primary">Transferir</button></div>
     </form>
 </dialog>
 <p class="qn-toast" data-note-toast role="status" aria-live="polite" hidden></p>

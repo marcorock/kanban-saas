@@ -82,3 +82,6 @@ SimpleRouter::post('/notes/{id}/delete', static fn (string $id): string => $note
 SimpleRouter::post('/notes/{id}/convert', static fn (string $id): string => $notes->handle('convert',$id));
 
 SimpleRouter::post('/notes/{id}/update', static fn (string $id): string => $notes->handle('update',$id));
+
+SimpleRouter::get('/notes/{id}/recipients', static fn (string $id): string => $notes->handle('recipients',$id));
+SimpleRouter::post('/notes/{id}/transfer', static fn (string $id): string => $notes->handle('transfer',$id));

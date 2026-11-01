@@ -2,9 +2,12 @@
 (() => {
     const dialog = document.querySelector('[data-note-dialog]');
     const convertDialog = document.querySelector('[data-note-convert-dialog]');
-    if (!dialog || !convertDialog) return;
+    const transferDialog = document.querySelector('[data-note-transfer-dialog]');
+    if (!dialog || !convertDialog || !transferDialog) return;
     const form = dialog.querySelector('form');
     const convertForm = convertDialog.querySelector('form');
+    const transferForm = transferDialog.querySelector('form');
+    let transferLoading = 0;
     const text = form.elements.body;
     const destination = form.elements.project_id;
     const visibility = form.elements.visibility;
@@ -101,23 +104,33 @@
     }
     async function openConversion(button) {
         if (document.querySelector('dialog[open]')) return;
-        opener = button; error(convertDialog); convertForm.action = '/notes/' + button.dataset.noteConvert + '/convert';
-        target.replaceChildren(new Option('Selecione um projeto', '')); column.replaceChildren(new Option('Selecione um projeto primeiro', '')); column.disabled = true;
-        convertForm.querySelector('[type="submit"]').disabled = true; convertDialog.showModal();
+        const project = button.dataset.noteProject; if (!project) { announce('Vincule a nota a um projeto antes de converter.'); return; }
+        const card = button.closest('.qn-card'); opener = button; error(convertDialog); convertForm.action = '/notes/' + button.dataset.noteConvert + '/convert';
+        target.value = project; convertForm.elements.title.value = card.dataset.noteTitle; convertForm.elements.revision.value = card.dataset.noteRevision;
+        column.replaceChildren(new Option('Carregando colunas', '')); column.disabled = true;
+        convertForm.querySelector('[type="submit"]').disabled = true; convertDialog.showModal(); convertForm.elements.title.focus(); await loadColumns();
+    }
+    async function openTransfer(button) {
+        if (document.querySelector('dialog[open]')) return;
+        const card = button.closest('.qn-card'); const sequence = ++transferLoading;
+        opener = button.closest('details')?.querySelector('summary') || button; card.querySelector('details').open = false;
+        transferForm.reset(); error(transferDialog); transferForm.action = '/notes/' + button.dataset.noteTransfer + '/transfer';
+        transferForm.elements.project_id.value = button.dataset.noteProject; transferForm.elements.revision.value = card.dataset.noteRevision;
+        const recipient = transferForm.elements.recipient_id; recipient.replaceChildren(new Option('Selecione um membro', ''));
+        transferForm.querySelector('[type="submit"]').disabled = true; transferDialog.showModal(); recipient.focus();
         try {
-            const result = await get('/notes/projects?writable=1'); if (!convertDialog.open) return;
-            const fixed = button.dataset.noteProject;
-            for (const item of result.projects) if (!fixed || String(item.id) === fixed) target.add(new Option(item.name, String(item.id)));
-            if (fixed) { target.value = fixed; await loadColumns(); column.focus(); }
-            else target.focus();
-            if (target.options.length === 1) error(convertDialog, 'Nenhum projeto ativo permite criar tarefas. Crie um projeto ou revise seu acesso.');
-        } catch (issue) { error(convertDialog, issue.message); }
+            const result = await get('/notes/' + button.dataset.noteTransfer + '/recipients'); if (!transferDialog.open || sequence !== transferLoading) return;
+            for (const person of result.recipients) recipient.add(new Option(person.name, String(person.id)));
+            transferForm.querySelector('[type="submit"]').disabled = !result.recipients.length;
+            if (!result.recipients.length) error(transferDialog, 'Nenhum outro membro disponível neste projeto.');
+        } catch (issue) { if (transferDialog.open && sequence === transferLoading) error(transferDialog, issue.message); }
     }
     document.addEventListener('click', event => {
         if (!(event.target instanceof Element)) return;
         const button = event.target.closest('[data-note-open]');
         if (button) { event.preventDefault(); openNote(button); return; }
         const edit = event.target.closest('[data-note-edit]'); if (edit) { editNote(edit); return; }
+        const transfer = event.target.closest('[data-note-transfer]'); if (transfer) { openTransfer(transfer); return; }
         const conversion = event.target.closest('[data-note-convert]');
         if (conversion) openConversion(conversion);
         const cancel = event.target.closest('[data-note-close]');
@@ -131,7 +144,7 @@
         if ((key === 'k' && (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) || (key === 'n' && !event.ctrlKey && !event.metaKey && !event.altKey)) { event.preventDefault(); openNote(); }
     });
     text.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); form.requestSubmit(); } });
-    for (const modal of [dialog, convertDialog]) modal.addEventListener('cancel', event => { if (modal.querySelector('form')?.dataset.busy) { event.preventDefault(); return; } if (opener?.isConnected) setTimeout(() => opener.focus(), 0); });
+    for (const modal of [dialog, convertDialog, transferDialog]) modal.addEventListener('cancel', event => { if (modal.querySelector('form')?.dataset.busy) { event.preventDefault(); return; } if (opener?.isConnected) setTimeout(() => opener.focus(), 0); });
     async function submit(event, modal, currentForm, converted) {
         event.preventDefault(); const submitter = currentForm.querySelector('[type="submit"]'); if (submitter.disabled) return;
         submitter.disabled = true; currentForm.dataset.busy = 'true'; for (const cancel of modal.querySelectorAll('[data-note-close]')) cancel.disabled = true; error(modal);
@@ -142,6 +155,7 @@
     }
     form.addEventListener('submit', event => submit(event, dialog, form, false));
     convertForm.addEventListener('submit', event => submit(event, convertDialog, convertForm, true));
+    transferForm.addEventListener('submit', event => submit(event, transferDialog, transferForm, true));
     target.addEventListener('change', () => { error(convertDialog); loadColumns(); });
     document.addEventListener('submit', async event => {
         const deletion = event.target.closest('[data-note-delete]'); if (!deletion) return;

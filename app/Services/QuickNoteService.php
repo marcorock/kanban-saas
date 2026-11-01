@@ -20,7 +20,7 @@ final class QuickNoteService
     }
     private function project(int $user,int $id,bool $write=false):array
     {
-        $p=(new ProjectRepository($this->pdo))->find($user,$id,$this->pdo->inTransaction());
+        try{$p=(new ProjectRepository($this->pdo))->find($user,$id,$this->pdo->inTransaction());}catch(\PDOException $e){if((int)($e->errorInfo[1]??0)===1020)throw new HttpException('O projeto foi alterado. Recarregue a lista.',409);throw $e;}
         if($write&&$p['archived_at'])throw new HttpException('O projeto está arquivado.',409);
         if($write&&!in_array($p['role'],['owner','admin','member'],true))throw new HttpException('Seu papel não permite criar tarefas.',403);
         return $p;
@@ -105,7 +105,7 @@ final class QuickNoteService
         $where=' FROM quick_notes n JOIN users u ON u.id=n.user_id WHERE n.tenant_id=? AND n.project_id <=> ? AND (n.user_id=? OR n.visibility=\'project\')';$params=[$tenant,$project,$user];
         if($project!==null){$where.=' AND EXISTS (SELECT 1 FROM project_members pm JOIN tenant_users tu ON tu.tenant_id=pm.tenant_id AND tu.user_id=pm.user_id WHERE pm.tenant_id=n.tenant_id AND pm.project_id=n.project_id AND pm.user_id=?)';$params[]=$user;}
         $q=$this->pdo->prepare('SELECT COUNT(*)'.$where);$q->execute($params);$total=(int)$q->fetchColumn();$pages=max(1,(int)ceil($total/20));$page=max(1,min($page,$pages));
-        $q=$this->pdo->prepare('SELECT n.id,n.user_id,n.created_by,n.project_id,n.body,n.title,n.color,n.visibility,n.revision,n.created_at,u.name AS owner_name'.$where.' ORDER BY n.id DESC LIMIT 20 OFFSET '.(($page-1)*20));$q->execute($params);return ['items'=>$q->fetchAll(),'total'=>$total,'page'=>$page,'pages'=>$pages];
+        $q=$this->pdo->prepare('SELECT n.id,n.user_id,n.created_by,n.project_id,n.body,n.title,n.color,n.visibility,n.revision,n.created_at,u.name AS owner_name'.$where.' ORDER BY n.id DESC LIMIT 20 OFFSET '.(($page-1)*20));$q->execute($params);return ['items'=>$this->withInvolved($q->fetchAll()),'total'=>$total,'page'=>$page,'pages'=>$pages];
     }
     private function owned(int $user,int $id,bool $lock=false,?array $known=null):array
     {
@@ -149,16 +149,67 @@ final class QuickNoteService
             $this->pdo->prepare('DELETE FROM quick_notes WHERE id=? AND user_id=?')->execute([$id,$user]);$this->pdo->commit();
         }catch(Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}
     }
-    public function convert(int $user,int $id,int $project,int $column):int
+    public function recipients(int $user,int $id):array
     {
+        $note=$this->owned($user,$id);
+        if($note['project_id']===null)throw new HttpException('Vincule a nota a um projeto antes de transferir.',422);
+        $project=$this->project($user,(int)$note['project_id']);
+        if($project['archived_at'])throw new HttpException('O projeto está arquivado.',409);
+        $q=$this->pdo->prepare('SELECT u.id,u.name FROM project_members m JOIN tenant_users t ON t.tenant_id=m.tenant_id AND t.user_id=m.user_id JOIN users u ON u.id=m.user_id WHERE m.tenant_id=? AND m.project_id=? AND m.user_id<>? AND u.email_verified_at IS NOT NULL ORDER BY u.name,u.id');$q->execute([$note['tenant_id'],$note['project_id'],$user]);return $q->fetchAll();
+    }
+    public function transfer(int $user,int $id,int $recipient,bool $confirmed,mixed $revision):int
+    {
+        if(!$confirmed)throw new HttpException('Confirme a transferência da propriedade.',422);
+        if($recipient<1||$recipient===$user)throw new HttpException('Escolha outro membro do projeto.',422);
+        $expected=$this->revision($revision);
+        for($attempt=0;$attempt<3;$attempt++){
+            $this->pdo->beginTransaction();
+            try{
+                [$note,$projects]=$this->lockedOwner($user,$id);
+                if($note['project_id']===null)throw new HttpException('Vincule a nota a um projeto antes de transferir.',422);
+                $project=$projects[(int)$note['project_id']];
+                if($project['archived_at'])throw new HttpException('O projeto está arquivado.',409);
+                if((int)$note['revision']!==$expected)throw new HttpException('A nota foi alterada. Recarregue antes de transferir.',409);
+                $q=$this->pdo->prepare('SELECT m.user_id FROM project_members m JOIN tenant_users t ON t.tenant_id=m.tenant_id AND t.user_id=m.user_id JOIN users u ON u.id=m.user_id WHERE m.tenant_id=? AND m.project_id=? AND m.user_id=? AND u.email_verified_at IS NOT NULL FOR UPDATE');$q->execute([$note['tenant_id'],$note['project_id'],$recipient]);
+                if(!$q->fetchColumn())throw new HttpException('Destinatário indisponível neste projeto.',422);
+                $this->pdo->prepare('UPDATE quick_notes SET user_id=?,revision=revision+1 WHERE id=? AND user_id=?')->execute([$recipient,$id,$user]);
+                $after=array_replace($note,['user_id'=>$recipient,'revision'=>$expected+1]);
+                $this->audit($user,$id,(int)$note['tenant_id'],'transferred',$note,$after,['user_id']);
+                $this->pdo->commit();return (int)$note['project_id'];
+            }catch(Throwable $e){
+                if($this->pdo->inTransaction())$this->pdo->rollBack();
+                // Operação apenas no banco: repetir uma transação vítima de deadlock é seguro.
+                if($e instanceof \PDOException&&(int)($e->errorInfo[1]??0)===1213&&$attempt<2)continue;
+                throw $e;
+            }
+        }
+        throw new HttpException('Recarregue a nota e tente transferir novamente.',409);
+    }
+    private function withInvolved(array $items):array
+    {
+        if(!$items)return [];
+        $ids=array_column($items,'id');$marks=implode(',',array_fill(0,count($ids),'?'));
+        $sql="SELECT n.id AS note_id,u.id,u.name,(u.id=n.user_id) AS is_owner,(u.id=n.created_by) AS is_creator FROM (SELECT id AS note_id,user_id AS person_id FROM quick_notes WHERE id IN ($marks) UNION SELECT id,created_by FROM quick_notes WHERE id IN ($marks) UNION SELECT note_id,CAST(JSON_UNQUOTE(JSON_EXTRACT(after_state,'$.user_id')) AS UNSIGNED) FROM quick_note_events WHERE note_id IN ($marks) AND action='transferred') involved JOIN quick_notes n ON n.id=involved.note_id JOIN users u ON u.id=involved.person_id WHERE 1=1 AND u.email_verified_at IS NOT NULL AND (u.id=n.user_id OR n.visibility='project') AND ((n.project_id IS NULL AND u.id=n.user_id) OR EXISTS (SELECT 1 FROM project_members m JOIN tenant_users t ON t.tenant_id=m.tenant_id AND t.user_id=m.user_id WHERE m.tenant_id=n.tenant_id AND m.project_id=n.project_id AND m.user_id=u.id)) ORDER BY n.id,is_owner DESC,u.id";
+        $q=$this->pdo->prepare($sql);$q->execute(array_merge($ids,$ids,$ids));$people=[];
+        foreach($q->fetchAll() as $person)$people[(int)$person['note_id']][]=$person;
+        foreach($items as &$note)$note['involved']=$people[(int)$note['id']]??[];
+        return $items;
+    }
+    public function convert(int $user,int $id,int $project,int $column,mixed $title,mixed $revision):int
+
+    {
+        $title=$this->title($title);if($title==='')throw new HttpException('Informe o título da tarefa.',422);$expected=$this->revision($revision);
         $this->pdo->beginTransaction();
         try {
-            // Mesma ordem/serialização do Kanban: projeto antes da nota/coluna.
-            $p=$this->project($user,$project,true);$n=$this->owned($user,$id,true,$p);
-            if($n['project_id']!==null&&(int)$n['project_id']!==$project)throw new HttpException('Converta no projeto ao qual a nota pertence.',422);
+            [$n,$projects]=$this->lockedOwner($user,$id,$project);
+            if($n['project_id']===null||(int)$n['project_id']!==$project)throw new HttpException('Converta somente no projeto ao qual a nota pertence.',422);
+            $p=$projects[$project];
+            if($p['archived_at'])throw new HttpException('O projeto está arquivado.',409);
+            if(!in_array($p['role'],['owner','admin','member'],true))throw new HttpException('Seu papel não permite criar tarefas.',403);
+            if((int)$n['revision']!==$expected)throw new HttpException('A nota foi alterada. Recarregue antes de converter.',409);
             $q=$this->pdo->prepare('SELECT id,is_done FROM kanban_columns WHERE tenant_id=? AND project_id=? AND id=?');$q->execute([$p['tenant_id'],$project,$column]);$c=$q->fetch();if(!$c)throw new HttpException('Coluna indisponível neste projeto.',422);
             $q=$this->pdo->prepare('SELECT COUNT(*) FROM tasks WHERE tenant_id=? AND project_id=? AND column_id=?');$q->execute([$p['tenant_id'],$project,$column]);$position=(int)$q->fetchColumn();
-            $title=$n['title']!==''?$n['title']:mb_substr(preg_replace('/\s+/u',' ',$n['body']),0,200);$done=$c['is_done']?$this->pdo->query('SELECT UTC_TIMESTAMP()')->fetchColumn():null;
+            $done=$c['is_done']?$this->pdo->query('SELECT UTC_TIMESTAMP()')->fetchColumn():null;
             $this->pdo->prepare('INSERT INTO tasks(tenant_id,project_id,column_id,created_by,title,description,position,completed_at) VALUES (?,?,?,?,?,?,?,?)')->execute([$p['tenant_id'],$project,$column,$user,$title,$n['body'],$position,$done]);$task=(int)$this->pdo->lastInsertId();
             $this->pdo->prepare('INSERT INTO task_assignees(tenant_id,project_id,task_id,user_id) VALUES (?,?,?,?)')->execute([$p['tenant_id'],$project,$task,$user]);
             $logger=new ActivityLogger($this->pdo);$logger->record($p,$user,'task.created',null,['title'=>$title,'column_id'=>$column,'position'=>$position,'completed_at'=>$done],$task);

@@ -25,6 +25,7 @@ final class QuickNoteController
         $service=new QuickNoteService($pdo);$uid=(int)$user['id'];
         try {
             if($mode==='projects')return $this->json(['projects'=>$service->projects($uid,($_GET['writable']??'')==='1')]);
+            if($mode==='recipients')return $this->json(['recipients'=>$service->recipients($uid,$this->id($id))]);
             if($mode==='columns')return $this->json(['columns'=>$service->columns($uid,$this->id($_GET['project_id']??null))]);
             if($mode==='new')return $this->views->render('notes/new.html.twig',['projectName'=>$this->config['name'],'user'=>$user,'csrf'=>$_SESSION['csrf'],'destinations'=>$service->projects($uid)]);
             if(!Session::verifyCsrf($_POST['_token']??null))throw new HttpException('Sessão do formulário expirada. Recarregue a página.',419);
@@ -32,7 +33,8 @@ final class QuickNoteController
             if($mode==='create'){$service->create($uid,$_POST['body']??null,$project,$_POST['title']??'',$_POST['color']??'yellow',$_POST['visibility']??'private');$message='Nota salva.';}
             elseif($mode==='update'){$project=$service->update($uid,$this->id($id),$_POST['body']??null,array_replace(array_intersect_key($_POST,array_flip(['title','color','visibility','revision'])),array_key_exists('project_id',$_POST)?['project_id'=>$project]:[]));$message='Nota atualizada.';}
             elseif($mode==='delete'){$service->delete($uid,$this->id($id),$_POST['revision']??null);$message='Nota excluída.';}
-            else{$task=$service->convert($uid,$this->id($id),$this->id($_POST['project_id']??null),$this->id($_POST['column_id']??null));$message='Nota convertida em tarefa.';}
+            elseif($mode==='transfer'){$project=$service->transfer($uid,$this->id($id),$this->id($_POST['recipient_id']??null),($_POST['confirm']??'')==='1',$_POST['revision']??null);$message='Propriedade da nota transferida.';}
+            else{$task=$service->convert($uid,$this->id($id),$this->id($_POST['project_id']??null),$this->id($_POST['column_id']??null),$_POST['title']??null,$_POST['revision']??null);$message='Nota convertida em tarefa.';}
             if($json)return $this->json(['ok'=>true,'message'=>$message,'task_url'=>isset($task)?'/projects/'.$project.'/board?task='.$task:null]);
             header('Location: '.($project?'/projects/'.$project:'/tasks').'#brainstorm',true,303);return '';
         }catch(HttpException $e){if($json)return $this->json(['message'=>$e->getMessage()],(int)$e->getCode());throw $e;}

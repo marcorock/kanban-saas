@@ -26,7 +26,7 @@ $csrf=boardLogin($users['owner']['email']);check(noteRequest('/notes/'.$note.'/u
 check(noteRequest('/notes/'.$note.'/update',['_token'=>$csrf,'body'=>'Descrição integral','title'=>'<script>título</script>','color'=>'orange'])[0]===200,'Edição HTTP');
 $html=request('/projects/'.$projectId)[1];check(str_contains($html,'&lt;script&gt;título&lt;/script&gt;')&&!str_contains($html,'<script>título</script>'),'Título escapado');check(str_contains($html,'data-color="orange"'),'Cor renderizada');
 check(noteRequest('/notes/'.$note.'/update',['_token'=>$csrf,'body'=>'Descrição integral','title'=>str_repeat('á',200),'color'=>'yellow'])[0]===200,'Limite UTF-8 aceito');
-$task=$notes->convert($owner,$note,$projectId,$column);$row=$pdo->query('SELECT title,description FROM tasks WHERE id='.$task)->fetch();check($row['title']===str_repeat('á',200)&&$row['description']==='Descrição integral','Conversão reaproveita título e preserva corpo');
+$task=noteConvert($notes,$owner,$note,$projectId,$column);$row=$pdo->query('SELECT title,description FROM tasks WHERE id='.$task)->fetch();check($row['title']===str_repeat('á',200)&&$row['description']==='Descrição integral','Conversão reaproveita título e preserva corpo');
 $legacy=$notes->create($owner,'Sem aparência informada',null);$row=appearanceRow($legacy);check($row['title']===''&&$row['color']==='yellow','Padrões compatíveis');
 check(str_contains(request('/notes/new')[1],'name="color"'),'Formulário sem JS oferece cores');
 echo "OK: título, cores, limites UTF-8, compatibilidade, conversão, XSS, CSRF e isolamento da aparência.\n";
