@@ -18,12 +18,20 @@ final class QuickNoteController
     }
     public function handle(string $mode,?string $id=null):string
     {
-        $json=str_contains($_SERVER['HTTP_ACCEPT']??'','application/json');
+        $json=in_array($mode,['version','state'],true)||str_contains($_SERVER['HTTP_ACCEPT']??'','application/json');
         $pdo=Database::connect($this->config['database']);$user=(new AuthService($pdo))->currentUser();
         if(!$user){if($json)return $this->json(['message'=>'Entre novamente.'],401);header('Location: /login',true,303);return '';}
         if(!$user['email_verified_at']){if($json)return $this->json(['message'=>'Confirme seu e-mail.'],403);throw new HttpException('Confirme seu e-mail.',403);}
         $service=new QuickNoteService($pdo);$uid=(int)$user['id'];
         try {
+            if(in_array($mode,['version','state'],true)){
+                $project=$this->id($_GET['project_id']??null,true);
+                $page=filter_var($_GET['notes_page']??1,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]]);
+                if($page===false)throw new HttpException('Página inválida.',422);
+                $result=$service->sync($uid,$project,$page,$mode==='state');
+                if($mode==='state'){$result['html']=$this->views->render('notes/section.html.twig',$result['data']+['user'=>$user,'csrf'=>$_SESSION['csrf']]);unset($result['data']);}
+                return $this->json($result);
+            }
             if($mode==='projects')return $this->json(['projects'=>$service->projects($uid,($_GET['writable']??'')==='1')]);
             if($mode==='recipients')return $this->json(['recipients'=>$service->recipients($uid,$this->id($id))]);
             if($mode==='columns')return $this->json(['columns'=>$service->columns($uid,$this->id($_GET['project_id']??null))]);

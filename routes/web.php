@@ -74,6 +74,8 @@ SimpleRouter::post('/settings/notifications/push', static fn (): string => $push
 SimpleRouter::post('/settings/notifications/push/remove', static fn (): string => $push->handle('remove'));
 
 $notes = new \App\Controllers\QuickNoteController($views,$config);
+SimpleRouter::get('/notes/version', static fn (): string => $notes->handle('version'));
+SimpleRouter::get('/notes/state', static fn (): string => $notes->handle('state'));
 SimpleRouter::get('/notes/new', static fn (): string => $notes->handle('new'));
 SimpleRouter::get('/notes/projects', static fn (): string => $notes->handle('projects'));
 SimpleRouter::get('/notes/columns', static fn (): string => $notes->handle('columns'));

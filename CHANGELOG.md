@@ -9,6 +9,7 @@
 - Texto e ícone do botão Nova nota mantêm contraste branco no projeto, inclusive em hover/foco, sem interferência das cores genéricas dos links.
 
 ### Adicionado
+- Sincronização automática dos Post-its no projeto e Inbox: consulta de versão a cada 7s e fragmento Twig somente quando muda a lista visível. Reconcilia criação, edição, exclusão, conversão, transferência, movimentação e visibilidade; preserva formulários/revisões, foco, menus e rolagem. Revalida tenant/projeto, papéis e envolvidos; revogação limpa o bloco. Sem migration ou dependência nova.
 - Sincronização automática do Kanban: polling reutilizável de 7s com consulta leve de versão, snapshot apenas quando há mudanças, pausa em abas inativas, retomada imediata e reconexão com backoff. Preserva filtros, rolagem, foco e painéis; rascunhos adiam a aplicação e conflitos mantêm o texto para revisão explícita. Endpoints JSON autenticados reconferem projeto/tenant e acesso revogado interrompe a sincronização. Sem migration ou dependência adicional.
 - Post-its (incremento 3): transferência confirmada para outro membro verificado do mesmo projeto, com novo proprietário, criador e histórico preservados; conversão somente no projeto da nota, com título obrigatório/editável e revisão conferida; envolvidos derivados da auditoria, filtrados pelo acesso atual, com iniciais e agrupamento +N. Sem migration adicional.
 - Post-its (incremento 2): visibilidade Privado/Projeto, movimentação entre Inbox e projetos acessíveis, proprietário original preservado, controle de versão e auditoria privada na mesma transação. Leitores de notas compartilhadas não recebem ações de edição/exclusão/conversão; Público permanece indisponível. Migration 015 mantém as notas existentes privadas e importa seu histórico inicial sem copiar o conteúdo.
@@ -126,3 +127,6 @@
 - Worker local agendado a cada minuto e fila pendente processada; entrega permanece fora das requisições.
 - Convite no sino para contas existentes, aceite interno seguro e recuperação de convites pendentes pela migration 010. Cancelamento, expiração, reemissão e aceite invalidam os avisos correspondentes.
 - Testes de convites internos, permissões, privacidade, preferências e regressão das suítes afetadas.
+
+### Fechamento — sincronização dos Post-its
+- Incremento aprovado em 02/11/2026, com regressão PHP completa em banco descartável e validações Chromium/axe 320–1440px concluídas. Continuidade pausada por solicitação do usuário; tarefas/notificações e Dashboard permanecem pendentes.

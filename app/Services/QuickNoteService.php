@@ -18,9 +18,9 @@ final class QuickNoteService
     {
         $q=$this->pdo->prepare("SELECT t.id FROM tenants t JOIN tenant_users u ON u.tenant_id=t.id AND u.user_id=t.owner_id WHERE t.owner_id=? AND t.kind='personal' ORDER BY t.id LIMIT 1");$q->execute([$user]);$id=$q->fetchColumn();if(!$id)throw new HttpException('Inbox indisponível.',404);return (int)$id;
     }
-    private function project(int $user,int $id,bool $write=false):array
+    private function project(int $user,int $id,bool $write=false,bool $lock=true):array
     {
-        try{$p=(new ProjectRepository($this->pdo))->find($user,$id,$this->pdo->inTransaction());}catch(\PDOException $e){if((int)($e->errorInfo[1]??0)===1020)throw new HttpException('O projeto foi alterado. Recarregue a lista.',409);throw $e;}
+        try{$p=(new ProjectRepository($this->pdo))->find($user,$id,$lock&&$this->pdo->inTransaction());}catch(\PDOException $e){if((int)($e->errorInfo[1]??0)===1020)throw new HttpException('O projeto foi alterado. Recarregue a lista.',409);throw $e;}
         if($write&&$p['archived_at'])throw new HttpException('O projeto está arquivado.',409);
         if($write&&!in_array($p['role'],['owner','admin','member'],true))throw new HttpException('Seu papel não permite criar tarefas.',403);
         return $p;
@@ -99,13 +99,36 @@ final class QuickNoteService
             $this->pdo->commit();return $id;
         }catch(Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}
     }
-    public function page(int $user,?int $project,int $page=1):array
+    private function listing(int $user,?int $project,int $page,bool $metadata):array
     {
-        $tenant=$project===null?$this->personal($user):(int)$this->project($user,$project)['tenant_id'];
-        $where=' FROM quick_notes n JOIN users u ON u.id=n.user_id WHERE n.tenant_id=? AND n.project_id <=> ? AND (n.user_id=? OR n.visibility=\'project\')';$params=[$tenant,$project,$user];
+        $context=$project===null?null:$this->project($user,$project,false,false);
+        $tenant=$context===null?$this->personal($user):(int)$context['tenant_id'];
+        $where=" FROM quick_notes n JOIN users u ON u.id=n.user_id WHERE n.tenant_id=? AND n.project_id <=> ? AND (n.user_id=? OR n.visibility='project')";$params=[$tenant,$project,$user];
         if($project!==null){$where.=' AND EXISTS (SELECT 1 FROM project_members pm JOIN tenant_users tu ON tu.tenant_id=pm.tenant_id AND tu.user_id=pm.user_id WHERE pm.tenant_id=n.tenant_id AND pm.project_id=n.project_id AND pm.user_id=?)';$params[]=$user;}
         $q=$this->pdo->prepare('SELECT COUNT(*)'.$where);$q->execute($params);$total=(int)$q->fetchColumn();$pages=max(1,(int)ceil($total/20));$page=max(1,min($page,$pages));
-        $q=$this->pdo->prepare('SELECT n.id,n.user_id,n.created_by,n.project_id,n.body,n.title,n.color,n.visibility,n.revision,n.created_at,u.name AS owner_name'.$where.' ORDER BY n.id DESC LIMIT 20 OFFSET '.(($page-1)*20));$q->execute($params);return ['items'=>$this->withInvolved($q->fetchAll()),'total'=>$total,'page'=>$page,'pages'=>$pages];
+        $fields='n.id,n.user_id,n.created_by,n.project_id,n.visibility,n.revision,u.name AS owner_name';
+        if(!$metadata)$fields.=',n.body,n.title,n.color,n.created_at';
+        $q=$this->pdo->prepare('SELECT '.$fields.$where.' ORDER BY n.id DESC LIMIT 20 OFFSET '.(($page-1)*20));$q->execute($params);
+        return ['brainstorm'=>['items'=>$this->withInvolved($q->fetchAll()),'total'=>$total,'page'=>$page,'pages'=>$pages],
+            'noteProjectId'=>$project,'noteCanCreate'=>$context===null||$context['archived_at']===null,
+            'noteCanConvert'=>$context===null||($context['archived_at']===null&&in_array($context['role'],['owner','admin','member'],true)),
+            'notesBase'=>$project===null?'/tasks':'/projects/'.$project,'access'=>[$tenant,$context['role']??null,$context['archived_at']??null]];
+    }
+    public function page(int $user,?int $project,int $page=1):array
+    {
+        return $this->listing($user,$project,$page,false)['brainstorm'];
+    }
+    public function sync(int $user,?int $project,int $page=1,bool $full=false):array
+    {
+        // Leitura consistente sem locks de escrita; o token nunca inclui texto privado na resposta.
+        $this->pdo->beginTransaction();
+        try {
+            $data=$this->listing($user,$project,$page,!$full);$list=$data['brainstorm'];$rows=[];
+            foreach($list['items'] as $note)$rows[]=array_intersect_key($note,array_flip(['id','user_id','created_by','project_id','visibility','revision','owner_name','involved']));
+            $token=hash('sha256',json_encode([$user,$project,$data['access'],$list['total'],$list['page'],$list['pages'],$rows],JSON_THROW_ON_ERROR));
+            unset($data['access']);$this->pdo->commit();
+            return $full?['token'=>$token,'data'=>$data]:['token'=>$token];
+        }catch(Throwable $e){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $e;}
     }
     private function owned(int $user,int $id,bool $lock=false,?array $known=null):array
     {

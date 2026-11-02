@@ -7,7 +7,7 @@
     const form = dialog.querySelector('form');
     const convertForm = convertDialog.querySelector('form');
     const transferForm = transferDialog.querySelector('form');
-    let transferLoading = 0;
+    let transferLoading = 0; let mutations = 0; let operation = 0; let noteSync; let syncDenied = false; let syncFailed = false;
     const text = form.elements.body;
     const destination = form.elements.project_id;
     const visibility = form.elements.visibility;
@@ -28,6 +28,7 @@
         const result = await response.json(); if (!response.ok) throw new Error(result.message || 'Não foi possível carregar. Reabra a nota para tentar novamente.'); return result;
     }
     async function send(formNode) {
+        mutations++; operation++;
         const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 15000);
         try {
             const response = await fetch(formNode.action, {method: 'POST', credentials: 'same-origin', headers: {Accept: 'application/json'}, body: new URLSearchParams(new FormData(formNode)), signal: controller.signal});
@@ -38,19 +39,65 @@
             if (issue.name === 'AbortError') throw new Error('Não foi possível confirmar o salvamento a tempo. Confira a lista antes de tentar novamente.');
             if (issue instanceof TypeError) throw new Error('Falha de conexão. Sua nota permanece no formulário.');
             throw issue;
-        } finally { clearTimeout(timeout); }
+        } finally { clearTimeout(timeout); mutations--; noteSync?.requestNow(); }
     }
     function previewColor() { dialog.dataset.color = form.elements.color.value || 'yellow'; }
     form.addEventListener('change', previewColor);
     function close(modal) { if (modal.querySelector('form')?.dataset.busy) return; modal.close(); if (opener?.isConnected) opener.focus(); }
+    function sectionUrl(resource) {
+        const section = document.querySelector('[data-note-section]');
+        const url = new URL('/notes/' + resource, location.origin);
+        if (section.dataset.noteProject) url.searchParams.set('project_id', section.dataset.noteProject);
+        url.searchParams.set('notes_page', section.dataset.notePage);
+        return url;
+    }
+    const focusable = 'button,a,input,select,textarea,summary,[tabindex="0"]';
+    function reference(section, node) {
+        if (!node || !section.contains(node)) return null;
+        const card = node.closest('[data-note-id]');
+        return card ? {id: card.dataset.noteId, index: [...card.querySelectorAll(focusable)].indexOf(node)} : {create: node.hasAttribute('data-note-open'), pagination: node.closest('.qn-pagination') ? node.textContent : null};
+    }
+    function resolve(section, ref) {
+        if (!ref) return null;
+        if (ref.create) return section.querySelector('[data-note-open]');
+        if (ref.pagination) return [...section.querySelectorAll('.qn-pagination a')].find(link => link.textContent === ref.pagination);
+        return section.querySelector(`[data-note-id="${ref.id}"]`)?.querySelectorAll(focusable)[ref.index];
+    }
+    function applySection(html) {
+        const section = document.querySelector('[data-note-section]');
+        const fresh = new DOMParser().parseFromString(html, 'text/html').querySelector('[data-note-section]');
+        if (!fresh) throw new Error('Lista indisponível.');
+        const position = {x: window.scrollX, y: window.scrollY};
+        const active = reference(section, document.activeElement); const origin = reference(section, opener);
+        const cards = [...section.querySelectorAll('[data-note-id]')].map(card => ({id: card.dataset.noteId, open: card.querySelector('details')?.open, scroll: card.querySelector('.qn-body').scrollTop}));
+        section.replaceWith(document.importNode(fresh, true));
+        const current = document.querySelector('[data-note-section]');
+        for (const state of cards) {
+            const card = current.querySelector(`[data-note-id="${state.id}"]`); if (!card) continue;
+            const menu = card.querySelector('details'); if (menu) menu.open = Boolean(state.open);
+            card.querySelector('.qn-body').scrollTop = state.scroll;
+        }
+        if (origin) opener = resolve(current, origin) || current;
+        if (active) (resolve(current, active) || current).focus({preventScroll: true});
+        window.scrollTo(position.x, position.y);
+    }
+    async function syncNotes(signal) {
+        if (syncDenied || !document.querySelector('[data-note-section]')) return;
+        const generation = operation;
+        const meta = await FluxoSync.json(sectionUrl('version'), signal);
+        if (meta.token === document.querySelector('[data-note-section]').dataset.noteToken || mutations || generation !== operation) return;
+        const result = await FluxoSync.json(sectionUrl('state'), signal);
+        if (mutations || generation !== operation || signal.aborted) return;
+        applySection(result.html); document.querySelector('[data-note-section]').dataset.noteToken = result.token;
+    }
     async function refresh() {
-        const section = document.querySelector('[data-note-section]'); if (!section) return;
-        try {
-            const response = await fetch(location.href, {credentials: 'same-origin', cache: 'no-store'});
-            const page = new DOMParser().parseFromString(await response.text(), 'text/html');
-            const fresh = page.querySelector('[data-note-section]'); if (!response.ok || !fresh) throw new Error();
-            section.replaceWith(document.importNode(fresh, true));
-        } catch { announce('Alteração salva. Atualize a página para ver a lista.'); }
+        if (!document.querySelector('[data-note-section]')) return;
+        document.querySelector('[data-note-section]').dataset.noteToken = '';
+        if (noteSync) noteSync.requestNow();
+        else {
+            try { const response = await get(sectionUrl('state')); applySection(response.html); }
+            catch { announce('Alteração salva. Atualize a página para ver a lista.'); }
+        }
     }
     async function openNote(button) {
         if (document.querySelector('dialog[open]')) return;
@@ -163,5 +210,20 @@
         const button = deletion.querySelector('button'); if (button.disabled) return; button.disabled = true;
         try { const result = await send(deletion); announce(result.message); await refresh(); }
         catch (issue) { announce(issue.message || 'Não foi possível excluir. Tente novamente.'); button.disabled = false; }
+    });
+    if (window.FluxoSync && document.querySelector('[data-note-section]')) noteSync = FluxoSync.create({
+        busy: () => mutations > 0,
+        run: syncNotes,
+        onError(issue) {
+            if ([401, 403, 404].includes(issue.status)) {
+                syncDenied = true;
+                const section = document.querySelector('[data-note-section]');
+                const notice = document.createElement('p'); notice.className = 'qn-help'; notice.setAttribute('role', 'status');
+                notice.textContent = 'Seu acesso às notas não está mais disponível. Entre novamente ou verifique sua participação no projeto.';
+                section.replaceChildren(notice);
+                if (dialog.open || convertDialog.open || transferDialog.open) announce('O acesso à lista mudou. Seus rascunhos foram preservados; confira o destino antes de salvar.');
+            } else if (!syncFailed) { syncFailed = true; announce('A sincronização das notas foi interrompida. Tentaremos reconectar; seus rascunhos foram mantidos.'); }
+        },
+        onRecover() { syncFailed = false; announce('Sincronização das notas restabelecida.'); }
     });
 })();

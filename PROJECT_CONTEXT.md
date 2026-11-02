@@ -19,7 +19,7 @@
 - Ambiente local usa containers Coruja; PHP não está no PATH do host. Executar PHP no container web em /var/www/projects/kanbansaas.
 - Banco local configurado no .env (não versionado). Migrations 001–015 aplicadas; nenhum teste com fixtures foi executado no banco de uso diário.
 - Mailpit local: MAIL_HOST=mail, porta 1025, sem TLS/autenticação; interface http://mail.localhost. Produção segue configurável por MAIL_*.
-- Branch de trabalho atual: post-its (estado encontrado ao implementar Brainstorm; sem troca automática). Não mudar/mesclar branches automaticamente.
+- Branch de trabalho atual: syncronization (estado encontrado na retomada de 02/11/2026, sem alterações pendentes ou merge em andamento). Não mudar/mesclar branches automaticamente.
 
 ## Incrementos aprovados e commitados
 
@@ -244,3 +244,20 @@
 - Usuário solicitou registrar o fechamento, criar o commit aprovado e pausar. Trabalho pausado após a conclusão da sincronização automática do Kanban; nenhum novo incremento iniciado.
 - Ao retomar por instrução do usuário: iniciar o incremento 2, sincronização dos Post-its (criação, edição, exclusão, transferência e visibilidade), conforme o documento de implementação. Sincronização de tarefas/notificações e Dashboard permanece para os ciclos posteriores.
 - Validações concluídas: regressão PHP em banco descartável, scheduler Node, cenários Chromium entre usuários, regressões do Kanban/painel e axe/layout 320–1440px. Sem nova migration, push, merge ou deploy. Hash de fechamento disponível no histórico Git.
+
+## Retomada — sincronização automática, incremento 2 (Post-its)
+
+- Usuário autorizou continuar com o próximo passo em 02/11/2026. Estado real encontrado: branch syncronization limpa em a6954bb; não havia merge em andamento nem resoluções pendentes. Nenhum commit/merge anterior foi criado nesta retomada.
+- Implementados GET /notes/version e /notes/state com sessão verificada e escopo explícito de projeto ou Inbox pessoal. Mesmo filtro de audiência da listagem, tenant/projeto reconferidos; estado retorna somente o fragmento notes/section.html.twig e token. Metadata consulta no máximo 20 registros por página, sem corpo/título das notas, e quatro SELECTs com envolvidos, sem N+1. Token inclui paginação, revisões visíveis, nomes/envolvidos atuais, papel e arquivo; nota privada alheia não interfere no token recebido.
+- Leitura transacional consistente sem locks de escrita. Sem migration nova: banco local permanece 001–015. Transferências, movimentações, privatizações, exclusões/conversões, nomes e perda de permissões são detectados pelos dados atuais, sem expor a auditoria.
+- live-sync.js carregado uma única vez no layout autenticado, compartilhado pelo Kanban e Brainstorm. Adaptador dos Post-its com 7s, pausa/retorno e backoff existentes; Fetch de fragmento apenas após mudança de token. Atualizações locais solicitam sincronização imediata. Respostas iniciadas antes de uma mutação local são descartadas. Apenas a seção é substituída, mantendo menus, rolagem do texto/página e foco; dialogs externos mantêm texto e revisão para conflito 409, sem sobrescrita silenciosa. 401/403/404 limpam a lista e interrompem polling; rascunhos abertos permanecem no formulário.
+- Validação concluída exclusivamente em MariaDB/Mailpit descartáveis (001–015): notes-sync inclui as suítes anteriores de notas/propriedade/visibilidade e passou com token, escopo, revisões, paginação, arquivo/papel, metadata em quatro SELECTs e leitura concorrente sem bloquear escritor/publicar dados não confirmados. Shell, board-sync e scheduler Node aprovados. Novo cenário Chromium aprovado entre dois usuários/dispositivos para mudanças remotas, Inbox, privacidade, rascunho/409, menus/foco/rolagem, reconexão, aba inativa e sessão revogada; axe/layout 320–1440px. Regressões Chromium de captura, aparência, visibilidade, transferência e sincronização do Kanban aprovadas com fixtures próprias. Preflight local somente leitura como www-data, sintaxe PHP/JS, 60 rotas sem duplicatas e git diff --check aprovados.
+- Limites: só o bloco Brainstorm é sincronizado neste incremento; listas de tarefas, painel de comentários/checklists, sino e Dashboard seguem os ciclos posteriores. A primeira consulta busca um fragmento para estabelecer o token; ciclos sem mudança buscam apenas metadata. Sem dados reais, credenciais ou configurações locais alterados. Logs em /tmp/kanbansaas-notes-sync-*.log; regressão completa de fechamento aprovada conforme registro abaixo.
+- Estado atual: incremento 2 aprovado pelo usuário em 02/11/2026; fechamento com documentação e commit autorizado pela regra de continuidade. Usuário pediu aguardar novas instruções: não iniciar tarefas/notificações ou Dashboard.
+
+## Aprovação e pausa — sincronização dos Post-its
+
+- Incremento 2 aprovado. Documentação técnica, funcionalidades, endpoints, validações e limites consolidados na seção anterior e em CHANGELOG.md. Sem migration nova ou passos adicionais de instalação.
+- Regressão PHP completa de fechamento aprovada em schema descartável novo, com migrations 001–015, incluindo notificações/SMTP, perfil, segurança, preflight e desempenho. Quadro manteve cinco consultas para 100 e 1.000 tarefas. Evidência: /tmp/kanbansaas-notes-sync-final.log. Os testes Chromium/axe e scheduler já aprovados não foram repetidos por não haver mudança de código desde a entrega. Incremento aprovado e incluído neste commit; trabalho pausado.
+- Ponto de parada: sincronização do Kanban e dos Post-its concluída. Próximo incremento planejado, ainda não iniciado: tarefas/notificações (comentários, checklists, status e contador do sino); Dashboard permanece posterior. Retomar somente quando o usuário instruir.
+- Nenhum push, merge ou deploy autorizado/executado. Dados e credenciais locais preservados. Hash exato do fechamento disponível no histórico Git após o commit.
