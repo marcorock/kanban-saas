@@ -34,6 +34,8 @@ Após configurar o banco, execute `php bin/migrate.php`. Veja [schema e limitaç
 
 Confira a instalação com `php bin/check.php` (somente leitura); em produção, use `php bin/check.php --production` após configurar o ambiente e aplicar as migrations. O ambiente local pode ser validado com a imagem Docker PHP 8.3 disponível; nenhum servidor de produção foi alterado.
 
+Para esvaziar o banco local e reiniciar IDs, use o [reset de dados para testes](docs/TEST_DATABASE_RESET.md). O utilitário e seu inventário ficam em `local-tools/`, fora do Git.
+
 ## Continuidade
 
 A aprovação de um incremento autoriza seu commit e o início do próximo, salvo pedido explícito para parar. Veja [regras](AGENTS.md), [histórico consolidado](docs/DEVELOPMENT.md) e [estado atual](PROJECT_CONTEXT.md).
