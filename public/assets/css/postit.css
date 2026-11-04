@@ -1,0 +1,55 @@
+/* Componente Post-it. Ícones Bootstrap Icons 1.11.3: vendor/bootstrap-icons/LICENSE. */
+.qn-dialog.pi-dialog { width: min(23.75rem,calc(100vw - 1.5rem)); padding: 0; border: 0; border-radius: .875rem; background: transparent; }
+.pi-standalone { max-width: 23.75rem; margin: 1rem auto; }
+.postit-form {
+    --pi-bg: #fdf0a6; --pi-border: #d6bf64; --pi-ink: #2b2a1f; --pi-muted: #625830;
+    --pi-line: #2b2a1f24; --pi-accent: #1f4d3a;
+    width: 100%; min-width: 0; margin: 0; padding: 1.1rem 1.15rem .9rem; border: 1px solid var(--pi-border); border-radius: .875rem;
+    background: var(--pi-bg); color: var(--pi-ink); box-shadow: 0 1px 0 #0000000a,0 12px 28px -14px #503c0059;
+}
+.postit-form.priority-baixa { --pi-bg: #e2efcf; --pi-border: #acc48a; --pi-muted: #465b34; }
+.postit-form.priority-alta { --pi-bg: #ffe0bd; --pi-border: #d6a16b; --pi-muted: #6c482a; }
+.postit-form .pi-top,.postit-form .pi-meta,.postit-form .pi-footer,.postit-form .pi-actions { display: flex; align-items: center; gap: .375rem; }
+.postit-form .pi-top { justify-content: space-between; margin-bottom: .25rem; }
+.postit-form .pi-meta { flex-wrap: wrap; gap: .25rem; min-width: 0; font-size: .6875rem; color: var(--pi-muted); }
+.postit-form .pi-meta h2 { margin: 0; font: inherit; }
+.postit-form .pi-close { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: .5rem; background: transparent; color: var(--pi-muted); }
+.postit-form input.pi-title,.postit-form textarea.pi-body {
+    display: block; width: 100%; min-width: 0; padding: 0; border: 0; border-radius: 0; outline: 0;
+    background: transparent; color: var(--pi-ink); box-shadow: none; font-family: inherit;
+}
+.postit-form input.pi-title { min-height: 44px; font-size: 1.0625rem; font-weight: 700; line-height: 1.4; }
+.postit-form textarea.pi-body { min-height: 150px; max-height: 35dvh; margin-top: .25rem; font-size: .9375rem; line-height: 1.6; resize: none; scrollbar-width: thin; }
+.postit-form :is(.pi-title,.pi-body)::placeholder { color: var(--pi-muted); opacity: 1; }
+.postit-form .pi-divider { height: 1px; margin: .75rem 0 .375rem; background: var(--pi-line); }
+.postit-form .pi-priority { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; padding: 0; margin: 0; border: 0; }
+.postit-form .pi-option { --dot: #2b2a1f; display: inline-flex; align-items: center; position: relative; min-height: 44px; }
+.postit-form .pi-option[data-color="green"] { --dot: #9cc6a0; }
+.postit-form .pi-option[data-color="orange"] { --dot: #e9a48c; }
+.postit-form .pi-option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.postit-form .pi-option label { display: inline-flex; align-items: center; gap: .35rem; margin: 0; padding: .22rem .55rem; border: 1px solid transparent; border-radius: 999px; font-size: .75rem; line-height: 1.5; font-weight: 600; color: var(--pi-muted); cursor: pointer; }
+.postit-form .pi-option label::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--dot); }
+.postit-form .pi-option:hover label { background: var(--pi-line); }
+.postit-form .pi-option input:checked + label { color: var(--pi-ink); border-color: var(--pi-ink); background: #ffffff73; }
+.postit-form .pi-option input:focus-visible + label { outline: 2px solid var(--pi-accent); outline-offset: 2px; }
+.postit-form .pi-selects { display: flex; flex-wrap: wrap; gap: .375rem; margin-top: .5rem; }
+.postit-form .pi-select { display: flex; align-items: center; gap: .25rem; flex: 1 1 9rem; min-width: 0; max-width: 100%; margin: 0; padding: 0 .625rem; border: 1px solid var(--pi-line); border-radius: 999px; background: #ffffff73; }
+.postit-form .pi-select:last-child { flex-basis: 7rem; }
+.postit-form .pi-select .bi { flex-shrink: 0; width: 16px; height: 16px; color: var(--pi-muted); }
+.postit-form .pi-select select { display: block; width: 100%; min-width: 0; min-height: 44px; padding: .25rem .125rem; border: 0; border-radius: .375rem; background: transparent; color: var(--pi-ink); font-size: .75rem; font-weight: 600; text-overflow: ellipsis; cursor: pointer; }
+.postit-form .pi-hint { font-size: .6875rem; line-height: 1.5; color: var(--pi-muted); }
+.postit-form .pi-privacy { margin: .5rem 0 0; }
+.postit-form .pi-footer { justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+.postit-form .pi-actions { margin-left: auto; gap: .25rem; }
+.postit-form :is(.btn-pi-ghost,.btn-pi-save) { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .5rem .75rem; border: 1px solid transparent; border-radius: .5rem; text-decoration: none; font-family: inherit; font-size: .8125rem; font-weight: 600; line-height: 1.4; cursor: pointer; }
+.postit-form .btn-pi-ghost { color: var(--pi-muted); background: transparent; }
+.postit-form .btn-pi-save { background: var(--pi-accent); color: #fff; }
+.postit-form :is(.pi-close,.btn-pi-ghost):hover { background: var(--pi-line); color: var(--pi-ink); }
+.postit-form .btn-pi-save:hover { background: #173d2d; color: #fff; }
+.postit-form .qn-error { margin: .5rem 0 0; }
+.postit-form :is(button,a,select):focus-visible { outline: 2px solid var(--pi-accent); outline-offset: 2px; }
+.postit-form button:disabled { opacity: .65; cursor: progress; }
+@media (forced-colors:active) { .postit-form { border-color: CanvasText; } .postit-form .pi-option input:checked + label { border: 2px solid Highlight; } }
+
+/* O foco dos campos de escrita é indicado pelo cursor, sem desenhar caixas no papel. */
+.postit-form input.pi-title:is(:focus,:focus-visible),.postit-form textarea.pi-body:is(:focus,:focus-visible) { border: 0; outline: 0; box-shadow: none; background: transparent; caret-color: var(--pi-accent); }

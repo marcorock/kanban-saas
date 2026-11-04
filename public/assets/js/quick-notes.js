@@ -15,7 +15,7 @@
     function syncVisibility() {
         const option = visibility.querySelector('[value="project"]'); option.disabled = !destination.value;
         if (option.disabled && visibility.value === 'project') visibility.value = 'private';
-        dialog.querySelector('[data-note-privacy-help]').textContent = (visibility.value === 'project' ? 'Visível aos membros do projeto.' : 'Só você vê esta nota.') + ' Enter salva · Shift+Enter quebra a linha.';
+        dialog.querySelector('[data-note-privacy-help]').textContent = (visibility.value === 'project' ? 'Visível aos membros do projeto.' : 'Só você vê esta nota.');
     }
     destination.addEventListener('change', syncVisibility); visibility.addEventListener('change', syncVisibility);
     const column = convertForm.elements.column_id;
@@ -41,7 +41,7 @@
             throw issue;
         } finally { clearTimeout(timeout); mutations--; noteSync?.requestNow(); }
     }
-    function previewColor() { dialog.dataset.color = form.elements.color.value || 'yellow'; }
+    function previewColor(date) { dialog.dataset.color = form.elements.color.value || 'yellow'; form.dispatchEvent(new CustomEvent('postit:refresh', {detail: {date: typeof date === 'string' ? date : undefined}})); }
     form.addEventListener('change', previewColor);
     function close(modal) { if (modal.querySelector('form')?.dataset.busy) return; modal.close(); if (opener?.isConnected) opener.focus(); }
     function sectionUrl(resource) {
@@ -104,7 +104,7 @@
         if (editing) { form.reset(); text.value = ''; } editing = false; form.elements.revision.value = ''; form.action = '/notes'; destination.disabled = false; document.getElementById('quick-note-title').textContent = 'Nota rápida';
         opener = button || document.activeElement; const sequence = ++loading;
         error(dialog); destination.replaceChildren(new Option('Sem projeto / Inbox pessoal', ''));
-        previewColor(); syncVisibility(); dialog.showModal(); text.focus();
+        previewColor(new Date().toISOString()); syncVisibility(); dialog.showModal(); text.focus();
         try {
             const result = await get('/notes/projects'); if (sequence !== loading || !dialog.open) return;
             for (const item of result.projects) destination.add(new Option(item.name, String(item.id)));
@@ -127,7 +127,7 @@
         const project = button.dataset.noteProject || '';
         destination.replaceChildren(new Option(project ? 'Projeto atual' : 'Sem projeto / Inbox pessoal', project)); destination.disabled = false;
         document.getElementById('quick-note-title').textContent = 'Editar nota';
-        previewColor(); syncVisibility(); dialog.showModal(); text.focus();
+        previewColor(card.querySelector('time')?.dateTime); syncVisibility(); dialog.showModal(); text.focus();
         try {
             const result = await get('/notes/projects'); if (sequence !== loading || !dialog.open) return;
             destination.replaceChildren(new Option('Sem projeto / Inbox pessoal', ''));
@@ -190,8 +190,7 @@
         const key = event.key.toLowerCase();
         if ((key === 'k' && (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) || (key === 'n' && !event.ctrlKey && !event.metaKey && !event.altKey)) { event.preventDefault(); openNote(); }
     });
-    text.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); form.requestSubmit(); } });
-    for (const modal of [dialog, convertDialog, transferDialog]) modal.addEventListener('cancel', event => { if (modal.querySelector('form')?.dataset.busy) { event.preventDefault(); return; } if (opener?.isConnected) setTimeout(() => opener.focus(), 0); });
+    for (const modal of [dialog, convertDialog, transferDialog]) modal.addEventListener('cancel', event => { event.preventDefault(); close(modal); });
     async function submit(event, modal, currentForm, converted) {
         event.preventDefault(); const submitter = currentForm.querySelector('[type="submit"]'); if (submitter.disabled) return;
         submitter.disabled = true; currentForm.dataset.busy = 'true'; for (const cancel of modal.querySelectorAll('[data-note-close]')) cancel.disabled = true; error(modal);
