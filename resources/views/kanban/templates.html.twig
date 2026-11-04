@@ -13,11 +13,11 @@
 </template>
 <template id="kanban-task-template">
     <article class="kanban-task">
+        <span class="kanban-task-handle kanban-handle" data-write-only aria-hidden="true">↕ Mover tarefa</span>
         <button type="button" class="kanban-title kanban-title-button" data-task-open></button>
         <div class="kb-subtasks" data-subtask-summary hidden><div><span data-subtask-count></span><span data-subtask-percent></span></div><progress max="1" value="0" aria-label="Progresso das subtarefas"></progress></div>
         <div class="kb-task-badges"><span class="kb-priority"></span><span class="kb-completed" hidden>Concluída</span></div>
         <span class="kb-task-due" hidden></span><span class="kb-task-assignees" hidden></span>
-        <span class="kanban-task-handle kanban-handle" data-write-only aria-hidden="true">↕ Mover tarefa</span>
         <details class="kb-task-settings" data-write-only><summary>Editar título / mover</summary>
             <form data-action="task.rename"><label class="kb-field">Título<input name="title" maxlength="200" required></label><button class="kb-button kb-secondary" type="submit">Salvar título</button></form>
             <form data-action="task.move"><label class="kb-field">Mover para o fim da coluna<select name="column_id"></select></label><button class="kb-button kb-secondary" type="submit">Mover</button></form>
