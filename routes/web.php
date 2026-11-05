@@ -65,6 +65,10 @@ SimpleRouter::post('/settings', static fn (): string => $profile->handle(true));
 $notifications = new \App\Controllers\NotificationController($views, $config);
 SimpleRouter::get('/notifications', static fn (): string => $notifications->handle('index'));
 SimpleRouter::post('/notifications/{id}/read', static fn (string $id): string => $notifications->handle('read', $id));
+SimpleRouter::get('/workspaces/{workspaceId}/notifications', static fn (string $workspaceId): string => $notifications->handle('index', null, $workspaceId));
+SimpleRouter::post('/workspaces/{workspaceId}/notifications/{id}/read', static fn (string $workspaceId, string $id): string => $notifications->handle('read', $id, $workspaceId));
+SimpleRouter::get('/notifications/invitations', static fn (): string => $notifications->handle('invitations'));
+SimpleRouter::post('/notifications/invitations/{id}/read', static fn (string $id): string => $notifications->handle('invitation-read', $id));
 SimpleRouter::post('/settings/notifications', static fn (): string => $notifications->handle('preferences'));
 
 $push = new \App\Controllers\PushController($config);

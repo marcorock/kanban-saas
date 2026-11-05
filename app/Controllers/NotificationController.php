@@ -4,14 +4,14 @@ declare(strict_types=1);
 namespace App\Controllers;
 use App\Infrastructure\Database;
 use App\Security\Session;
-use App\Services\{AuthService,NotificationService};
+use App\Services\{AuthService,NotificationService,WorkspaceContext};
 use Twig\Environment;
 
 final class NotificationController
 {
     public function __construct(private Environment $views,private array $config) {}
 
-    public function handle(string $mode,?string $id=null): string
+    public function handle(string $mode,?string $id=null,?string $workspaceId=null): string
     {
         $count=$mode==='index'&&($_GET['format']??null)==='count';
         if($count){header('Content-Type: application/json');header('Cache-Control: private, no-store');}
@@ -19,10 +19,19 @@ final class NotificationController
         if (!$user) {if ($count) {http_response_code(401);header('Content-Type: application/json');return '{"error":"unauthenticated"}';}header('Location: /login',true,303);return '';}
         $base=['projectName'=>$this->config['name'],'user'=>$user,'csrf'=>$_SESSION['csrf'],'wide'=>false];
         if (!$user['email_verified_at']) {http_response_code(403);if($count)return '{"error":"unverified"}';return $this->views->render('verify-notice.html.twig',$base);}
-        $service=new NotificationService($pdo);
+        $invitations=in_array($mode,['invitations','invitation-read'],true);
+        $context=null;
+        if ($mode!=='preferences' && !$invitations) {
+            try {$context=$workspaceId===null?WorkspaceContext::initial($pdo,(int)$user['id']):WorkspaceContext::resolve($pdo,(int)$user['id'],$workspaceId);}
+            catch (\Pecee\SimpleRouter\Exceptions\HttpException $error) {if($count){http_response_code(404);return '{"error":"workspace_unavailable"}';}throw $error;}
+        }
+        $path=$context?'/workspaces/'.$context->tenantId:'';
+        $base['workspacePath']=$path;
+        $base['notificationPath']=$invitations?'/notifications/invitations':$path.'/notifications';
+        $service=new NotificationService($pdo,$context,$invitations);
         if ($count) {header('Content-Type: application/json');return json_encode(['unread'=>$service->unread((int)$user['id'])],JSON_THROW_ON_ERROR);}
-        $back=$mode==='preferences'?'/settings#notification-settings':'/notifications';
-        if ($mode!=='index') {
+        $back=$mode==='preferences'?'/settings#notification-settings':$base['notificationPath'];
+        if (!in_array($mode,['index','invitations'],true)) {
             if (!Session::verifyCsrf($_POST['_token']??null)) return $this->error($base,'Sessão do formulário expirada. Tente novamente.',419,$back);
             if ($mode==='preferences') {
                 $flags=[];foreach (['bell_enabled','push_enabled','email_enabled'] as $key) {

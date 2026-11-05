@@ -16,7 +16,7 @@ final class ExternalNotificationWorker
         $stats=['delivered'=>0,'cancelled'=>0,'retry'=>0,'failed'=>0];$remaining=max(1,min(500,$limit));$seen=[];
         while ($remaining>0) {
             $candidate=$this->candidate($now,$seen);if (!$candidate) break;
-            $user=(int)$candidate['user_id'];$channel=$candidate['channel'];$seen[]=$user.':'.$channel;
+            $user=(int)$candidate['user_id'];$channel=$candidate['channel'];$seen[]=$user.':'.$channel.':'.$candidate['tenant_id'];
             // Serializa o destinatário/canal também durante SMTP/push, sem bloquear requisições com locks SQL.
             $lock='kanban-notify:'.hash('sha256',$this->config['database']['name'].':'.$user.':'.$channel);
             $lock=substr($lock,0,64);$q=$this->pdo->prepare('SELECT GET_LOCK(?,0)');$q->execute([$lock]);
@@ -47,7 +47,7 @@ final class ExternalNotificationWorker
     }
     private function candidate(DateTimeImmutable $now,array $seen): array|false
     {
-        $exclude=$seen?' AND CONCAT(user_id,\':\',channel) NOT IN ('.implode(',',array_fill(0,count($seen),'?')).')':'';
+        $exclude=$seen?' AND CONCAT(user_id,\':\',channel,\':\',tenant_id) NOT IN ('.implode(',',array_fill(0,count($seen),'?')).')':'';
         $q=$this->pdo->prepare("SELECT * FROM notification_outbox WHERE channel IN ('push','email') AND ((status IN ('pending','retry') AND available_at<=?) OR (status='processing' AND locked_until<=?))".$exclude.' ORDER BY id LIMIT 1');
         $q->execute([$this->utc($now),$this->utc($now),...$seen]);return $q->fetch();
     }
@@ -57,8 +57,8 @@ final class ExternalNotificationWorker
         $condition=$candidate['channel']==='push'?'':($deadlines?" AND kind IN ('due_today','overdue')":' AND id='.(int)$candidate['id']);
         $this->pdo->beginTransaction();
         try {
-            $q=$this->pdo->prepare("SELECT * FROM notification_outbox WHERE user_id=? AND channel=? AND ((status IN ('pending','retry') AND available_at<=?) OR (status='processing' AND locked_until<=?))".$condition.' ORDER BY id LIMIT '.$limit.' FOR UPDATE SKIP LOCKED');
-            $q->execute([$candidate['user_id'],$candidate['channel'],$this->utc($now),$this->utc($now)]);$rows=$q->fetchAll();
+            $q=$this->pdo->prepare("SELECT * FROM notification_outbox WHERE user_id=? AND channel=? AND tenant_id=? AND ((status IN ('pending','retry') AND available_at<=?) OR (status='processing' AND locked_until<=?))".$condition.' ORDER BY id LIMIT '.$limit.' FOR UPDATE SKIP LOCKED');
+            $q->execute([$candidate['user_id'],$candidate['channel'],$candidate['tenant_id'],$this->utc($now),$this->utc($now)]);$rows=$q->fetchAll();
             foreach($rows as &$row) {
                 $row['attempts']=(int)$row['attempts']+1;$row['lock_token']=bin2hex(random_bytes(16));
                 $this->pdo->prepare("UPDATE notification_outbox SET status='processing',attempts=?,lock_token=?,locked_until=? WHERE id=?")->execute([$row['attempts'],$row['lock_token'],$this->utc($now->modify('+5 minutes')),$row['id']]);

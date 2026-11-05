@@ -47,11 +47,11 @@ try {try {change('comment.create',['task_id'=>$task,'body'=>'NAO-PERSISTIR']);ch
 check((int)$pdo->query('SELECT COUNT(*) FROM notification_outbox')->fetchColumn()===$before,'Rollback da outbox');check((int)$pdo->query("SELECT COUNT(*) FROM activity_logs WHERE project_id={$projectId}")->fetchColumn()===$beforeLog,'Rollback da auditoria');$state=$boards->state($owner,$projectId);
 // Reconferir atribuição e tenant no envio e na central.
 change('comment.create',['task_id'=>$task,'body'=>'Antes da remoção']);updateTask($task,'2035-01-10',[$owner,$viewer]);$worker->run($now,500);
-check(amount($member,'comment')===2&&$service->unread($member)===1,'Notificações de tarefa ocultas após remover atribuição; papel ainda visível');
+check(amount($member,'comment')===2&&(new NotificationService($pdo,new App\Services\WorkspaceContext($member,$tenant)))->unread($member)===1,'Notificações de tarefa ocultas após remover atribuição; papel ainda visível');
 (new NotificationOutbox($pdo))->enqueue($outside,'assigned','2035-01-10',['tenant_id'=>$tenant,'project_id'=>$projectId,'task_id'=>$task,'actor_id'=>$owner],'invalid-membership');$worker->run($now,500);check(amount($outside)===0,'Tenant sem projeto não autoriza entrega');
 updateTask($task,'2035-01-10',[$owner,$member,$viewer]);$worker->run($now,500);
 $members->member($owner,$projectId,$member,'remove');$state=$boards->state($owner,$projectId);
-$pdo->prepare('DELETE FROM tenant_users WHERE tenant_id=? AND user_id=?')->execute([$tenant,$member]);change('comment.create',['task_id'=>$task,'body'=>'Sem tenant']);$worker->run($now,500);check($service->unread($member)===0,'Tenant/projeto removidos ocultam a central');
+$pdo->prepare('DELETE FROM tenant_users WHERE tenant_id=? AND user_id=?')->execute([$tenant,$member]);change('comment.create',['task_id'=>$task,'body'=>'Sem tenant']);$worker->run($now,500);try {(new NotificationService($pdo,new App\Services\WorkspaceContext($member,$tenant)))->unread($member);check(false,'Vínculo revogado');}catch(\Pecee\SimpleRouter\Exceptions\HttpException $e){check($e->getCode()===404,'Tenant removido bloqueia central');}
 $pdo->prepare('INSERT INTO tenant_users(tenant_id,user_id) VALUES (?,?)')->execute([$tenant,$member]);
 $pdo->prepare("INSERT INTO project_members(tenant_id,project_id,user_id,role) VALUES (?,?,?,'admin')")->execute([$tenant,$projectId,$member]);
 updateTask($task,'2035-01-10',[$owner,$member,$viewer]);$worker->run($now,500);
@@ -61,9 +61,9 @@ change('task.create',['column_id'=>$state['columns'][0]['id'],'title'=>'Já conc
 $deadlines=new DeadlineNotificationService($pdo);$deadlines->generate(new DateTimeImmutable('2035-01-10T10:59:59Z'));
 check((int)$pdo->query("SELECT COUNT(*) FROM notification_outbox WHERE kind='due_today' AND user_id={$member}")->fetchColumn()===0,'Antes de 08h São Paulo');
 $generators=[];for($i=0;$i<2;$i++)$generators[]=proc_open([PHP_BINARY,__DIR__.'/notify-worker-child.php',$now->format('c'),'deadlines'],[STDIN,STDOUT,STDERR],$pipes,dirname(__DIR__));foreach($generators as $job)check(is_resource($job)&&proc_close($job)===0,'Gerador concorrente');
-$deadlines->generate($now);do{$worker->run($now,500);}while((int)$pdo->query("SELECT COUNT(*) FROM notification_outbox WHERE status='pending' AND channel='bell'")->fetchColumn()>0);check(amount($member,'due_today')===1,'Resumo diário deduplicado');
+$deadlines->generate($now);do{$worker->run($now,500);}while((int)$pdo->query("SELECT COUNT(*) FROM notification_outbox WHERE status='pending' AND channel='bell' AND available_at<='2035-01-11 03:00:00'")->fetchColumn()>0);check(amount($member,'due_today')===1,'Resumo diário deduplicado');
 change('task.create',['column_id'=>$state['columns'][0]['id'],'title'=>'Outra entrega']);$second=end($state['columns'][0]['tasks'])['id'];updateTask($second,'2035-01-10',[$member]);$worker->run($now,500);$deadlines->generate($now);$worker->run($now,500);check(amount($member,'due_today')===1,'Um resumo por usuário/dia, várias tarefas');
-$dayAfter=new DateTimeImmutable('2035-01-11T03:00:00Z');$deadlines->generate($dayAfter);$deadlines->generate($dayAfter);do{$worker->run($dayAfter,500);}while((int)$pdo->query("SELECT COUNT(*) FROM notification_outbox WHERE status='pending' AND channel='bell'")->fetchColumn()>0);check(amount($member,'overdue')===2,'Primeiro ciclo após vencer na virada local');
+$dayAfter=new DateTimeImmutable('2035-01-11T03:00:00Z');$deadlines->generate($dayAfter);$deadlines->generate($dayAfter);do{$worker->run($dayAfter,500);}while((int)$pdo->query("SELECT COUNT(*) FROM notification_outbox WHERE status='pending' AND channel='bell' AND available_at<='2035-01-11 03:00:00'")->fetchColumn()>0);check(amount($member,'overdue')===2,'Primeiro ciclo após vencer na virada local');
 updateTask($second,'2035-01-09',[$member]);$deadlines->generate($dayAfter);$worker->run($dayAfter,500);check(amount($member,'overdue')===3,'Novo prazo permite novo vencido');
 // Dois workers, leases abandonados e falha com retentativa limitada.
 change('comment.create',['task_id'=>$task,'body'=>'Concorrência']);
@@ -79,12 +79,12 @@ $rolesBefore=amount($member,'role_changed');
 foreach (['viewer','member','admin'] as $role) {$members->member($owner,$projectId,$member,'role',$role);$worker->run($dayAfter,500);}
 check(amount($member,'role_changed')===$rolesBefore+3,'Membro, Visualizador e Administrador');
 // Autorizações HTTP, preferências, leitura idempotente e conteúdo sem dados sensíveis.
-$csrf=boardLogin($users['member']['email']);$result=$service->page($member,1);$notice=$result['items'][0]['notification_id'];
+$csrf=boardLogin($users['member']['email']);$result=(new NotificationService($pdo,new App\Services\WorkspaceContext($member,$tenant)))->page($member,1);$notice=$result['items'][0]['notification_id'];
 check(request('/notifications')[0]===200,'Central autenticada');$html=request('/notifications')[1];check(!str_contains($html,'SEGREDO-DESCRICAO')&&!str_contains($html,'SEGREDO-COMENTARIO')&&!str_contains($html,'convite@example.com'),'Texto mínimo sem conteúdo privado');check(!str_contains($html,'<script>window.noticeXss'),'Escape dos títulos');
-check(request('/notifications/'.$notice.'/read',[])[0]===419,'CSRF de leitura');check(request('/notifications/'.$notice.'/read',['_token'=>$csrf])[0]===303,'Marcar lida');check(request('/notifications/'.$notice.'/read',['_token'=>$csrf])[0]===303,'Leitura idempotente');
+check(request('/workspaces/'.$tenant.'/notifications/'.$notice.'/read',[])[0]===419,'CSRF de leitura');check(request('/workspaces/'.$tenant.'/notifications/'.$notice.'/read',['_token'=>$csrf])[0]===303,'Marcar lida');check(request('/workspaces/'.$tenant.'/notifications/'.$notice.'/read',['_token'=>$csrf])[0]===303,'Leitura idempotente');
 check(request('/settings/notifications',['_token'=>$csrf,'bell_enabled'=>['1']])[0]===422,'Preferência inválida');check(request('/settings/notifications',[])[0]===419,'CSRF de preferência');
 check(request('/settings/notifications',['_token'=>$csrf,'push_enabled'=>'1','email_enabled'=>'1','user_id'=>$owner])[0]===303,'Preferências da própria sessão');check(!$service->preferences($member)['bell_enabled']&&$service->preferences($owner)['bell_enabled'],'Isolamento de preferências');flags($member,true);
-$csrf=boardLogin($users['outside']['email']);check(request('/notifications/'.$notice.'/read',['_token'=>$csrf])[0]===404,'IDOR não marca outra conta');check(json_decode(request('/notifications?format=count&user_id='.$member)[1],true)['unread']===0,'Contador não aceita identidade externa');
+$csrf=boardLogin($users['outside']['email']);check(request('/workspaces/'.$tenant.'/notifications/'.$notice.'/read',['_token'=>$csrf])[0]===404,'IDOR não marca outra conta');check(json_decode(request('/notifications?format=count&user_id='.$member)[1],true)['unread']===0,'Contador não aceita identidade externa');
 $csrf=boardLogin($users['unverified']['email']);check(request('/notifications')[0]===403,'Exige e-mail confirmado');$cookie='';check(request('/notifications')[0]===303&&request('/notifications?format=count')[0]===401,'Exige sessão');
-$projects->change($owner,$projectId,'archive');check($service->unread($member)===0,'Arquivado oculta avisos');
+$projects->change($owner,$projectId,'archive');check((new NotificationService($pdo,new App\Services\WorkspaceContext($member,$tenant)))->unread($member)===0,'Arquivado oculta avisos');
 echo "OK: notificações, 5 eventos, transação, isolamento, preferências, deduplicação, fuso/08h, concorrência, lease, retries, CSRF, IDOR e conteúdo mínimo.\n";

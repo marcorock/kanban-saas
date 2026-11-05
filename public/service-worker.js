@@ -5,7 +5,7 @@ self.addEventListener('activate', event => event.waitUntil(self.clients.claim())
 function destination(value) {
     try {
         const url = new URL(value, self.location.origin);
-        if (url.origin === self.location.origin && /^\/(projects\/|notifications(?:\?|$)|tasks(?:\?|$)|invitations\/accept(?:\?|$))/.test(url.pathname + url.search)) return url.href;
+        if (url.origin === self.location.origin && /^\/(workspaces\/[1-9][0-9]*\/(?:projects\/|notifications(?:\?|$)|tasks(?:\?|$))|projects\/|notifications(?:\?|$)|tasks(?:\?|$)|invitations\/accept(?:\?|$))/.test(url.pathname + url.search)) return url.href;
     } catch { /* Conteúdo inválido usa a central. */ }
     return self.location.origin + '/notifications';
 }

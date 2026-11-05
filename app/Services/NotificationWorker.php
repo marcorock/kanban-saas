@@ -46,13 +46,20 @@ final class NotificationWorker
     private function deliver(array $row,DateTimeImmutable $now): string
     {
         $this->pdo->beginTransaction();
+        if ($row['kind']!=='invited') {
+            try {(new WorkspaceContext((int)$row['user_id'],(int)$row['tenant_id']))->authorize($this->pdo,(int)$row['user_id'],true);}
+            catch (\Pecee\SimpleRouter\Exceptions\HttpException) {
+                $this->pdo->prepare("UPDATE notification_outbox SET status='cancelled',lock_token=NULL,locked_until=NULL WHERE id=? AND lock_token=?")->execute([$row['id'],$row['lock_token']]);
+                $this->pdo->commit();return 'cancelled';
+            }
+        }
         // Preferência linearizada antes da entrega. Os serviços de projeto também bloqueiam projects.
         $this->pdo->prepare('INSERT INTO notification_preferences(user_id) VALUES (?) ON DUPLICATE KEY UPDATE user_id=user_id')->execute([$row['user_id']]);
         $query=$this->pdo->prepare('SELECT bell_enabled FROM notification_preferences WHERE user_id=? FOR UPDATE');$query->execute([$row['user_id']]);$enabled=(bool)$query->fetchColumn();
         if ($row['project_id']) {
             $query=$this->pdo->prepare('SELECT id FROM projects WHERE tenant_id=? AND id=? FOR UPDATE');$query->execute([$row['tenant_id'],$row['project_id']]);
         } else {
-            $query=$this->pdo->prepare('SELECT p.id FROM projects p WHERE p.deleted_at IS NULL AND p.archived_at IS NULL AND EXISTS (SELECT 1 FROM tasks t JOIN task_assignees a ON a.task_id=t.id AND a.project_id=t.project_id AND a.tenant_id=t.tenant_id WHERE t.project_id=p.id AND t.tenant_id=p.tenant_id AND t.due_on=? AND a.user_id=?) ORDER BY p.id FOR UPDATE');$query->execute([$row['due_on'],$row['user_id']]);
+            $query=$this->pdo->prepare('SELECT p.id FROM projects p WHERE p.tenant_id=? AND p.deleted_at IS NULL AND p.archived_at IS NULL AND EXISTS (SELECT 1 FROM tasks t JOIN task_assignees a ON a.task_id=t.id AND a.project_id=t.project_id AND a.tenant_id=t.tenant_id WHERE t.project_id=p.id AND t.tenant_id=p.tenant_id AND t.due_on=? AND a.user_id=?) ORDER BY p.id FOR UPDATE');$query->execute([$row['tenant_id'],$row['due_on'],$row['user_id']]);
         }
         $query->fetchAll();
         $query=$this->pdo->prepare("SELECT o.id FROM notification_outbox o WHERE o.id=? AND o.lock_token=? AND o.status='processing' AND ".NotificationService::eligibleSql().' FOR UPDATE');$query->execute([$row['id'],$row['lock_token']]);$eligible=(bool)$query->fetchColumn();

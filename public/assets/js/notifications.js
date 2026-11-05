@@ -11,7 +11,7 @@
     }
     const sync = FluxoSync.create({
         async run(signal) {
-            const data = await FluxoSync.json('/notifications?format=count', signal);
+            const data = await FluxoSync.json((document.body?.dataset.workspacePath || '') + '/notifications?format=count', signal);
             if (!Number.isSafeInteger(data.unread) || data.unread < 0) throw new Error('Contagem inválida.');
             if (data.unread !== unread) {
                 unread = data.unread; badge.textContent = unread > 99 ? '99+' : String(unread); badge.hidden = unread === 0;

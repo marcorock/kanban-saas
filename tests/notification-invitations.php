@@ -4,7 +4,7 @@ declare(strict_types=1);
 require __DIR__.'/board-http.php';
 use App\Services\{AuthService,ProjectService,ProjectMemberService,NotificationService,NotificationWorker,Mailer};
 use Pecee\SimpleRouter\Exceptions\HttpException;
-$auth=new AuthService($pdo);$members=new ProjectMemberService($pdo);$notices=new NotificationService($pdo);$worker=new NotificationWorker($pdo);$mailer=new Mailer($config['mail']);
+$auth=new AuthService($pdo);$members=new ProjectMemberService($pdo);$notices=new NotificationService($pdo,null,true);$worker=new NotificationWorker($pdo);$mailer=new Mailer($config['mail']);
 $password='Senha-convite-interno-123';$suffix=bin2hex(random_bytes(6));$users=[];
 foreach (['owner','guest','other'] as $name) {
     $email=$name.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,$password);
@@ -18,7 +18,7 @@ check($notices->unread($guest)===0,'Evento não entrega na requisição');
 $now=new DateTimeImmutable('now',new DateTimeZone('UTC'));
 $worker->run(new DateTimeImmutable('now',new DateTimeZone('UTC')),500);check($notices->unread($guest)===1,'Convite entregue sem exigir participação prévia no tenant');
 check($notices->unread($owner)===0&&$notices->unread($other)===0,'Somente destinatário recebe convite');
-$csrf=boardLogin($users['guest']['email']);$html=request('/notifications')[1];
+$csrf=boardLogin($users['guest']['email']);$html=request('/notifications/invitations')[1];
 check(str_contains($html,'Convite para projeto')&&str_contains($html,'/invitations/accept?id='.$invitation),'Convite com link interno');
 $content=json_encode($notices->page($guest,1)['items'][0]['links']);check(!str_contains($content,$users['guest']['email'])&&!str_contains($content,'DESCRICAO-PRIVADA'),'Sem e-mail nem descrição');
 check(request('/projects/'.$project)[0]===404,'Convite não concede acesso antes do aceite');
