@@ -24,7 +24,7 @@ final class BoardController
         return json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
     }
 
-    public function handle(string $id, bool $post, ?string $taskId = null, ?string $resource = null): string
+    public function handle(string $id, bool $post, ?string $taskId = null, ?string $resource = null, ?string $workspaceId = null): string
     {
         $api = $post || $taskId !== null || $resource !== null;
         try {
@@ -38,7 +38,8 @@ final class BoardController
                 return $this->views->render('verify-notice.html.twig', ['projectName' => $this->config['name'], 'csrf' => $_SESSION['csrf']]);
             }
             if (!ctype_digit($id) || strlen($id) > 18 || (int) $id < 1) { throw new HttpException('Quadro não encontrado.', 404); }
-            $service = new BoardService($pdo);
+            $context = $workspaceId === null ? null : \App\Services\WorkspaceContext::resolve($pdo, (int) $user['id'], $workspaceId);
+            $service = new BoardService($pdo, $context);
             if (!$post && $resource==='version'){
                 $task=$_GET['task_id']??null;
                 if($task!==null&&(!is_string($task)||!ctype_digit($task)||strlen($task)>18||(int)$task<1))throw new HttpException('Tarefa inválida.',422);
@@ -54,6 +55,7 @@ final class BoardController
                 $state = $service->state((int) $user['id'], (int) $id);
                 return $this->views->render('board.html.twig', [
                     'projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf'], 'wide' => true,
+                    'workspacePath' => $context ? '/workspaces/' . $context->tenantId : '',
                     'board' => $state, 'boardJson' => json_encode($state, JSON_THROW_ON_ERROR | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
                 ]);
             }

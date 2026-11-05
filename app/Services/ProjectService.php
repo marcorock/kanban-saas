@@ -12,7 +12,7 @@ use Throwable;
 
 final class ProjectService
 {
-    public function __construct(private PDO $pdo) {}
+    public function __construct(private PDO $pdo, private ?WorkspaceContext $context = null) {}
 
     public function create(int $userId, array $data): int
     {
@@ -26,7 +26,7 @@ final class ProjectService
             $this->pdo->prepare('INSERT INTO projects (tenant_id, owner_id, name, description, starts_on, due_on) VALUES (?, ?, ?, ?, ?, ?)')->execute([$tenantId, $userId, $data['name'], $data['description'], $data['starts_on'] ?: null, $data['due_on'] ?: null]);
             $id = (int) $this->pdo->lastInsertId();
             $this->pdo->prepare("INSERT INTO project_members (tenant_id, project_id, user_id, role) VALUES (?, ?, ?, 'owner')")->execute([$tenantId, $id, $userId]);
-            $project = (new ProjectRepository($this->pdo))->find($userId, $id);
+            $project = (new ProjectRepository($this->pdo, $this->context))->find($userId, $id);
             BoardService::initialize($this->pdo, $project, $userId);
             (new ActivityLogger($this->pdo))->record($project, $userId, 'project.created', null, $this->snapshot($project));
             $this->pdo->commit();
@@ -44,7 +44,7 @@ final class ProjectService
         }
         $this->pdo->beginTransaction();
         try {
-            $repository = new ProjectRepository($this->pdo);
+            $repository = new ProjectRepository($this->pdo, $this->context);
             $project = $repository->find($userId, $id, true);
             ProjectPolicy::authorize($project, $userId, $action);
             $before = $this->snapshot($project);

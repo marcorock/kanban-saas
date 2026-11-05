@@ -10,15 +10,15 @@
         <div class="pd-badges"><span class="pd-status {{ project.archived_at ? 'pd-status-archived' : '' }}">{{ ui.icon(project.archived_at ? 'archive' : 'projects') }} {{ project.archived_at ? 'Arquivado' : 'Ativo' }}</span><span class="pd-role">{{ roles[project.role] }}</span></div>
         <h2>{{ project.name }}</h2>
         <p>{{ project.owner_id == user.id ? 'Um espaço para organizar suas próximas entregas.' : 'Projeto compartilhado com você. Acompanhe o trabalho da equipe.' }}</p>
-        <div class="pd-actions"><a class="pd-button pd-button-primary" href="/projects/{{ project.id }}/board">{{ ui.icon('tasks') }} {{ project.archived_at ? 'Consultar quadro Kanban' : 'Abrir quadro Kanban' }} {{ ui.icon('arrow-right') }}</a>{% if canManage and not project.archived_at %}<a class="pd-button pd-button-secondary" href="/projects/{{ project.id }}/edit">Editar projeto</a>{% endif %}</div>
+        <div class="pd-actions"><a class="pd-button pd-button-primary" href="{{ workspacePath|default('') }}/projects/{{ project.id }}/board">{{ ui.icon('tasks') }} {{ project.archived_at ? 'Consultar quadro Kanban' : 'Abrir quadro Kanban' }} {{ ui.icon('arrow-right') }}</a>{% if canManage and not project.archived_at %}<a class="pd-button pd-button-secondary" href="{{ workspacePath|default('') }}/projects/{{ project.id }}/edit">Editar projeto</a>{% endif %}</div>
     </div>
-    <nav class="pd-navigation" aria-label="Navegação do projeto"><a href="/projects/{{ project.id }}" aria-current="page">Visão geral</a><a href="/projects/{{ project.id }}/members">{{ ui.icon('users') }} Participantes</a><a href="/projects/{{ project.id }}/history">{{ ui.icon('history') }} Histórico do projeto</a></nav>
+    <nav class="pd-navigation" aria-label="Navegação do projeto"><a href="{{ workspacePath|default('') }}/projects/{{ project.id }}" aria-current="page">Visão geral</a><a href="{{ workspacePath|default('') }}/projects/{{ project.id }}/members">{{ ui.icon('users') }} Participantes</a><a href="{{ workspacePath|default('') }}/projects/{{ project.id }}/history">{{ ui.icon('history') }} Histórico do projeto</a></nav>
     {% if project.archived_at %}<div class="pd-context" role="note">{{ ui.icon('archive') }}<p>Este projeto está arquivado. O quadro e o histórico continuam disponíveis para consulta. Apenas o proprietário pode restaurá-lo.</p></div>
     {% elseif not canManage %}<div class="pd-context" role="note">{{ ui.icon(project.role == 'viewer' ? 'lock' : 'users') }}<p>{{ project.role == 'viewer' ? 'Seu acesso é de consulta. Você pode acompanhar o quadro, os participantes e o histórico.' : 'Você pode colaborar nas tarefas do quadro. As informações do projeto são gerenciadas pelo proprietário e administradores.' }}</p></div>{% endif %}
     <div class="pd-layout">
         <section class="pd-panel pd-about" aria-labelledby="pd-about-title">
             <div class="pd-panel-heading"><span class="pd-section-icon">{{ ui.icon('projects') }}</span><h3 id="pd-about-title">Sobre o projeto</h3></div>
-            {% if project.description|trim %}<p class="pd-description">{{ project.description }}</p>{% else %}<div class="pd-empty"><h4>O contexto ainda está por vir.</h4><p>Nenhuma descrição foi adicionada a este projeto.</p>{% if canManage and not project.archived_at %}<a href="/projects/{{ project.id }}/edit">Adicionar descrição {{ ui.icon('arrow-right') }}</a>{% endif %}</div>{% endif %}
+            {% if project.description|trim %}<p class="pd-description">{{ project.description }}</p>{% else %}<div class="pd-empty"><h4>O contexto ainda está por vir.</h4><p>Nenhuma descrição foi adicionada a este projeto.</p>{% if canManage and not project.archived_at %}<a href="{{ workspacePath|default('') }}/projects/{{ project.id }}/edit">Adicionar descrição {{ ui.icon('arrow-right') }}</a>{% endif %}</div>{% endif %}
         </section>
         <section class="pd-panel pd-planning" aria-labelledby="pd-planning-title">
             <div class="pd-panel-heading"><span class="pd-section-icon">{{ ui.icon('calendar') }}</span><h3 id="pd-planning-title">Planejamento</h3></div>
@@ -36,12 +36,12 @@
         <div class="pd-panel-heading"><span class="pd-section-icon">{{ ui.icon('settings') }}</span><h3 id="pd-manage-title">Gerenciar projeto</h3></div>
         <div class="pd-archive-action">
             <div><h4>{{ project.archived_at ? 'Trazer o projeto de volta' : 'Guardar para consultar depois' }}</h4><p>{{ project.archived_at ? 'Restaure para permitir novas alterações, respeitando o papel de cada participante.' : 'Arquivar mantém o projeto e o histórico para consulta, bloqueando alterações até a restauração.' }}</p></div>
-            <form method="post" action="/projects/{{ project.id }}/{{ project.archived_at ? 'restore' : 'archive' }}"><input type="hidden" name="_token" value="{{ csrf }}"><button class="pd-button pd-button-secondary" type="submit">{{ ui.icon(project.archived_at ? 'arrow-left' : 'archive') }} {{ project.archived_at ? 'Restaurar projeto' : 'Arquivar projeto' }}</button></form>
+            <form method="post" action="{{ workspacePath|default('') }}/projects/{{ project.id }}/{{ project.archived_at ? 'restore' : 'archive' }}"><input type="hidden" name="_token" value="{{ csrf }}"><button class="pd-button pd-button-secondary" type="submit">{{ ui.icon(project.archived_at ? 'arrow-left' : 'archive') }} {{ project.archived_at ? 'Restaurar projeto' : 'Arquivar projeto' }}</button></form>
         </div>
         <details class="pd-danger">
             <summary>{{ ui.icon('alert') }} Exclusão do projeto {{ ui.icon('chevron-right') }}</summary>
             <div class="pd-danger-content"><p id="pd-delete-help">O projeto deixará de aparecer nas listagens e ficará indisponível para todos os participantes.</p>
-                <form method="post" action="/projects/{{ project.id }}/delete"><input type="hidden" name="_token" value="{{ csrf }}"><label class="pd-confirm" for="confirm"><input type="checkbox" id="confirm" name="confirm" value="delete" required aria-describedby="pd-delete-help"><span>Confirmo a exclusão deste projeto.</span></label><button class="pd-button pd-button-danger" type="submit">Excluir projeto</button></form>
+                <form method="post" action="{{ workspacePath|default('') }}/projects/{{ project.id }}/delete"><input type="hidden" name="_token" value="{{ csrf }}"><label class="pd-confirm" for="confirm"><input type="checkbox" id="confirm" name="confirm" value="delete" required aria-describedby="pd-delete-help"><span>Confirmo a exclusão deste projeto.</span></label><button class="pd-button pd-button-danger" type="submit">Excluir projeto</button></form>
             </div>
         </details>
     </section>

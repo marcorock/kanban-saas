@@ -15,13 +15,13 @@ use Twig\Environment;
 
 final class ProjectMemberController
 {
-    public function __construct(private Environment $views, private array $config, private PDO $pdo) {}
+    public function __construct(private Environment $views, private array $config, private PDO $pdo, private ?\App\Services\WorkspaceContext $context = null) {}
 
     public function dispatch(string $action, array $project, array $user, array $base): string
     {
         $userId = (int) $user['id'];
         $projectId = (int) $project['id'];
-        $service = new ProjectMemberService($this->pdo);
+        $service = new ProjectMemberService($this->pdo, $this->context);
         $page = filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 1;
         $oldInvite = [
             'email' => $action === 'invite' && is_string($_POST['email'] ?? null) ? mb_substr($_POST['email'], 0, 254) : '',
@@ -75,7 +75,7 @@ final class ProjectMemberController
             return $render([$exception->getMessage()]);
         }
         $_SESSION['project_notice'] = $notice;
-        header('Location: /projects/' . $projectId . '/members', true, 303);
+        header('Location: ' . ($this->context ? '/workspaces/' . $this->context->tenantId : '') . '/projects/' . $projectId . '/members', true, 303);
         return '';
     }
 }

@@ -13,11 +13,11 @@ use Throwable;
 
 final class ProjectMemberService
 {
-    public function __construct(private PDO $pdo) {}
+    public function __construct(private PDO $pdo, private ?WorkspaceContext $context = null) {}
 
     public function overview(int $actorId, int $projectId, int $page): array
     {
-        $project = (new ProjectRepository($this->pdo))->find($actorId, $projectId);
+        $project = (new ProjectRepository($this->pdo, $this->context))->find($actorId, $projectId);
         $canManage = ProjectPolicy::canManage($project, $actorId);
         $params = [$project['tenant_id'], $projectId];
         $statement = $this->pdo->prepare('SELECT COUNT(*) FROM project_members WHERE tenant_id = ? AND project_id = ?');
@@ -48,7 +48,7 @@ final class ProjectMemberService
 
     private function manageable(int $actorId, int $projectId): array
     {
-        $project = (new ProjectRepository($this->pdo))->find($actorId, $projectId, true);
+        $project = (new ProjectRepository($this->pdo, $this->context))->find($actorId, $projectId, true);
         ProjectPolicy::authorizeMembers($project, $actorId);
         return $project;
     }
@@ -174,7 +174,7 @@ final class ProjectMemberService
     private function inviterAllowed(array $invitation): bool
     {
         try {
-            $project = (new ProjectRepository($this->pdo))->find((int) $invitation['invited_by'], (int) $invitation['project_id']);
+            $project = (new ProjectRepository($this->pdo, $this->context))->find((int) $invitation['invited_by'], (int) $invitation['project_id']);
             return ProjectPolicy::canManage($project, (int) $invitation['invited_by']) && $this->canAssign($project, (int) $invitation['invited_by'], $invitation['role']);
         } catch (HttpException) { return false; }
     }

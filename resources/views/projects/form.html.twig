@@ -5,14 +5,14 @@
 {% block project_notice %}{% if notice %}<div class="pf-feedback pf-feedback-success" role="status">{{ ui.icon('check') }}<p>{{ notice }}</p></div>{% endif %}{% endblock %}
 {% block projects %}
 <div class="project-editor">
-    <a class="pf-back" href="{{ project ? '/projects/' ~ project.id : '/projects' }}">{{ ui.icon('arrow-left') }} {{ project ? 'Voltar ao projeto' : 'Voltar aos projetos' }}</a>
+    <a class="pf-back" href="{{ project ? (workspacePath|default('')) ~ '/projects/' ~ project.id : '/projects' }}">{{ ui.icon('arrow-left') }} {{ project ? 'Voltar ao projeto' : 'Voltar aos projetos' }}</a>
     <div class="pf-intro">
         <p class="pf-eyebrow">{{ project ? 'UM AJUSTE NO CAMINHO' : 'O PRIMEIRO PASSO' }}</p>
         <h2>{{ project ? 'Deixe o projeto no ponto.' : 'Dê forma à próxima ideia.' }}</h2>
         <p>{{ project ? 'Atualize as informações e mantenha o planejamento claro para a equipe.' : 'Comece pelo nome. Você pode completar os detalhes e os prazos depois.' }}</p>
     </div>
     <div class="pf-layout">
-        <form class="pf-form" method="post" action="{{ project ? '/projects/' ~ project.id : '/projects' }}" data-project-form>
+        <form class="pf-form" method="post" action="{{ project ? (workspacePath|default('')) ~ '/projects/' ~ project.id : '/projects' }}" data-project-form>
             <input type="hidden" name="_token" value="{{ csrf }}">
             {% if errors %}
             <div class="pf-feedback pf-feedback-error" role="alert" id="project-form-errors" tabindex="-1" data-project-errors>
@@ -43,7 +43,7 @@
             </fieldset>
             <div class="pf-form-footer">
                 {% if not project %}<p class="pf-ownership">{{ ui.icon('lock') }} O projeto será criado na sua conta pessoal, com você como proprietário.</p>{% endif %}
-                <div class="pf-actions"><button class="pf-button pf-button-primary" type="submit" data-project-submit><span data-project-submit-label>Salvar projeto</span>{{ ui.icon('check') }}</button><a class="pf-button pf-button-secondary" href="{{ project ? '/projects/' ~ project.id : '/projects' }}">Cancelar</a></div>
+                <div class="pf-actions"><button class="pf-button pf-button-primary" type="submit" data-project-submit><span data-project-submit-label>Salvar projeto</span>{{ ui.icon('check') }}</button><a class="pf-button pf-button-secondary" href="{{ project ? (workspacePath|default('')) ~ '/projects/' ~ project.id : '/projects' }}">Cancelar</a></div>
             </div>
         </form>
         <aside class="pf-support" aria-label="Sobre o planejamento">

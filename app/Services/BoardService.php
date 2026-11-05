@@ -12,7 +12,7 @@ use Throwable;
 
 final class BoardService
 {
-    public function __construct(private PDO $pdo) {}
+    public function __construct(private PDO $pdo, private ?WorkspaceContext $context = null) {}
 
     public static function initialize(PDO $pdo, array $project, int $actorId): void
     {
@@ -30,7 +30,7 @@ final class BoardService
 
     public function version(int $userId,int $projectId,?int $taskId=null):array
     {
-        $project=(new ProjectRepository($this->pdo))->find($userId,$projectId);
+        $project=(new ProjectRepository($this->pdo, $this->context))->find($userId,$projectId);
         $result=['version'=>(int)$project['board_version'],'token'=>$this->syncToken($project)];
         if($taskId!==null){
             $q=$this->pdo->prepare('SELECT created_by FROM tasks WHERE tenant_id=? AND project_id=? AND id=?');$q->execute([$project['tenant_id'],$projectId,$taskId]);$creator=$q->fetchColumn();
@@ -44,7 +44,7 @@ final class BoardService
     {
         $this->pdo->beginTransaction();
         try {
-            $project = (new ProjectRepository($this->pdo))->find($userId, $projectId, true);
+            $project = (new ProjectRepository($this->pdo, $this->context))->find($userId, $projectId, true);
             $state = $this->snapshot($project, $userId);
             $this->pdo->commit();
             return $state;
@@ -55,7 +55,7 @@ final class BoardService
     {
         $this->pdo->beginTransaction();
         try {
-            $project = (new ProjectRepository($this->pdo))->find($userId, $projectId, true);
+            $project = (new ProjectRepository($this->pdo, $this->context))->find($userId, $projectId, true);
             $details = (new TaskService($this->pdo))->read($project, $userId, $taskId, $commentsPage, $activityPage);
             $result = ['board' => $this->snapshot($project, $userId), 'details' => $details];
             $this->pdo->commit();
@@ -160,7 +160,7 @@ final class BoardService
         if (!$columnAction && !in_array($action, ['task.create', 'task.rename', 'task.move', ...TaskService::ACTIONS], true)) { throw new HttpException('Operação inválida.', 422); }
         $this->pdo->beginTransaction();
         try {
-            $project = (new ProjectRepository($this->pdo))->find($userId, $projectId, true);
+            $project = (new ProjectRepository($this->pdo, $this->context))->find($userId, $projectId, true);
             if ($project['archived_at'] !== null) { throw new HttpException('Restaure o projeto antes de alterar o quadro.', 409); }
             $canManage = ProjectPolicy::canManage($project, $userId);
             if (($columnAction && !$canManage) || (!$columnAction && !$canManage && $project['role'] !== 'member' && $action !== 'task.delete')) { throw new HttpException('Permissão insuficiente.', 403); }

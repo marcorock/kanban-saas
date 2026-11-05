@@ -24,7 +24,7 @@ final class ProjectController
         return '';
     }
 
-    public function dispatch(string $action, ?string $id = null): string
+    public function dispatch(string $action, ?string $id = null, ?string $workspaceId = null): string
     {
         if (!isset($_SESSION['user_id'])) { return $this->redirect('/login'); }
         $pdo = Database::connect($this->config['database']);
@@ -40,8 +40,10 @@ final class ProjectController
         if ($id !== null && (!ctype_digit($id) || (int) $id < 1 || strlen($id) > 18)) {
             throw new HttpException('Projeto não encontrado.', 404);
         }
-        $repository = new ProjectRepository($pdo);
-        $service = new ProjectService($pdo);
+        $context = $workspaceId === null ? null : \App\Services\WorkspaceContext::resolve($pdo, (int) $user['id'], $workspaceId);
+        $base['workspacePath'] = $context ? '/workspaces/' . $context->tenantId : '';
+        $repository = new ProjectRepository($pdo, $context);
+        $service = new ProjectService($pdo, $context);
         $userId = (int) $user['id'];
         if ($action === 'index') {
             $archived = ($_GET['status'] ?? '') === 'archived';
@@ -50,11 +52,11 @@ final class ProjectController
         }
         $project = $id === null ? null : $repository->find($userId, (int) $id);
         if (in_array($action, ['members', 'invite', 'cancel-invitation', 'member-role', 'member-remove', 'transfer'], true)) {
-            return (new ProjectMemberController($this->views, $this->config, $pdo))->dispatch($action, $project, $user, $base);
+            return (new ProjectMemberController($this->views, $this->config, $pdo, $context))->dispatch($action, $project, $user, $base);
         }
         if (in_array($action, ['edit', 'update'], true)) { ProjectPolicy::authorize($project, $userId, 'update'); }
         if ($action === 'show') {
-            return $this->views->render('projects/show.html.twig', $base + ['project' => $project, 'canManage' => ProjectPolicy::canManage($project, $userId), 'isOwner' => ProjectPolicy::isOwner($project, $userId), 'brainstorm' => (new \App\Services\QuickNoteService($pdo))->page($userId,(int)$id,filter_var($_GET['notes_page']??1,FILTER_VALIDATE_INT)?:1), 'noteProjectId'=>(int)$id, 'noteCanCreate'=>$project['archived_at']===null, 'noteCanConvert'=>$project['archived_at']===null&&in_array($project['role'],['owner','admin','member'],true), 'notesBase'=>'/projects/'.$id]);
+            return $this->views->render('projects/show.html.twig', $base + ['project' => $project, 'canManage' => ProjectPolicy::canManage($project, $userId), 'isOwner' => ProjectPolicy::isOwner($project, $userId), 'brainstorm' => (new \App\Services\QuickNoteService($pdo))->page($userId,(int)$id,filter_var($_GET['notes_page']??1,FILTER_VALIDATE_INT)?:1), 'noteProjectId'=>(int)$id, 'noteCanCreate'=>$project['archived_at']===null, 'noteCanConvert'=>$project['archived_at']===null&&in_array($project['role'],['owner','admin','member'],true), 'notesBase'=>$base['workspacePath'].'/projects/'.$id]);
         }
         $blank = ['name' => '', 'description' => '', 'starts_on' => '', 'due_on' => ''];
         if (in_array($action, ['new', 'edit'], true)) {
@@ -87,13 +89,13 @@ final class ProjectController
                 $service->change($userId, (int) $id, 'update', $data);
             }
             $_SESSION['project_notice'] = $action === 'create' ? 'Projeto criado.' : 'Projeto atualizado.';
-            return $this->redirect('/projects/' . $id);
+            return $this->redirect($base['workspacePath'] . '/projects/' . $id);
         }
         if ($action === 'delete' && ($_POST['confirm'] ?? '') !== 'delete') {
             throw new HttpException('Confirmação de exclusão obrigatória.', 422);
         }
         $service->change($userId, (int) $id, $action);
         $_SESSION['project_notice'] = match ($action) { 'archive' => 'Projeto arquivado.', 'restore' => 'Projeto restaurado.', 'delete' => 'Projeto excluído.' };
-        return $this->redirect($action === 'delete' ? '/projects' : '/projects/' . $id);
+        return $this->redirect($action === 'delete' ? '/projects' : $base['workspacePath'] . '/projects/' . $id);
     }
 }

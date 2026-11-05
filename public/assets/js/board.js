@@ -342,7 +342,7 @@
         bootstrap.Offcanvas.getOrCreateInstance(panel).show(); taskNotify('Carregando detalhes…');
         try {
             const query = new URLSearchParams({comments_page: page.comments || 1, activity_page: page.activity || 1});
-            const response = await fetch(`/projects/${board.project_id}/tasks/${taskId}?${query}`, {credentials: 'same-origin', headers: {'Accept': 'application/json'}});
+            const response = await fetch(`${root.dataset.endpoint.replace(/\/board$/, '')}/tasks/${taskId}?${query}`, {credentials: 'same-origin', headers: {'Accept': 'application/json'}});
             const result = await response.json();
             if (sequence !== taskRequest) return;
             if (!response.ok || !result.ok) throw new Error(result.message || 'Não foi possível carregar a tarefa.');
@@ -510,7 +510,7 @@
             let result;
             if (updatePanel) {
                 const query = new URLSearchParams({comments_page: taskDetails.comments.page, activity_page: taskDetails.activity.page});
-                try { result = await FluxoSync.json(`/projects/${board.project_id}/tasks/${taskId}?${query}`, signal); }
+                try { result = await FluxoSync.json(`${root.dataset.endpoint.replace(/\/board$/, '')}/tasks/${taskId}?${query}`, signal); }
                 catch (error) { if (error.status === 404 && current()) { missingTask(); sync.requestNow(); return; } throw error; }
             } else result = await FluxoSync.json(root.dataset.endpoint + '/state', signal);
             // Uma tarefa removida sem rascunho fecha o painel; o snapshot do quadro ainda pode ser aplicado.

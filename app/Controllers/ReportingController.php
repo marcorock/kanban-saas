@@ -17,7 +17,7 @@ final class ReportingController
 {
     public function __construct(private Environment $views, private array $config) {}
 
-    public function handle(string $mode, ?string $projectId = null): string
+    public function handle(string $mode, ?string $projectId = null, ?string $workspaceId = null): string
     {
         $sync = $mode === 'dashboard' && in_array($_GET['sync'] ?? null, ['version', 'state'], true);
         if ($sync) header('Cache-Control: private, no-store');
@@ -30,6 +30,9 @@ final class ReportingController
         $base = ['projectName' => $this->config['name'], 'user' => $user, 'wide' => true, 'csrf' => $_SESSION['csrf'], 'sessionInvitation' => isset($_SESSION['pending_invitation'])];
         if ($sync && $user['email_verified_at'] === null) return $this->json(['error' => 'Confirme seu e-mail.'], 403);
         if ($user['email_verified_at'] === null) { http_response_code(403); return $this->views->render('verify-notice.html.twig', $base); }
+        $context = $workspaceId === null ? null : \App\Services\WorkspaceContext::resolve($pdo, (int) $user['id'], $workspaceId);
+        $base['workspacePath'] = $context ? '/workspaces/' . $context->tenantId : '';
+        if ($context && $projectId !== null) (new ProjectRepository($pdo, $context))->find((int) $user['id'], (int) $projectId);
         $service = new ReportingService($pdo); $userId = (int) $user['id'];
         try {
             $input = $_GET;

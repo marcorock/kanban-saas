@@ -90,3 +90,18 @@ SimpleRouter::post('/notes/{id}/transfer', static fn (string $id): string => $no
 
 SimpleRouter::get('/projects/{id}/board/version', static fn (string $id): string => $board->handle($id,false,null,'version'));
 SimpleRouter::get('/projects/{id}/board/state', static fn (string $id): string => $board->handle($id,false,null,'state'));
+
+// Contexto explícito para recursos de projeto; seletor e listagens entram nas etapas seguintes.
+SimpleRouter::get('/workspaces/{workspaceId}/projects/{id}', static fn (string $workspaceId, string $id): string => $projects->dispatch('show', $id, $workspaceId));
+SimpleRouter::get('/workspaces/{workspaceId}/projects/{id}/edit', static fn (string $workspaceId, string $id): string => $projects->dispatch('edit', $id, $workspaceId));
+SimpleRouter::get('/workspaces/{workspaceId}/projects/{id}/members', static fn (string $workspaceId, string $id): string => $projects->dispatch('members', $id, $workspaceId));
+foreach (['' => 'update', '/archive' => 'archive', '/restore' => 'restore', '/delete' => 'delete', '/invitations' => 'invite', '/invitations/cancel' => 'cancel-invitation', '/members/role' => 'member-role', '/members/remove' => 'member-remove', '/transfer' => 'transfer'] as $suffix => $action) {
+    SimpleRouter::post('/workspaces/{workspaceId}/projects/{id}' . $suffix, static fn (string $workspaceId, string $id): string => $projects->dispatch($action, $id, $workspaceId));
+}
+SimpleRouter::get('/workspaces/{workspaceId}/projects/{id}/board', static fn (string $workspaceId, string $id): string => $board->handle($id, false, null, null, $workspaceId));
+SimpleRouter::post('/workspaces/{workspaceId}/projects/{id}/board', static fn (string $workspaceId, string $id): string => $board->handle($id, true, null, null, $workspaceId));
+SimpleRouter::get('/workspaces/{workspaceId}/projects/{id}/tasks/{taskId}', static fn (string $workspaceId, string $id, string $taskId): string => $board->handle($id, false, $taskId, null, $workspaceId));
+foreach (['version', 'state'] as $resource) {
+    SimpleRouter::get('/workspaces/{workspaceId}/projects/{id}/board/' . $resource, static fn (string $workspaceId, string $id): string => $board->handle($id, false, null, $resource, $workspaceId));
+}
+SimpleRouter::get('/workspaces/{workspaceId}/projects/{id}/history', static fn (string $workspaceId, string $id): string => $reports->handle('history', $id, $workspaceId));
