@@ -79,6 +79,14 @@ final class ReportingService
         $result['items'] = $this->present($result['items'], $userId); return $result;
     }
 
+    public function dashboardVersion(int $userId, int $page): string
+    {
+        // Apenas metadados dos projetos acessíveis; não agrega tarefas a cada polling.
+        $projects = $this->query('SELECT p.id, p.name, p.archived_at, p.board_version, UTC_DATE() AS today FROM projects p' . self::ACCESS . self::SCOPE . ' ORDER BY p.id', [$userId]);
+        $authors = $this->query('SELECT a.id, u.name FROM activity_logs a JOIN projects p ON p.tenant_id = a.tenant_id AND p.id = a.project_id JOIN users u ON u.id = a.actor_id' . self::ACCESS . self::SCOPE . ' ORDER BY a.created_at DESC, a.id DESC LIMIT 10', [$userId]);
+        return hash('sha256', json_encode([$userId, $page, $projects, $authors], JSON_THROW_ON_ERROR));
+    }
+
     public function dashboard(int $userId, int $page): array
     {
         $this->pdo->beginTransaction();

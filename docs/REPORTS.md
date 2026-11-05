@@ -11,7 +11,17 @@ A navegação principal inclui **Dashboard**, **Projetos**, **Minhas Tarefas** e
 - **Prazos próximos:** até cinco tarefas pendentes atribuídas ao usuário, com prazo de hoje até sete dias adiante, inclusive, considerando UTC.
 - **Atividades recentes:** dez eventos mais recentes dos projetos acessíveis, incluindo arquivados. Mostram ação, autor e contexto; os detalhes ficam no histórico de cada projeto.
 
-As consultas do dashboard usam uma transação de leitura para manter as contagens consistentes. Não há gráficos complexos ou atualizações em tempo real.
+As consultas do dashboard usam uma transação de leitura para manter as contagens consistentes. Não há gráficos complexos. Com JavaScript, indicadores, prazos, progresso e atividades são sincronizados automaticamente pelo FluxoSync, sem recarregar a página.
+
+## Sincronização automática do Dashboard
+
+O FluxoSync consulta `GET /dashboard?sync=version` a cada 7 segundos na aba ativa. A versão usa metadados dos projetos acessíveis, `board_version`, os dez eventos recentes/autores e a data UTC. Somente quando a versão muda busca `GET /dashboard?sync=state`, que entrega os fragmentos renderizados por Twig. Ambos preservam a página solicitada (`page`), a identidade da sessão e os vínculos atuais em tenant/projeto, com respostas sem cache. Sessão encerrada/revogada retorna 401; e-mail não confirmado retorna 403.
+
+Somente os blocos cujo HTML mudou são substituídos. Se a troca remover o elemento em foco, a aplicação é adiada até uma consulta posterior sem esse impedimento. A paginação continua por links GET; saudação e banner de convite mantêm o comportamento anterior. Sem JavaScript, a página completa continua funcional.
+
+A infraestrutura existente suspende consultas em aba inativa/offline, consulta imediatamente no retorno/reconexão e aplica backoff nas falhas, sem requisições sobrepostas. Não há garantia de atualização instantânea: a latência normal é de até um ciclo de polling, e falhas/foco podem adiá-la. Uma alteração em qualquer tarefa de projeto acessível pode invalidar a versão mesmo que não altere os blocos visíveis.
+
+Validação direcionada em banco e servidor HTTP descartáveis: `AUTH_TEST_DATABASE=disposable php tests/dashboard-sync.php`. O teste gera `/tmp/kanban-dashboard-sync.json` no ambiente PHP. Disponibilize essa fixture no ambiente Chromium e execute `AUTH_TEST_DATABASE=disposable node tests/dashboard-sync-browser.cjs`, com `AUTH_TEST_URL`, `NODE_PATH` e `CHROMIUM_PATH` conforme o ambiente; `DASHBOARD_SYNC_FIXTURE` permite indicar outro caminho. Nenhuma suíte anterior é chamada por esses testes.
 
 ## UI do dashboard — Fluxo Claro
 

@@ -4,12 +4,12 @@
 
 ## Estado de continuidade
 
-- **Último incremento aprovado (05/11/2026):** incremento 3, sincronização automática do painel de tarefas e do contador do sino, na branch `syncronization`, base `4ce0e56`. Fechamento autorizado; hash do commit disponível no Git.
-- **Trabalho atual:** incremento concluído e documentado; pausa solicitada após o commit. Sem migrations ou alterações em dados/credenciais locais.
-- **Validação:** regressão PHP completa de fechamento aprovada em MariaDB/Mailpit descartáveis, schema `kanban_task_sync_20261105` (001–015). Suítes retomadas após iniciar o servidor HTTP descartável e isolar o rate limit acumulado entre testes; nenhum ajuste de código necessário. Evidência: `/tmp/kanbansaas-increment3-close.log`. Testes Chromium/axe 320–1440px e regressões afetadas já aprovados, sem repetição; `git diff --check` aprovado.
-- **Próximo passo:** aguardar instruções. Sincronização do Dashboard não iniciada nem autorizada neste fechamento.
-- **Pendências funcionais conhecidas:** audiência segura para a visibilidade "Público" dos Post-its ainda indefinida; validação operacional real de Web Push em dispositivo; homologação operacional de produção adiada.
-- **Limitação atual:** token do painel de tarefa é do projeto; mudanças em outras tarefas podem provocar leitura dos detalhes abertos. A lista completa da central de notificações não é sincronizada nesse incremento.
+- **Base atual:** branch `syncronization`, commit inicial `90e7f59`. Incremento anterior aprovado; não reaberto. Árvore limpa no início deste trabalho.
+- **Trabalho atual (05/11/2026):** incremento 4 aprovado pelo usuário e autorizado para commit, sincronização automática do Dashboard via FluxoSync: versão/fragmentos Twig, indicadores, prazos, progresso e atividades, com paginação e fallback sem JS preservados. Sem dependências, migrations ou mudanças em Kanban/Post-its/notificações.
+- **Validação:** testes direcionados HTTP/PHP e Chromium com dois usuários aprovados no banco descartável `kanban_dashboard_sync_20261105`; isolamento, revogação, paginação, XSS, foco, offline/retorno, consulta condicional, ausência de reload, sem JS e axe 320/1440px. Sintaxe PHP/JS e `git diff --check` aprovados. Suítes anteriores não repetidas.
+- **Próximo passo:** fechamento do incremento aprovado em commit; aguardar solicitação para novo trabalho. Sem push, merge ou deploy autorizados. Os quatro incrementos de sincronização planejados estão concluídos.
+- **Limitações:** polling de 7s; foco em bloco alterado adia sua aplicação; alterações em qualquer tarefa de projeto acessível podem disparar leitura completa do Dashboard, ainda que os blocos visíveis não mudem. Saudação/banner mantêm comportamento anterior.
+- **Pendências anteriores preservadas:** audiência segura para Post-its públicos; Web Push em dispositivo; homologação de produção. Token do painel de tarefa continua por projeto; lista completa da central de notificações não sincronizada.
 
 ## Arquitetura essencial
 
