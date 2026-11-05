@@ -13,12 +13,14 @@ final class NotificationController
 
     public function handle(string $mode,?string $id=null): string
     {
+        $count=$mode==='index'&&($_GET['format']??null)==='count';
+        if($count){header('Content-Type: application/json');header('Cache-Control: private, no-store');}
         $pdo=Database::connect($this->config['database']);$user=(new AuthService($pdo))->currentUser();
-        if (!$user) {if (($_GET['format']??null)==='count') {http_response_code(401);header('Content-Type: application/json');return '{"error":"unauthenticated"}';}header('Location: /login',true,303);return '';}
+        if (!$user) {if ($count) {http_response_code(401);header('Content-Type: application/json');return '{"error":"unauthenticated"}';}header('Location: /login',true,303);return '';}
         $base=['projectName'=>$this->config['name'],'user'=>$user,'csrf'=>$_SESSION['csrf'],'wide'=>false];
-        if (!$user['email_verified_at']) {http_response_code(403);return $this->views->render('verify-notice.html.twig',$base);}
+        if (!$user['email_verified_at']) {http_response_code(403);if($count)return '{"error":"unverified"}';return $this->views->render('verify-notice.html.twig',$base);}
         $service=new NotificationService($pdo);
-        if ($mode==='index' && ($_GET['format']??null)==='count') {header('Content-Type: application/json');return json_encode(['unread'=>$service->unread((int)$user['id'])],JSON_THROW_ON_ERROR);}
+        if ($count) {header('Content-Type: application/json');return json_encode(['unread'=>$service->unread((int)$user['id'])],JSON_THROW_ON_ERROR);}
         $back=$mode==='preferences'?'/settings#notification-settings':'/notifications';
         if ($mode!=='index') {
             if (!Session::verifyCsrf($_POST['_token']??null)) return $this->error($base,'Sessão do formulário expirada. Tente novamente.',419,$back);

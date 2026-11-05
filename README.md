@@ -36,6 +36,8 @@ Confira a instalação com `php bin/check.php` (somente leitura); em produção,
 
 Para esvaziar o banco local e reiniciar IDs, use o [reset de dados para testes](docs/TEST_DATABASE_RESET.md). O utilitário e seu inventário ficam em `local-tools/`, fora do Git.
 
+Kanban e Post-its têm sincronização automática sem refresh. O [painel de tarefas](docs/TASKS.md) acompanha comentários/checklists/status e o [sino](docs/NOTIFICATIONS.md) atualiza a contagem pelo scheduler compartilhado; Dashboard permanece para o próximo incremento.
+
 ## Continuidade
 
 A aprovação de um incremento autoriza seu commit e o início do próximo, salvo pedido explícito para parar. Veja [regras](AGENTS.md), [histórico consolidado](docs/DEVELOPMENT.md) e [estado atual](PROJECT_CONTEXT.md).

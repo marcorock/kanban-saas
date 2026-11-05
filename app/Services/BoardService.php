@@ -28,10 +28,16 @@ final class BoardService
         return hash('sha256',json_encode([$project['id'],$project['board_version'],$project['role'],$project['archived_at'],$project['name'],gmdate('Y-m-d')],JSON_THROW_ON_ERROR));
     }
 
-    public function version(int $userId,int $projectId):array
+    public function version(int $userId,int $projectId,?int $taskId=null):array
     {
         $project=(new ProjectRepository($this->pdo))->find($userId,$projectId);
-        return ['version'=>(int)$project['board_version'],'token'=>$this->syncToken($project)];
+        $result=['version'=>(int)$project['board_version'],'token'=>$this->syncToken($project)];
+        if($taskId!==null){
+            $q=$this->pdo->prepare('SELECT created_by FROM tasks WHERE tenant_id=? AND project_id=? AND id=?');$q->execute([$project['tenant_id'],$projectId,$taskId]);$creator=$q->fetchColumn();
+            $active=$project['archived_at']===null;
+            $result['task']=['exists'=>$creator!==false,'can_write'=>$active&&in_array($project['role'],['owner','admin','member'],true),'can_delete'=>$active&&$creator!==false&&(int)$creator===$userId,'archived'=>!$active];
+        }
+        return $result;
     }
 
     public function state(int $userId, int $projectId): array

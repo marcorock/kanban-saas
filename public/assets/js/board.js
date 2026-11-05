@@ -6,7 +6,7 @@
     let board = JSON.parse(document.getElementById('board-state').textContent);
     let sortables = [];
     let saving = false; let dragging = false; let loadingTask = false; let syncDenied = false;
-    let sync; let manualRefresh = false; let refreshTask = false; let taskVersion = null;
+    let sync; let manualRefresh = false; let refreshTask = false; let taskVersion = null; let taskSyncToken = null; let taskMissing = false; let mutationEpoch = 0;
     const boardDrafts = new Set(); const filterValues = new Map();
     const panel = document.getElementById('task-panel');
     const panelContent = document.getElementById('task-content');
@@ -143,7 +143,7 @@
         const originalDisabled = new Map([...document.querySelectorAll('#kanban input, #kanban select, #kanban button, #column-create input, #column-create button')].map(control => [control, control.disabled]));
         const focus = focusTarget();
         const panelDisabled = new Map([...panelContent.querySelectorAll('input,select,textarea,button')].map(control => [control, control.disabled]));
-        saving = true;
+        saving = true; mutationEpoch++;
         let success = false;
         document.getElementById('task-panel-close').disabled = true;
         root.setAttribute('aria-busy', 'true');
@@ -311,7 +311,7 @@
     }
     function panelPosition() {
         const control = document.activeElement; const form = control?.closest('form');
-        return {scroll: panel.querySelector('.offcanvas-body').scrollTop, page: control?.dataset.page, direction: control?.hasAttribute('data-next') ? 'next' : 'previous', action: form?.dataset.taskAction, checklistId: form?.dataset.checklistId, itemId: form?.dataset.itemId, commentId: form?.dataset.commentId, name: control?.name || form?.querySelector('input,textarea,select')?.name};
+        return {tab: control?.dataset.taskTab, menu: control?.tagName === 'SUMMARY' ? detailKey(control.closest('details')) : null, scroll: panel.querySelector('.offcanvas-body').scrollTop, page: control?.dataset.page, direction: control?.hasAttribute('data-next') ? 'next' : 'previous', action: form?.dataset.taskAction, checklistId: form?.dataset.checklistId, itemId: form?.dataset.itemId, commentId: form?.dataset.commentId, name: control?.name || form?.querySelector('input,textarea,select')?.name};
     }
     function restorePanelPosition(position) {
         if (!position) return;
@@ -322,6 +322,8 @@
             control = choices.find(button => button.hasAttribute('data-' + position.direction)) || choices[0];
         }
         if (form?.dataset.taskAction === 'item.update' && position.name === 'title') control = form.querySelector('.tp-item-title');
+        if (position.tab) control = panelContent.querySelector(`[data-task-tab="${position.tab}"]`);
+        if (position.menu) control = [...panelContent.querySelectorAll('details')].find(detail => detailKey(detail) === position.menu)?.querySelector('summary');
         if (control) {
             const details = control.closest('details'); if (details) details.open = true;
             control.focus({preventScroll: true});
@@ -331,7 +333,7 @@
     async function openTask(id, page = {}, force = false, position = null) {
         if (saving || syncDenied || (!force && !discard())) return;
         if (boardDrafts.size) { notify('Salve a edição do quadro antes de abrir a tarefa.', true); return; }
-        loadingTask = true;
+        loadingTask = true; taskMissing = false;
         if (taskId !== Number(id)) taskTab = 'subtasks';
         taskId = Number(id); const sequence = ++taskRequest;
         panelContent.replaceChildren(); dirtyForms.clear(); taskDetails = null;
@@ -344,12 +346,14 @@
             const result = await response.json();
             if (sequence !== taskRequest) return;
             if (!response.ok || !result.ok) throw new Error(result.message || 'Não foi possível carregar a tarefa.');
-            taskVersion = result.board.version; if (result.board.version >= board.version) board = result.board; taskDetails = result.details; render(); renderTask(); taskMessage.hidden = true;
+            taskVersion = result.board.version; taskSyncToken = result.board.sync_token; if (result.board.version >= board.version) board = result.board; taskDetails = result.details; render(); renderTask(); panel.dataset.syncToken = taskSyncToken; taskMessage.hidden = true;
             if (position) restorePanelPosition(position); else panel.querySelector('.offcanvas-body').scrollTop = 0;
         } catch (error) { if (sequence === taskRequest) { taskNotify(error.message, true); document.getElementById('task-retry').hidden = false; } }
         finally { if (sequence === taskRequest) { panelContent.removeAttribute('aria-busy'); loadingTask = false; sync?.requestNow(); } }
     }
     async function taskSave(action, payload, source = null) {
+        if (taskMissing) { taskNotify('A tarefa foi excluída. Copie seu rascunho antes de fechar.', true); return false; }
+        if (!board.can_write && !(action === 'task.delete' && taskDetails?.can_delete)) { taskNotify('Seu acesso atual permite apenas consulta.', true); return false; }
         if (saving) return false;
         if (Array.from(dirtyForms).some(form => form !== source) && !window.confirm('Há alterações em outros campos. Descartá-las e continuar?')) return false;
         if (action.endsWith('.delete') && !window.confirm(action === 'task.delete' ? 'Excluir esta tarefa, suas subtarefas e comentários? Esta ação não pode ser desfeita.' : 'Confirmar a exclusão?')) return false;
@@ -419,7 +423,7 @@
     let returnTaskId = null;
     function closeTask() {
         if (saving || !discard()) return;
-        returnTaskId = taskId; ++taskRequest; loadingTask = false; dirtyForms.clear(); bootstrap.Offcanvas.getOrCreateInstance(panel).hide(); taskId = null;
+        returnTaskId = taskId; ++taskRequest; loadingTask = false; dirtyForms.clear(); bootstrap.Offcanvas.getOrCreateInstance(panel).hide(); taskId = null; taskMissing = false; taskSyncToken = null;
     }
     document.getElementById('task-panel-close').addEventListener('click', closeTask);
     document.getElementById('task-retry').addEventListener('click', () => { if (taskId) openTask(taskId); });
@@ -436,7 +440,7 @@
     document.getElementById('column-create')?.addEventListener('change', markDraft);
     function canSync() {
         const control = document.activeElement;
-        return !saving && !dragging && !loadingTask && !boardDrafts.size && !dirtyForms.size && (manualRefresh || !((control?.matches('select,[contenteditable="true"]') || (control?.matches('input,textarea') && control.value !== '')) && (root.contains(control) || panel.contains(control) || control.closest('#column-create,#board-filters'))));
+        return !saving && !dragging && !loadingTask && !boardDrafts.size && !dirtyForms.size && (manualRefresh || !panelContent.querySelector('[data-editing="true"]')) && (manualRefresh || !((control?.matches('select,[contenteditable="true"]') || (control?.matches('input,textarea') && control.value !== '')) && (root.contains(control) || panel.contains(control) || control.closest('#column-create,#board-filters'))));
     }
     function rememberBoard() {
         const nodes = [...root.querySelectorAll('.kanban-column,.kanban-task')];
@@ -463,19 +467,64 @@
         if ((boardDrafts.size || dirtyForms.size) && !confirm('Atualizar o quadro descarta os rascunhos ainda não salvos. Continuar?')) return;
         boardDrafts.clear(); dirtyForms.clear(); manualRefresh = true; refreshTask = panel.classList.contains('show'); sync?.requestNow();
     });
+    function detailKey(detail) {
+        const form = detail?.querySelector('form');
+        return form ? [form.dataset.taskAction, form.dataset.checklistId, form.dataset.commentId].join(':') : '';
+    }
+    function missingTask() {
+        if (taskMissing) return;
+        taskMissing = true;
+        if (dirtyForms.size) {
+            panelContent.querySelectorAll('button:not([data-task-tab]),select,input[type="checkbox"]').forEach(control => { control.disabled = true; });
+            taskNotify('A tarefa foi excluída por outro participante. Seu rascunho foi mantido; copie o texto antes de fechar.', true);
+        } else {
+            ++taskRequest; taskId = null; taskDetails = null; taskSyncToken = null; panelContent.replaceChildren();
+            bootstrap.Offcanvas.getInstance(panel)?.hide();
+            const url = new URL(location.href); url.searchParams.delete('task'); history.replaceState(null, '', url);
+            notify('A tarefa aberta foi excluída por outro participante.');
+        }
+    }
+    function restrictPanel(access) {
+        if (access.can_write || !taskDetails) return;
+        const changed = board.can_write || board.archived !== access.archived || taskDetails.can_delete !== access.can_delete;
+        board.can_write = false; board.can_manage = false; board.archived = access.archived; taskDetails.can_delete = access.can_delete;
+        panelContent.querySelectorAll('button,input[type="checkbox"],select').forEach(control => {
+            if (!control.dataset.taskTab && !control.dataset.page) control.disabled = !(control.hasAttribute('data-task-delete') && access.can_delete);
+        });
+        root.querySelectorAll('[data-write-only] button,[data-write-only] input,[data-write-only] select,[data-manage-only] button,[data-manage-only] input,[data-manage-only] select').forEach(control => { control.disabled = true; });
+        if (changed && dirtyForms.size) taskNotify('Seu acesso mudou. O salvamento foi desabilitado e seu rascunho foi mantido.', true);
+    }
     if (window.FluxoSync && typeof Sortable !== 'undefined') sync = FluxoSync.create({
         interval: root.dataset.syncInterval, busy: () => saving || dragging || loadingTask,
         async run(signal) {
-            const meta = await FluxoSync.json(root.dataset.endpoint + '/version', signal);
-            if (meta.token === board.sync_token && !manualRefresh) return;
+            const epoch = mutationEpoch; const selected = taskId; const sequence = taskRequest;
+            const current = () => epoch === mutationEpoch && selected === taskId && sequence === taskRequest && !saving && !dragging && !loadingTask && !signal.aborted;
+            const versionUrl = new URL(root.dataset.endpoint + '/version', location.origin);
+            if (selected && panel.classList.contains('show')) versionUrl.searchParams.set('task_id', selected);
+            const meta = await FluxoSync.json(versionUrl, signal);
+            if (!current()) return;
+            if (meta.task) { if (!meta.task.exists) missingTask(); else restrictPanel(meta.task); }
             if (!canSync()) return;
-            const result = await FluxoSync.json(root.dataset.endpoint + '/state', signal);
-            if (!canSync() || result.board.version < board.version) return;
-            const position = rememberBoard(); const permissionsChanged = board.can_write !== result.board.can_write || board.can_manage !== result.board.can_manage;
+            const updatePanel = taskId && taskDetails && !taskMissing && (taskSyncToken !== meta.token || refreshTask);
+            if (meta.token === board.sync_token && !manualRefresh && !updatePanel) return;
+            let result;
+            if (updatePanel) {
+                const query = new URLSearchParams({comments_page: taskDetails.comments.page, activity_page: taskDetails.activity.page});
+                try { result = await FluxoSync.json(`/projects/${board.project_id}/tasks/${taskId}?${query}`, signal); }
+                catch (error) { if (error.status === 404 && current()) { missingTask(); sync.requestNow(); return; } throw error; }
+            } else result = await FluxoSync.json(root.dataset.endpoint + '/state', signal);
+            // Uma tarefa removida sem rascunho fecha o painel; o snapshot do quadro ainda pode ser aplicado.
+            if (epoch !== mutationEpoch || saving || dragging || loadingTask || signal.aborted || !canSync() || result.board.version < board.version) return;
+            if (updatePanel && !current()) return;
+            const position = rememberBoard(); const panelPlace = panelPosition();
+            const menus = new Set([...panelContent.querySelectorAll('details[open]')].map(detailKey));
             board = result.board; render(); restoreBoard(position);
-            if (refreshTask && taskId) { refreshTask = false; await openTask(taskId, {}, true, panelPosition()); }
-            else if (permissionsChanged && taskDetails && panel.classList.contains('show')) { const place = panelPosition(); taskDetails.can_delete = taskDetails.can_delete && !board.archived; renderTask(); restorePanelPosition(place); }
-            manualRefresh = false;
+            if (updatePanel) {
+                taskDetails = result.details; taskVersion = result.board.version; taskSyncToken = result.board.sync_token;
+                renderTask(); panel.dataset.syncToken = taskSyncToken; panelContent.querySelectorAll('details').forEach(detail => { detail.open = menus.has(detailKey(detail)); });
+                restorePanelPosition(panelPlace); taskMessage.hidden = true;
+            }
+            manualRefresh = false; refreshTask = false;
         },
         onError(error) {
             if ([401,403,404].includes(error.status)) {

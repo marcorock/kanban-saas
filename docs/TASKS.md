@@ -79,3 +79,13 @@ Dashboard, Minhas Tarefas e históricos estão disponíveis conforme [REPORTS.md
 
 
 O teste `tests/task-panel-ui-browser.cjs` requer também `@axe-core/playwright` e a fixture descartável de `tests/members-ui.php` (ou runner PHP completo). Reutiliza a regressão de tarefas e acrescenta validação visual/acessibilidade, alinhamento das ações, edição/cancelamento inline, marcação direta, agregação 3/5 e 60%, falhas/rascunhos, navegação de abas, foco/Escape, retry, exclusão, paginação, quatro papéis e arquivados. Muda o projeto ativo da fixture para arquivado ao final; recrie a fixture antes de outros testes que precisem dele ativo. Previews em storage/previews/task-panel-390.png/task-panel-1440.png e task-checklists-*.png, ignorados no Git.
+
+## Sincronização automática do painel
+
+- O painel aberto acompanha comentários, checklists e status usando o polling compartilhado de 7s do quadro. GET /projects/{id}/board/version?task_id=ID acrescenta existência e poderes atuais da tarefa à metadata; dois SELECTs, sem descrição/comentários/checklists. Sem tarefa aberta, o endpoint continua com um SELECT.
+- Só quando o token muda, o navegador reaproveita GET /projects/{id}/tasks/{taskId}, cujo snapshot transacional atualiza painel e quadro em uma resposta. Preserva aba, páginas de comentários/histórico, menus, foco e rolagem. Mudanças em outras tarefas do projeto também podem invalidar o token compartilhado board_version.
+- Formulários com rascunhos, edição inline, controles de edição ativos, gravação, arraste ou carregamento adiam a substituição. A versão de escrita só avança com os detalhes correspondentes; conflito 409 mantém o texto e exige atualização explícita. Respostas iniciadas antes de uma tentativa de gravação são descartadas.
+- Tarefa excluída fecha o painel se estiver sem rascunho; com rascunho, mantém o texto e bloqueia ações para permitir cópia antes de fechar. Redução de papel/arquivamento bloqueia escrita sem apagar o formulário. Revogação do projeto/sessão mantém o comportamento de limpar o quadro/painel e parar a sincronização.
+- Sem JavaScript permanece a consulta Twig do quadro. Não há migration nova. A central de notificações e o Dashboard não recebem atualização de conteúdo neste incremento; o sino tem seu próprio adaptador no mesmo scheduler.
+
+Testes: tests/task-live-sync.php inclui board-sync e verifica metadata, autorização, existência e papéis. Para o navegador, preparar tests/task-live-ui.php em banco/Mailpit descartáveis e executar tests/task-live-browser.cjs com AUTH_TEST_DATABASE=disposable e AUTH_TEST_URL apontando para esse servidor. Usa Chromium, playwright-core e axe já utilizados nas demais suítes; fixtures ficam em storage/previews, fora do Git.

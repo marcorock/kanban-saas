@@ -39,7 +39,11 @@ final class BoardController
             }
             if (!ctype_digit($id) || strlen($id) > 18 || (int) $id < 1) { throw new HttpException('Quadro não encontrado.', 404); }
             $service = new BoardService($pdo);
-            if (!$post && $resource==='version')return $this->json(['ok'=>true]+$service->version((int)$user['id'],(int)$id));
+            if (!$post && $resource==='version'){
+                $task=$_GET['task_id']??null;
+                if($task!==null&&(!is_string($task)||!ctype_digit($task)||strlen($task)>18||(int)$task<1))throw new HttpException('Tarefa inválida.',422);
+                return $this->json(['ok'=>true]+$service->version((int)$user['id'],(int)$id,$task===null?null:(int)$task));
+            }
             if (!$post && $resource==='state')return $this->json(['ok'=>true,'board'=>$service->state((int)$user['id'],(int)$id)]);
             if (!$post && $taskId !== null) {
                 if (!ctype_digit($taskId) || strlen($taskId) > 18 || (int) $taskId < 1) { throw new HttpException('Tarefa não encontrada.', 404); }
