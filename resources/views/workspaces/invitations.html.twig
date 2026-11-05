@@ -1,0 +1,7 @@
+{% extends 'layout.html.twig' %}
+{% block content %}
+<h1>Convites de Áreas de Trabalho</h1>
+<p>O acesso só será concedido após o aceite.</p>
+<ul>{% for invitation in invitations %}<li><a href="/workspace-invitations/accept?id={{ invitation.id }}">Revisar convite #{{ invitation.id }}</a></li>{% else %}<li>Nenhum convite pendente.</li>{% endfor %}</ul>
+<a href="/workspaces/new">Criar Área de Trabalho</a>
+{% endblock %}

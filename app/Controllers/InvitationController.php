@@ -19,6 +19,7 @@ final class InvitationController
     public function handle(bool $post): string
     {
         header('Referrer-Policy: no-referrer');
+        if (!$post && (isset($_GET['id']) || isset($_GET['token']))) unset($_SESSION['pending_workspace_invitation']);
         if (!$post && isset($_GET['id'])) {
             $id=$_GET['id'];
             unset($_SESSION['pending_invitation']);

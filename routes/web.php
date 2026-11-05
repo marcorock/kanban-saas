@@ -129,3 +129,12 @@ foreach (['version', 'state'] as $resource) {
     SimpleRouter::get('/workspaces/{workspaceId}/projects/{id}/board/' . $resource, static fn (string $workspaceId, string $id): string => $board->handle($id, false, null, $resource, $workspaceId));
 }
 SimpleRouter::get('/workspaces/{workspaceId}/projects/{id}/history', static fn (string $workspaceId, string $id): string => $reports->handle('history', $id, $workspaceId));
+
+$workspaceMembers = new \App\Controllers\WorkspaceMemberController($views, $config);
+SimpleRouter::get('/workspace-invitations', static fn (): string => $workspaceMembers->handle('invitations'));
+SimpleRouter::get('/workspace-invitations/accept', static fn (): string => $workspaceMembers->handle('accept'));
+SimpleRouter::post('/workspace-invitations/accept', static fn (): string => $workspaceMembers->handle('accept'));
+SimpleRouter::get('/workspaces/{workspaceId}/members', static fn (string $workspaceId): string => $workspaceMembers->handle('members', $workspaceId));
+foreach (['invite', 'cancel', 'role', 'transfer', 'rename'] as $action) {
+    SimpleRouter::post('/workspaces/{workspaceId}/members/' . $action, static fn (string $workspaceId): string => $workspaceMembers->handle($action, $workspaceId));
+}

@@ -39,7 +39,8 @@ final class WorkspaceService
             $this->pdo->prepare("INSERT INTO tenants(name,owner_id,kind) VALUES (?,?,'organization')")->execute([$name, $userId]);
             $tenantId = (int) $this->pdo->lastInsertId();
             $this->pdo->prepare('INSERT INTO tenant_users(tenant_id,user_id) VALUES (?,?)')->execute([$tenantId, $userId]);
-            // Criar outro Workspace não troca a preferência já escolhida.
+            // Uma conta convidada pode ainda não ter padrão; preferências existentes são preservadas.
+            $this->pdo->prepare('UPDATE users SET default_tenant_id=? WHERE id=? AND default_tenant_id IS NULL')->execute([$tenantId, $userId]);
             $this->pdo->commit();
             return $tenantId;
         } catch (Throwable $error) {

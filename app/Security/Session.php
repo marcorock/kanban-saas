@@ -26,10 +26,12 @@ final class Session
     public static function login(int $userId, int $version = 1): void
     {
         $pending = $_SESSION['pending_invitation'] ?? null;
+        $workspacePending = $_SESSION['pending_workspace_invitation'] ?? null;
         self::clear();
         if (is_string($pending) && preg_match('/^[a-f0-9]{64}$/D', $pending)) {
             $_SESSION['pending_invitation'] = $pending;
         }
+        if ((is_string($workspacePending) && preg_match('/^[a-f0-9]{64}$/D', $workspacePending)) || (is_int($workspacePending) && $workspacePending > 0)) $_SESSION['pending_workspace_invitation'] = $workspacePending;
         $_SESSION['user_id'] = $userId;
         $_SESSION['session_version'] = $version;
         $_SESSION['authenticated_at'] = time();

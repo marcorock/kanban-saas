@@ -32,9 +32,18 @@ final class AuthController
     private function renderForm(bool $register, array $errors, array $old = []): string
     {
         return $this->views->render('auth.html.twig', [
+            'invited' => $this->invitation() !== false,
             'projectName' => $this->config['name'], 'register' => $register,
             'errors' => $errors, 'old' => array_intersect_key($old, array_flip(['name', 'email', 'workspace_name'])), 'csrf' => $_SESSION['csrf'],
         ]);
+    }
+
+    private function invitation(): array|false
+    {
+        $raw = $_SESSION['pending_workspace_invitation'] ?? $_SESSION['pending_invitation'] ?? '';
+        if (!is_string($raw) || $raw === '') return false;
+        $pdo = Database::connect($this->config['database']);
+        return isset($_SESSION['pending_workspace_invitation']) ? (new \App\Services\WorkspaceMemberService($pdo))->validInvitation($raw) : (new \App\Services\ProjectMemberService($pdo))->registrationInvitation($raw);
     }
 
     public function submit(bool $register): string
@@ -67,14 +76,25 @@ final class AuthController
             header('Retry-After: 900');
             return $this->form($register, ['Muitas tentativas. Aguarde 15 minutos.']);
         }
-        $errors = AuthValidator::errors($data, $register);
+        $invitation = $register ? $this->invitation() : false;
+        $errors = AuthValidator::errors($data, $register, (bool)$invitation);
+        if ($invitation && strcasecmp($invitation['email'],$data['email'])!==0) $errors[] = 'Use o e-mail que recebeu o convite.';
         if ($errors) {
             http_response_code(422);
             return $this->form($register, $errors, $data);
         }
         $auth = new AuthService($pdo);
         $authenticated = $register ? null : $auth->authenticate($data['email'], $data['password']);
-        $id = $register ? $auth->register($data['name'], $data['email'], $data['password'], $data['workspace_name']) : ($authenticated['id'] ?? null);
+        try {
+            $id = $register ? $auth->register(
+                $data['name'], $data['email'], $data['password'],
+                $invitation ? null : $data['workspace_name'],
+                $invitation ? ($_SESSION['pending_workspace_invitation'] ?? $_SESSION['pending_invitation']) : null,
+                !isset($_SESSION['pending_workspace_invitation'])
+            ) : ($authenticated['id'] ?? null);
+        } catch (\DomainException $error) {
+            http_response_code(422); return $this->form($register,[$error->getMessage()],$data);
+        }
         if ($id === null) {
             http_response_code($register ? 422 : 401);
             return $this->form($register, [$register ? 'Não foi possível criar a conta com os dados informados.' : 'E-mail ou senha inválidos.'], $data);
@@ -83,12 +103,21 @@ final class AuthController
         if ($register) {
             (new \App\Services\AccountTokenService($pdo, new \App\Services\Mailer($this->config['mail']), $this->config['url']))->request($data['email'], 'verify');
         }
+        if (isset($_SESSION['pending_workspace_invitation'])) return $this->redirect('/workspace-invitations/accept');
+        if (isset($_SESSION['pending_invitation'])) return $this->redirect('/invitations/accept');
+        $repo = new \App\Repositories\WorkspaceRepository($pdo);
+        if (!$repo->defaultForUser($id)) return $this->redirect('/workspace-invitations');
         $context = \App\Services\WorkspaceContext::initial($pdo, $id);
-        return $this->redirect(isset($_SESSION['pending_invitation']) ? '/invitations/accept' : '/workspaces/' . $context->tenantId . '/dashboard');
+        return $this->redirect('/workspaces/' . $context->tenantId . '/dashboard');
     }
 
     public function dashboard(): string
     {
+        $pdo = Database::connect($this->config['database']);
+        $user = (new AuthService($pdo))->currentUser();
+        if ($user && !(new \App\Repositories\WorkspaceRepository($pdo))->defaultForUser((int)$user['id'])) {
+            return $this->redirect(isset($_SESSION['pending_workspace_invitation']) ? '/workspace-invitations/accept' : (isset($_SESSION['pending_invitation']) ? '/invitations/accept' : '/workspace-invitations'));
+        }
         return (new ReportingController($this->views, $this->config))->handle('dashboard');
     }
 

@@ -12,18 +12,24 @@ final class AuthService
 {
     public function __construct(private PDO $pdo) {}
 
-    public function register(string $name, string $email, string $password, string $workspaceName): ?int
+    public function register(string $name, string $email, string $password, ?string $workspaceName, ?string $invitationToken = null, bool $projectInvitation = false): ?int
     {
-        $workspaceName = WorkspaceService::validateName($workspaceName);
+        if ($workspaceName !== null) $workspaceName = WorkspaceService::validateName($workspaceName);
+        elseif (!$invitationToken || !($projectInvitation ? (new ProjectMemberService($this->pdo))->registrationInvitation($invitationToken) : (new WorkspaceMemberService($this->pdo))->validInvitation($invitationToken))) throw new \DomainException('Convite indisponível.',422);
         $hash = password_hash($password, PASSWORD_DEFAULT);
         $this->pdo->beginTransaction();
         try {
             $this->pdo->prepare('INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)')->execute([$name, $email, $hash]);
             $userId = (int) $this->pdo->lastInsertId();
-            $this->pdo->prepare('INSERT INTO tenants (name, owner_id) VALUES (?, ?)')->execute([$workspaceName, $userId]);
-            $tenantId = (int) $this->pdo->lastInsertId();
-            $this->pdo->prepare('INSERT INTO tenant_users (tenant_id, user_id) VALUES (?, ?)')->execute([$tenantId, $userId]);
-            $this->pdo->prepare('UPDATE users SET default_tenant_id=? WHERE id=?')->execute([$tenantId, $userId]);
+            if ($workspaceName !== null) {
+                $this->pdo->prepare('INSERT INTO tenants (name, owner_id) VALUES (?, ?)')->execute([$workspaceName, $userId]);
+                $tenantId = (int) $this->pdo->lastInsertId();
+                $this->pdo->prepare('INSERT INTO tenant_users (tenant_id, user_id) VALUES (?, ?)')->execute([$tenantId, $userId]);
+                $this->pdo->prepare('UPDATE users SET default_tenant_id=? WHERE id=?')->execute([$tenantId, $userId]);
+            } else {
+                $invite=$projectInvitation ? (new ProjectMemberService($this->pdo))->registrationInvitation($invitationToken) : (new WorkspaceMemberService($this->pdo))->validInvitation($invitationToken);
+                if (!$invite || strcasecmp($invite['email'],$email)!==0) throw new \DomainException('Use o e-mail convidado.',422);
+            }
             $this->pdo->commit();
             return $userId;
         } catch (Throwable $exception) {

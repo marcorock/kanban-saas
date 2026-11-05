@@ -17,6 +17,8 @@ final class NavigationContext
         elseif ($path === '/history') { $section = 'history'; $title = 'Meu histórico'; $caption = 'O caminho até aqui'; }
         elseif ($path === '/notifications') { $section = 'notifications'; $title = 'Notificações'; $caption = 'O que precisa da sua atenção'; }
         elseif ($path === '/workspaces/new') { $section = 'workspaces'; $title = 'Nova Área de Trabalho'; $caption = 'Um espaço para seus projetos'; }
+        elseif ($path === '/members') { $section = 'workspaces'; $title = 'Membros e configurações'; $caption = 'Sua Área de Trabalho'; }
+        elseif (str_starts_with($path, '/workspace-invitations')) { $section = 'workspaces'; $title = 'Convites de Áreas de Trabalho'; $caption = 'Trabalho que aproxima'; }
         elseif ($path === '/settings') { $section = 'settings'; $title = 'Configurações'; $caption = 'Seu perfil e sua segurança'; }
         elseif ($path === '/invitations/accept') { $section = 'projects'; $title = 'Convite para projeto'; $caption = 'Trabalho que aproxima'; }
         elseif ($path === '/projects' || $path === '/projects/new' || preg_match('~^/projects/[0-9]+(?:/(?:edit|board|members|history))?$~D', $path)) {

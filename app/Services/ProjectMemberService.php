@@ -179,6 +179,12 @@ final class ProjectMemberService
         } catch (HttpException) { return false; }
     }
 
+    public function registrationInvitation(string $raw): array|false
+    {
+        $invitation = $this->pending($raw);
+        return $invitation && $this->inviterAllowed($invitation) ? $invitation : false;
+    }
+
     public function preview(int $userId, string|int $raw): array|false
     {
         $invitation = $this->pending($raw);
@@ -196,6 +202,8 @@ final class ProjectMemberService
         if (!$invitation) { throw new HttpException('Convite inválido ou expirado.', 422); }
         $this->pdo->beginTransaction();
         try {
+            // Mesma ordem de bloqueios do gerenciamento: Workspace antes do projeto.
+            (new WorkspaceContext((int)$invitation['invited_by'], (int)$invitation['tenant_id']))->authorize($this->pdo, (int)$invitation['invited_by'], true);
             // Serializa aceite, cancelamento, alterações de papéis e estado do projeto.
             $statement = $this->pdo->prepare('SELECT * FROM projects WHERE tenant_id = ? AND id = ? FOR UPDATE');
             $statement->execute([$invitation['tenant_id'], $invitation['project_id']]);
@@ -212,6 +220,7 @@ final class ProjectMemberService
             $statement->execute([$project['tenant_id'], $project['id'], $userId]);
             if ($statement->fetchColumn()) { throw new HttpException('Usuário já participa do projeto.', 409); }
             $this->pdo->prepare('INSERT INTO tenant_users (tenant_id, user_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE tenant_id = VALUES(tenant_id)')->execute([$project['tenant_id'], $userId]);
+            $this->pdo->prepare('UPDATE users SET default_tenant_id=? WHERE id=? AND default_tenant_id IS NULL')->execute([$project['tenant_id'],$userId]);
             $this->pdo->prepare('INSERT INTO project_members (tenant_id, project_id, user_id, role) VALUES (?, ?, ?, ?)')->execute([$project['tenant_id'], $project['id'], $userId, $invitation['role']]);
             $this->pdo->prepare('UPDATE project_invitations SET accepted_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$invitation['id']]);
             $logger = new ActivityLogger($this->pdo);

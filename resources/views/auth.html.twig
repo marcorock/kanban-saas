@@ -12,7 +12,7 @@
 <form class="auth-form" method="post" action="{{ register ? '/register' : '/login' }}" data-auth-form>
     <input type="hidden" name="_token" value="{{ csrf }}">
     {% if register %}<div class="ds-field"><label for="name">Seu nome</label><input id="name" name="name" value="{{ old.name|default('') }}" required minlength="2" maxlength="120" autocomplete="name" placeholder="Como podemos chamar você?"></div>{% endif %}
-    {% if register %}<div class="ds-field"><label for="workspace-name">Nome da primeira Área de Trabalho</label><input id="workspace-name" name="workspace_name" value="{{ old.workspace_name|default('') }}" required minlength="2" maxlength="120" placeholder="Ex.: Pessoal ou Minha equipe"></div>{% endif %}
+    {% if register and not invited %}<div class="ds-field"><label for="workspace-name">Nome da primeira Área de Trabalho</label><input id="workspace-name" name="workspace_name" value="{{ old.workspace_name|default('') }}" required minlength="2" maxlength="120" placeholder="Ex.: Pessoal ou Minha equipe"></div>{% endif %}
     <div class="ds-field"><label for="email">E-mail</label><input id="email" name="email" type="email" value="{{ old.email|default('') }}" required maxlength="254" autocomplete="{{ register ? 'email' : 'username' }}" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="voce@exemplo.com"></div>
     {% include 'auth/password.html.twig' with {id: 'password', name: 'password', label: 'Senha', autocomplete: register ? 'new-password' : 'current-password', minimum: register, hint: register} only %}
     {% if register %}{% include 'auth/password.html.twig' with {id: 'confirmation', name: 'password_confirmation', label: 'Confirmar senha', autocomplete: 'new-password', minimum: true} only %}

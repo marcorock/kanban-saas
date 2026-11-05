@@ -6,6 +6,8 @@
     <summary><span>Área de Trabalho{{ activeWorkspaceName ? ' ativa' : 's' }}</span><strong>{{ activeWorkspaceName ?: 'Selecionar Área de Trabalho' }}</strong></summary>
     <nav aria-label="Alternar Área de Trabalho">
         {% for workspace in workspaceChoices|default([]) %}<a href="/workspaces/{{ workspace.id }}/dashboard" {% if workspacePath|default('') == '/workspaces/' ~ workspace.id %}aria-current="location"{% endif %}>{{ workspace.name }}</a>{% endfor %}
+        {% if workspacePath|default('') %}<a href="{{ workspacePath }}/members">Membros e configurações</a>{% endif %}
+        <a href="/workspace-invitations">Convites de Áreas de Trabalho</a>
         <a href="/workspaces/new">Criar Área de Trabalho</a>
     </nav>
 </details>

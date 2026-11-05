@@ -1,0 +1,7 @@
+.workspace-members form { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin: .75rem 0; }
+.workspace-members input:not([type="checkbox"]), .workspace-members select { max-width: 100%; padding: .5rem; border: 1px solid var(--bs-border-color); border-radius: .375rem; }
+.workspace-members input[type="email"], .workspace-members input[name="name"] { flex: 1 1 12rem; min-width: 0; }
+.workspace-members li { padding: .75rem 0; overflow-wrap: anywhere; }
+.workspace-members h2 { margin-top: 2rem; }
+.workspace-members button { padding: .5rem .75rem; border: 1px solid var(--bs-border-color); border-radius: .375rem; background: var(--bs-body-bg); color: var(--bs-body-color); }
+.workspace-members button:focus-visible, .workspace-members input:focus-visible, .workspace-members select:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
