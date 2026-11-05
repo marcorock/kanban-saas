@@ -42,16 +42,20 @@ final class ProjectRepository
 
     public function page(int $userId, bool $archived, int $page): array
     {
-        $filter = $archived ? ' AND p.archived_at IS NOT NULL' : ' AND p.archived_at IS NULL';
+        $context = $this->context ?? \App\Services\WorkspaceContext::initial($this->pdo, $userId);
+        $context->authorize($this->pdo, $userId);
+        $filter = ' AND p.tenant_id = ?';
+        $filter .= $archived ? ' AND p.archived_at IS NOT NULL' : ' AND p.archived_at IS NULL';
         $statement = $this->pdo->prepare('SELECT COUNT(*)' . self::ACCESS . $filter);
-        $statement->execute([$userId]);
+        $statement->execute([$userId, $context->tenantId]);
         $total = (int) $statement->fetchColumn();
         $pages = max(1, (int) ceil($total / 25));
         $page = max(1, min($page, $pages));
         $statement = $this->pdo->prepare('SELECT p.*, pm.role' . self::ACCESS . $filter . ' ORDER BY p.id DESC LIMIT ? OFFSET ?');
         $statement->bindValue(1, $userId, PDO::PARAM_INT);
-        $statement->bindValue(2, 25, PDO::PARAM_INT);
-        $statement->bindValue(3, ($page - 1) * 25, PDO::PARAM_INT);
+        $statement->bindValue(2, $context->tenantId, PDO::PARAM_INT);
+        $statement->bindValue(3, 25, PDO::PARAM_INT);
+        $statement->bindValue(4, ($page - 1) * 25, PDO::PARAM_INT);
         $statement->execute();
         return ['items' => $statement->fetchAll(), 'page' => $page, 'pages' => $pages, 'total' => $total];
     }

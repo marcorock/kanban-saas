@@ -18,11 +18,9 @@ final class ProjectService
     {
         $this->pdo->beginTransaction();
         try {
-            // Neste incremento a criação utiliza somente o tenant pessoal do proprietário.
-            $statement = $this->pdo->prepare("SELECT t.id FROM tenants t JOIN tenant_users tu ON tu.tenant_id = t.id AND tu.user_id = t.owner_id WHERE t.owner_id = ? AND t.kind = 'personal' ORDER BY t.id LIMIT 1 FOR UPDATE");
-            $statement->execute([$userId]);
-            $tenantId = $statement->fetchColumn();
-            if ($tenantId === false) { throw new HttpException('Tenant pessoal indisponível.', 403); }
+            $context = $this->context ?? WorkspaceContext::initial($this->pdo, $userId);
+            $context->authorize($this->pdo, $userId, true);
+            $tenantId = $context->tenantId;
             $this->pdo->prepare('INSERT INTO projects (tenant_id, owner_id, name, description, starts_on, due_on) VALUES (?, ?, ?, ?, ?, ?)')->execute([$tenantId, $userId, $data['name'], $data['description'], $data['starts_on'] ?: null, $data['due_on'] ?: null]);
             $id = (int) $this->pdo->lastInsertId();
             $this->pdo->prepare("INSERT INTO project_members (tenant_id, project_id, user_id, role) VALUES (?, ?, ?, 'owner')")->execute([$tenantId, $id, $userId]);

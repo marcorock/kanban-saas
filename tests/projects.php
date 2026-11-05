@@ -41,7 +41,7 @@ $data['tenant_id'] = $otherTenant;
 $data['owner_id'] = $otherId;
 $data['role'] = 'admin';
 [$status, , $headers] = request('/projects', $data);
-check($status === 303 && preg_match('~Location: /projects/(\d+)~i', $headers, $match), 'Criação e redirecionamento');
+check($status === 303 && preg_match('~Location: /workspaces/\d+/projects/(\d+)~i', $headers, $match), 'Criação e redirecionamento');
 $id = (int) $match[1];
 $project = (new App\Repositories\ProjectRepository($pdo))->find($ownerId, $id);
 $tenantId = (int) $project['tenant_id'];
@@ -63,7 +63,7 @@ foreach (['', '/archive', '/restore', '/delete'] as $path) {
     check(request('/projects/' . $id . $path, ['_token' => $otherCsrf, 'confirm' => 'delete'] + $data)[0] === 404, 'IDOR em alterações');
 }
 $pdo->prepare("INSERT INTO project_members (tenant_id, project_id, user_id, role) VALUES (?, ?, ?, 'viewer')")->execute([$tenantId, $id, $otherId]);
-check(request('/projects/' . $id)[0] === 200 && str_contains(request('/projects')[1], 'Compartilhado comigo'), 'Projeto compartilhado acessível');
+check(request('/projects/' . $id)[0] === 200 && str_contains(request('/workspaces/'.$tenantId.'/projects')[1], 'Compartilhado comigo'), 'Projeto compartilhado acessível');
 foreach (['viewer', 'member'] as $role) {
     $pdo->prepare('UPDATE project_members SET role = ? WHERE project_id = ? AND user_id = ?')->execute([$role, $id, $otherId]);
     check(request('/projects/' . $id . '/edit')[0] === 403, 'Membro/visualizador não editam projeto');

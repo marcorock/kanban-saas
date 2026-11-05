@@ -40,7 +40,7 @@ final class ProjectController
         if ($id !== null && (!ctype_digit($id) || (int) $id < 1 || strlen($id) > 18)) {
             throw new HttpException('Projeto não encontrado.', 404);
         }
-        $context = $workspaceId === null ? null : \App\Services\WorkspaceContext::resolve($pdo, (int) $user['id'], $workspaceId);
+        $context = $workspaceId === null ? ($id === null ? \App\Services\WorkspaceContext::initial($pdo, (int) $user['id']) : new \App\Services\WorkspaceContext((int) $user['id'], (int) (new ProjectRepository($pdo))->find((int) $user['id'], (int) $id)['tenant_id'])) : \App\Services\WorkspaceContext::resolve($pdo, (int) $user['id'], $workspaceId);
         $base['workspacePath'] = $context ? '/workspaces/' . $context->tenantId : '';
         $repository = new ProjectRepository($pdo, $context);
         $service = new ProjectService($pdo, $context);
@@ -56,7 +56,7 @@ final class ProjectController
         }
         if (in_array($action, ['edit', 'update'], true)) { ProjectPolicy::authorize($project, $userId, 'update'); }
         if ($action === 'show') {
-            return $this->views->render('projects/show.html.twig', $base + ['project' => $project, 'canManage' => ProjectPolicy::canManage($project, $userId), 'isOwner' => ProjectPolicy::isOwner($project, $userId), 'brainstorm' => (new \App\Services\QuickNoteService($pdo))->page($userId,(int)$id,filter_var($_GET['notes_page']??1,FILTER_VALIDATE_INT)?:1), 'noteProjectId'=>(int)$id, 'noteCanCreate'=>$project['archived_at']===null, 'noteCanConvert'=>$project['archived_at']===null&&in_array($project['role'],['owner','admin','member'],true), 'notesBase'=>$base['workspacePath'].'/projects/'.$id]);
+            return $this->views->render('projects/show.html.twig', $base + ['project' => $project, 'canManage' => ProjectPolicy::canManage($project, $userId), 'isOwner' => ProjectPolicy::isOwner($project, $userId), 'brainstorm' => (new \App\Services\QuickNoteService($pdo, $context))->page($userId,(int)$id,filter_var($_GET['notes_page']??1,FILTER_VALIDATE_INT)?:1), 'noteProjectId'=>(int)$id, 'noteCanCreate'=>$project['archived_at']===null, 'noteCanConvert'=>$project['archived_at']===null&&in_array($project['role'],['owner','admin','member'],true), 'notesBase'=>$base['workspacePath'].'/projects/'.$id]);
         }
         $blank = ['name' => '', 'description' => '', 'starts_on' => '', 'due_on' => ''];
         if (in_array($action, ['new', 'edit'], true)) {
@@ -96,6 +96,6 @@ final class ProjectController
         }
         $service->change($userId, (int) $id, $action);
         $_SESSION['project_notice'] = match ($action) { 'archive' => 'Projeto arquivado.', 'restore' => 'Projeto restaurado.', 'delete' => 'Projeto excluído.' };
-        return $this->redirect($action === 'delete' ? '/projects' : $base['workspacePath'] . '/projects/' . $id);
+        return $this->redirect($action === 'delete' ? $base['workspacePath'] . '/projects' : $base['workspacePath'] . '/projects/' . $id);
     }
 }

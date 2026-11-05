@@ -1,7 +1,7 @@
 {% import 'ui/icons.html.twig' as ui %}
-{% set destinations = [{key: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: 'home'}, {key: 'projects', href: '/projects', label: 'Projetos', icon: 'projects'}, {key: 'tasks', href: '/tasks', label: 'Minhas Tarefas', icon: 'tasks'}, {key: 'history', href: '/history', label: 'Meu Histórico', icon: 'history'}, {key: 'settings', href: '/settings', label: 'Configurações', icon: 'settings'}] %}
+{% set destinations = [{key: 'dashboard', href: ((workspacePath|default('')) ~ '/dashboard'), label: 'Dashboard', icon: 'home'}, {key: 'projects', href: ((workspacePath|default('')) ~ '/projects'), label: 'Projetos', icon: 'projects'}, {key: 'tasks', href: ((workspacePath|default('')) ~ '/tasks'), label: 'Minhas Tarefas', icon: 'tasks'}, {key: 'history', href: ((workspacePath|default('')) ~ '/history'), label: 'Meu Histórico', icon: 'history'}, {key: 'settings', href: '/settings', label: 'Configurações', icon: 'settings'}] %}
 <aside class="app-sidebar" aria-label="Seu espaço de trabalho">
-    <a class="app-brand" href="/dashboard"><img src="/assets/brand/mark.svg" width="32" height="32" alt=""><span>{{ projectName }}</span></a>
+    <a class="app-brand" href="{{ workspacePath|default('') }}/dashboard"><img src="/assets/brand/mark.svg" width="32" height="32" alt=""><span>{{ projectName }}</span></a>
     <p class="app-nav-heading">SEU ESPAÇO</p>
     <nav class="app-nav" aria-label="Navegação principal">
     {% for item in destinations %}<a href="{{ item.href }}" {% if navigation.section == item.key %}aria-current="{{ navigation.path == item.href ? 'page' : 'location' }}"{% endif %}>{{ ui.icon(item.icon) }}<span>{{ item.label }}</span></a>{% endfor %}

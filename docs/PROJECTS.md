@@ -3,8 +3,8 @@
 Após confirmar o e-mail, acesse **Painel → Meus projetos** ou `/projects`.
 
 - **Novo projeto:** nome obrigatório (até 120 caracteres), descrição opcional (até 5.000), data inicial e previsão de término opcionais. O término não pode anteceder o início.
-- O projeto é criado no tenant pessoal do usuário, que recebe o papel de proprietário. Tenant, proprietário e papel não são escolhidos pelo formulário.
-- A listagem mostra projetos próprios e compartilhados acessíveis, com filtro de ativos/arquivados e paginação de 25 itens.
+- O projeto é criado na Área de Trabalho indicada pela rota (`/workspaces/{workspaceId}/projects`), desde que o usuário mantenha vínculo nela, inclusive como membro. O criador recebe o papel de proprietário do projeto. Campos de tenant, proprietário e papel no formulário não substituem esse contexto.
+- A listagem mostra projetos próprios e compartilhados acessíveis na mesma Área de Trabalho, com filtro de ativos/arquivados e paginação de 25 itens.
 - **Editar:** disponível ao proprietário e administrador enquanto o projeto estiver ativo.
 - **Arquivar/restaurar:** somente proprietário. Arquivar mantém a consulta, mas impede edição dos dados.
 - **Excluir:** somente proprietário, mediante confirmação explícita. A exclusão é lógica; o registro e a auditoria permanecem no banco, mas o projeto fica indisponível a todos os participantes. Não há restauração de excluídos na interface.

@@ -9,18 +9,25 @@ use Pecee\SimpleRouter\Exceptions\HttpException;
 
 final class QuickNoteService
 {
-    public function __construct(private PDO $pdo) {}
+    public function __construct(private PDO $pdo, private ?WorkspaceContext $context = null) {}
+    private function workspace(int $user, bool $lock=false): WorkspaceContext
+    {
+        $context = $this->context ?? WorkspaceContext::initial($this->pdo, $user);
+        $context->authorize($this->pdo, $user, $lock);
+        return $context;
+    }
     public function projects(int $user,bool $writable=false):array
     {
-        $q=$this->pdo->prepare("SELECT p.id,p.name FROM projects p JOIN project_members m ON m.project_id=p.id AND m.tenant_id=p.tenant_id JOIN tenant_users t ON t.tenant_id=p.tenant_id AND t.user_id=m.user_id WHERE m.user_id=? AND p.deleted_at IS NULL AND p.archived_at IS NULL".($writable?" AND m.role IN ('owner','admin','member')":'').' ORDER BY p.name,p.id');$q->execute([$user]);return $q->fetchAll();
+        $context=$this->workspace($user);
+        $q=$this->pdo->prepare("SELECT p.id,p.name FROM projects p JOIN project_members m ON m.project_id=p.id AND m.tenant_id=p.tenant_id JOIN tenant_users t ON t.tenant_id=p.tenant_id AND t.user_id=m.user_id WHERE m.user_id=? AND p.tenant_id=? AND p.deleted_at IS NULL AND p.archived_at IS NULL".($writable?" AND m.role IN ('owner','admin','member')":'').' ORDER BY p.name,p.id');$q->execute([$user,$context->tenantId]);return $q->fetchAll();
     }
-    private function personal(int $user):int
+    private function inbox(int $user,bool $lock=false):int
     {
-        $q=$this->pdo->prepare("SELECT t.id FROM tenants t JOIN tenant_users u ON u.tenant_id=t.id AND u.user_id=t.owner_id WHERE t.owner_id=? AND t.kind='personal' ORDER BY t.id LIMIT 1");$q->execute([$user]);$id=$q->fetchColumn();if(!$id)throw new HttpException('Inbox indisponível.',404);return (int)$id;
+        return $this->workspace($user, $lock)->tenantId;
     }
     private function project(int $user,int $id,bool $write=false,bool $lock=true):array
     {
-        try{$p=(new ProjectRepository($this->pdo))->find($user,$id,$lock&&$this->pdo->inTransaction());}catch(\PDOException $e){if((int)($e->errorInfo[1]??0)===1020)throw new HttpException('O projeto foi alterado. Recarregue a lista.',409);throw $e;}
+        try{$p=(new ProjectRepository($this->pdo, $this->workspace($user, $lock && $this->pdo->inTransaction())))->find($user,$id,$lock&&$this->pdo->inTransaction());}catch(\PDOException $e){if((int)($e->errorInfo[1]??0)===1020)throw new HttpException('O projeto foi alterado. Recarregue a lista.',409);throw $e;}
         if($write&&$p['archived_at'])throw new HttpException('O projeto está arquivado.',409);
         if($write&&!in_array($p['role'],['owner','admin','member'],true))throw new HttpException('Seu papel não permite criar tarefas.',403);
         return $p;
@@ -69,7 +76,8 @@ final class QuickNoteService
     // ocorrida após a leitura inicial exige recarregar em vez de bloquear outro projeto.
     private function lockedOwner(int $user,int $id,?int $target=null):array
     {
-        $q=$this->pdo->prepare('SELECT * FROM quick_notes WHERE id=? AND user_id=?');$q->execute([$id,$user]);$hint=$q->fetch();if(!$hint)throw new HttpException('Nota não encontrada.',404);$ids=[];
+        $context=$this->workspace($user,true);
+        $q=$this->pdo->prepare('SELECT * FROM quick_notes WHERE id=? AND user_id=? AND tenant_id=?');$q->execute([$id,$user,$context->tenantId]);$hint=$q->fetch();if(!$hint)throw new HttpException('Nota não encontrada.',404);$ids=[];
         if($hint['project_id']!==null)$ids[]=(int)$hint['project_id'];
         if($target!==null)$ids[]=$target;
         $ids=array_unique($ids);sort($ids,SORT_NUMERIC);$projects=[];
@@ -83,7 +91,7 @@ final class QuickNoteService
         $note=$q->fetch();
         if(!$note)throw new HttpException('Nota não encontrada.',404);
         if($note['project_id']!==$hint['project_id']||$note['tenant_id']!==$hint['tenant_id'])throw new HttpException('A nota foi movida. Recarregue a lista.',409);
-        $tenant=$note['project_id']===null?$this->personal($user):(int)$projects[(int)$note['project_id']]['tenant_id'];
+        $tenant=$note['project_id']===null?$this->inbox($user):(int)$projects[(int)$note['project_id']]['tenant_id'];
         if($tenant!==(int)$note['tenant_id'])throw new HttpException('Nota não encontrada.',404);
         return [$note,$projects];
     }
@@ -92,7 +100,7 @@ final class QuickNoteService
         $body=$this->body($body);$title=$this->title($title);$color=$this->color($color);$visibility=$this->visibility($visibility,$project);
         $this->pdo->beginTransaction();
         try {
-            if($project===null)$tenant=$this->personal($user);
+            if($project===null)$tenant=$this->inbox($user,true);
             else{$p=$this->project($user,$project);if($p['archived_at'])throw new HttpException('Escolha um projeto ativo.',409);$tenant=(int)$p['tenant_id'];}
             $q=$this->pdo->prepare('INSERT INTO quick_notes(tenant_id,user_id,created_by,project_id,body,title,color,visibility) VALUES (?,?,?,?,?,?,?,?)');$q->execute([$tenant,$user,$user,$project,$body,$title,$color,$visibility]);$id=(int)$this->pdo->lastInsertId();
             $this->audit($user,$id,$tenant,'created',null,['tenant_id'=>$tenant,'user_id'=>$user,'created_by'=>$user,'project_id'=>$project,'color'=>$color,'visibility'=>$visibility,'revision'=>1]);
@@ -102,7 +110,7 @@ final class QuickNoteService
     private function listing(int $user,?int $project,int $page,bool $metadata):array
     {
         $context=$project===null?null:$this->project($user,$project,false,false);
-        $tenant=$context===null?$this->personal($user):(int)$context['tenant_id'];
+        $tenant=$context===null?$this->inbox($user):(int)$context['tenant_id'];
         $where=" FROM quick_notes n JOIN users u ON u.id=n.user_id WHERE n.tenant_id=? AND n.project_id <=> ? AND (n.user_id=? OR n.visibility='project')";$params=[$tenant,$project,$user];
         if($project!==null){$where.=' AND EXISTS (SELECT 1 FROM project_members pm JOIN tenant_users tu ON tu.tenant_id=pm.tenant_id AND tu.user_id=pm.user_id WHERE pm.tenant_id=n.tenant_id AND pm.project_id=n.project_id AND pm.user_id=?)';$params[]=$user;}
         $q=$this->pdo->prepare('SELECT COUNT(*)'.$where);$q->execute($params);$total=(int)$q->fetchColumn();$pages=max(1,(int)ceil($total/20));$page=max(1,min($page,$pages));
@@ -112,7 +120,7 @@ final class QuickNoteService
         return ['brainstorm'=>['items'=>$this->withInvolved($q->fetchAll()),'total'=>$total,'page'=>$page,'pages'=>$pages],
             'noteProjectId'=>$project,'noteCanCreate'=>$context===null||$context['archived_at']===null,
             'noteCanConvert'=>$context===null||($context['archived_at']===null&&in_array($context['role'],['owner','admin','member'],true)),
-            'notesBase'=>$project===null?'/tasks':'/projects/'.$project,'access'=>[$tenant,$context['role']??null,$context['archived_at']??null]];
+            'workspacePath'=>'/workspaces/'.$tenant,'notesBase'=>'/workspaces/'.$tenant.($project===null?'/tasks':'/projects/'.$project),'access'=>[$tenant,$context['role']??null,$context['archived_at']??null]];
     }
     public function page(int $user,?int $project,int $page=1):array
     {
@@ -132,9 +140,10 @@ final class QuickNoteService
     }
     private function owned(int $user,int $id,bool $lock=false,?array $known=null):array
     {
-        $q=$this->pdo->prepare('SELECT n.* FROM quick_notes n JOIN tenant_users t ON t.tenant_id=n.tenant_id AND t.user_id=n.user_id WHERE n.id=? AND n.user_id=?'.($lock?' FOR UPDATE':''));$q->execute([$id,$user]);$n=$q->fetch();if(!$n)throw new HttpException('Nota não encontrada.',404);
+        $context=$this->workspace($user,$lock);
+        $q=$this->pdo->prepare('SELECT n.* FROM quick_notes n JOIN tenant_users t ON t.tenant_id=n.tenant_id AND t.user_id=n.user_id WHERE n.id=? AND n.user_id=? AND n.tenant_id=?'.($lock?' FOR UPDATE':''));$q->execute([$id,$user,$context->tenantId]);$n=$q->fetch();if(!$n)throw new HttpException('Nota não encontrada.',404);
         if($n['project_id']!==null){if($known&&(int)$n['project_id']!==(int)$known['id'])throw new HttpException('Converta no projeto ao qual a nota pertence.',422);$p=$known??$this->project($user,(int)$n['project_id']);if((int)$p['tenant_id']!==(int)$n['tenant_id'])throw new HttpException('Nota não encontrada.',404);}
-        elseif((int)$n['tenant_id']!==$this->personal($user))throw new HttpException('Nota não encontrada.',404);
+        elseif((int)$n['tenant_id']!==$this->inbox($user))throw new HttpException('Nota não encontrada.',404);
         return $n;
     }
     public function update(int $user,int $id,mixed $body,array $appearance=[]):?int
@@ -154,7 +163,7 @@ final class QuickNoteService
             $changedLocation=$target!==$current;
             if($changedLocation&&$current!==null&&$projects[$current]['archived_at'])throw new HttpException('Não mova notas de um projeto arquivado.',409);
             if($target!==null&&($changedLocation||$visibility!==$n['visibility'])&&$projects[$target]['archived_at'])throw new HttpException('Escolha um projeto ativo.',409);
-            $tenant=$target===null?$this->personal($user):(int)$projects[$target]['tenant_id'];
+            $tenant=$target===null?$this->inbox($user):(int)$projects[$target]['tenant_id'];
             $new=array_replace($n,['tenant_id'=>$tenant,'project_id'=>$target,'body'=>$body,'title'=>$title??$n['title'],'color'=>$color??$n['color'],'visibility'=>$visibility,'revision'=>(int)$n['revision']+1]);
             $this->pdo->prepare('UPDATE quick_notes SET tenant_id=?,project_id=?,body=?,title=?,color=?,visibility=?,revision=? WHERE id=? AND user_id=?')->execute([$tenant,$target,$body,$new['title'],$new['color'],$visibility,$new['revision'],$id,$user]);
             $changed=[];foreach(['body','title','color','project_id','visibility'] as $field)if($new[$field]!=$n[$field])$changed[]=$field;

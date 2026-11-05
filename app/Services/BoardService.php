@@ -25,7 +25,7 @@ final class BoardService
 
     private function syncToken(array $project):string
     {
-        return hash('sha256',json_encode([$project['id'],$project['board_version'],$project['role'],$project['archived_at'],$project['name'],gmdate('Y-m-d')],JSON_THROW_ON_ERROR));
+        return hash('sha256',json_encode([$project['tenant_id'],$project['id'],$project['board_version'],$project['role'],$project['archived_at'],$project['name'],gmdate('Y-m-d')],JSON_THROW_ON_ERROR));
     }
 
     public function version(int $userId,int $projectId,?int $taskId=null):array

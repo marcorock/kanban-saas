@@ -38,7 +38,7 @@ final class BoardController
                 return $this->views->render('verify-notice.html.twig', ['projectName' => $this->config['name'], 'csrf' => $_SESSION['csrf']]);
             }
             if (!ctype_digit($id) || strlen($id) > 18 || (int) $id < 1) { throw new HttpException('Quadro não encontrado.', 404); }
-            $context = $workspaceId === null ? null : \App\Services\WorkspaceContext::resolve($pdo, (int) $user['id'], $workspaceId);
+            $context = $workspaceId === null ? new \App\Services\WorkspaceContext((int) $user['id'], (int) (new \App\Repositories\ProjectRepository($pdo))->find((int) $user['id'], (int) $id)['tenant_id']) : \App\Services\WorkspaceContext::resolve($pdo, (int) $user['id'], $workspaceId);
             $service = new BoardService($pdo, $context);
             if (!$post && $resource==='version'){
                 $task=$_GET['task_id']??null;

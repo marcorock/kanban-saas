@@ -11,11 +11,19 @@ use Throwable;
 final class ReportingService
 {
     private const ACCESS = ' JOIN project_members pm ON pm.tenant_id = p.tenant_id AND pm.project_id = p.id JOIN tenant_users tu ON tu.tenant_id = p.tenant_id AND tu.user_id = pm.user_id';
-    private const SCOPE = ' WHERE pm.user_id = ? AND p.deleted_at IS NULL';
+    private const SCOPE = ' WHERE pm.user_id = ? AND p.tenant_id = ? AND p.deleted_at IS NULL';
     private const ASSIGNED = ' FROM task_assignees mine JOIN tasks t ON t.tenant_id = mine.tenant_id AND t.project_id = mine.project_id AND t.id = mine.task_id JOIN projects p ON p.tenant_id = t.tenant_id AND p.id = t.project_id';
     private const HISTORY = ' FROM activity_logs a JOIN projects p ON p.tenant_id = a.tenant_id AND p.id = a.project_id JOIN users u ON u.id = a.actor_id LEFT JOIN tasks t ON t.tenant_id = a.tenant_id AND t.project_id = a.project_id AND t.id = a.task_id';
 
-    public function __construct(private PDO $pdo) {}
+    private WorkspaceContext $activeContext;
+
+    public function __construct(private PDO $pdo, private ?WorkspaceContext $context = null) {}
+
+    private function scope(int $userId): void
+    {
+        $this->activeContext = $this->context ?? WorkspaceContext::initial($this->pdo, $userId);
+        $this->activeContext->authorize($this->pdo, $userId);
+    }
 
     private function query(string $sql, array $params): array
     {
@@ -32,14 +40,16 @@ final class ReportingService
 
     public function projects(int $userId): array
     {
-        return $this->query('SELECT p.id, p.name, p.archived_at FROM projects p' . self::ACCESS . self::SCOPE . ' ORDER BY p.name, p.id', [$userId]);
+        $this->scope($userId);
+        return $this->query('SELECT p.id, p.name, p.archived_at FROM projects p' . self::ACCESS . self::SCOPE . ' ORDER BY p.name, p.id', [$userId, $this->activeContext->tenantId]);
     }
 
     public function tasks(int $userId, array $filters): array
     {
-        if ($filters['project_id'] !== null) (new ProjectRepository($this->pdo))->find($userId, $filters['project_id']);
+        $this->scope($userId);
+        if ($filters['project_id'] !== null) (new ProjectRepository($this->pdo, $this->activeContext))->find($userId, $filters['project_id']);
         $from = self::ASSIGNED . ' JOIN kanban_columns c ON c.tenant_id = t.tenant_id AND c.project_id = t.project_id AND c.id = t.column_id' . self::ACCESS . self::SCOPE . ' AND mine.user_id = ?';
-        $params = [$userId, $userId];
+        $params = [$userId, $this->activeContext->tenantId, $userId];
         if ($filters['project_id'] !== null) { $from .= ' AND p.id = ?'; $params[] = $filters['project_id']; }
         if ($filters['archived'] !== 'all') $from .= $filters['archived'] === 'active' ? ' AND p.archived_at IS NULL' : ' AND p.archived_at IS NOT NULL';
         if ($filters['status'] === 'completed') $from .= ' AND t.completed_at IS NOT NULL';
@@ -68,8 +78,9 @@ final class ReportingService
 
     public function history(int $userId, array $filters, bool $personal): array
     {
-        if ($filters['project_id'] !== null) (new ProjectRepository($this->pdo))->find($userId, $filters['project_id']);
-        $from = self::HISTORY . self::ACCESS . self::SCOPE; $params = [$userId];
+        $this->scope($userId);
+        if ($filters['project_id'] !== null) (new ProjectRepository($this->pdo, $this->activeContext))->find($userId, $filters['project_id']);
+        $from = self::HISTORY . self::ACCESS . self::SCOPE; $params = [$userId, $this->activeContext->tenantId];
         if ($personal) { $from .= ' AND a.actor_id = ?'; $params[] = $userId; }
         if ($filters['project_id'] !== null) { $from .= ' AND p.id = ?'; $params[] = $filters['project_id']; }
         if ($filters['action'] !== '') { $from .= ' AND a.action = ?'; $params[] = $filters['action']; }
@@ -81,26 +92,28 @@ final class ReportingService
 
     public function dashboardVersion(int $userId, int $page): string
     {
+        $this->scope($userId);
         // Apenas metadados dos projetos acessíveis; não agrega tarefas a cada polling.
-        $projects = $this->query('SELECT p.id, p.name, p.archived_at, p.board_version, UTC_DATE() AS today FROM projects p' . self::ACCESS . self::SCOPE . ' ORDER BY p.id', [$userId]);
-        $authors = $this->query('SELECT a.id, u.name FROM activity_logs a JOIN projects p ON p.tenant_id = a.tenant_id AND p.id = a.project_id JOIN users u ON u.id = a.actor_id' . self::ACCESS . self::SCOPE . ' ORDER BY a.created_at DESC, a.id DESC LIMIT 10', [$userId]);
-        return hash('sha256', json_encode([$userId, $page, $projects, $authors], JSON_THROW_ON_ERROR));
+        $projects = $this->query('SELECT p.id, p.name, p.archived_at, p.board_version, UTC_DATE() AS today FROM projects p' . self::ACCESS . self::SCOPE . ' ORDER BY p.id', [$userId, $this->activeContext->tenantId]);
+        $authors = $this->query('SELECT a.id, u.name FROM activity_logs a JOIN projects p ON p.tenant_id = a.tenant_id AND p.id = a.project_id JOIN users u ON u.id = a.actor_id' . self::ACCESS . self::SCOPE . ' ORDER BY a.created_at DESC, a.id DESC LIMIT 10', [$userId, $this->activeContext->tenantId]);
+        return hash('sha256', json_encode([$userId, $this->activeContext->tenantId, $page, $projects, $authors], JSON_THROW_ON_ERROR));
     }
 
     public function dashboard(int $userId, int $page): array
     {
+        $this->scope($userId);
         $this->pdo->beginTransaction();
         try {
             $active = ' FROM projects p' . self::ACCESS . self::SCOPE . ' AND p.archived_at IS NULL';
-            $activeProjects = (int) $this->query('SELECT COUNT(*) AS total' . $active, [$userId])[0]['total'];
+            $activeProjects = (int) $this->query('SELECT COUNT(*) AS total' . $active, [$userId, $this->activeContext->tenantId])[0]['total'];
             $assigned = self::ASSIGNED . self::ACCESS . self::SCOPE . ' AND mine.user_id = ? AND p.archived_at IS NULL';
-            $counts = $this->query('SELECT COALESCE(SUM(t.completed_at IS NULL), 0) AS pending, COALESCE(SUM(t.completed_at IS NULL AND t.started_at IS NOT NULL), 0) AS in_progress, COALESCE(SUM(t.completed_at IS NOT NULL), 0) AS completed, COALESCE(SUM(t.completed_at IS NULL AND t.due_on < UTC_DATE()), 0) AS overdue' . $assigned, [$userId, $userId])[0];
+            $counts = $this->query('SELECT COALESCE(SUM(t.completed_at IS NULL), 0) AS pending, COALESCE(SUM(t.completed_at IS NULL AND t.started_at IS NOT NULL), 0) AS in_progress, COALESCE(SUM(t.completed_at IS NOT NULL), 0) AS completed, COALESCE(SUM(t.completed_at IS NULL AND t.due_on < UTC_DATE()), 0) AS overdue' . $assigned, [$userId, $this->activeContext->tenantId, $userId])[0];
             $counts = array_map('intval', $counts); $counts['active_projects'] = $activeProjects;
             $pages = max(1, (int) ceil($activeProjects / 10)); $page = max(1, min($page, $pages)); $offset = ($page - 1) * 10;
-            $progress = $this->query('SELECT p.id, p.name, COUNT(t.id) AS total, COALESCE(SUM(t.completed_at IS NOT NULL), 0) AS completed FROM projects p' . self::ACCESS . ' LEFT JOIN tasks t ON t.tenant_id = p.tenant_id AND t.project_id = p.id' . self::SCOPE . " AND p.archived_at IS NULL GROUP BY p.id, p.name ORDER BY p.id DESC LIMIT 10 OFFSET {$offset}", [$userId]);
+            $progress = $this->query('SELECT p.id, p.name, COUNT(t.id) AS total, COALESCE(SUM(t.completed_at IS NOT NULL), 0) AS completed FROM projects p' . self::ACCESS . ' LEFT JOIN tasks t ON t.tenant_id = p.tenant_id AND t.project_id = p.id' . self::SCOPE . " AND p.archived_at IS NULL GROUP BY p.id, p.name ORDER BY p.id DESC LIMIT 10 OFFSET {$offset}", [$userId, $this->activeContext->tenantId]);
             foreach ($progress as &$project) $project['percentage'] = $project['total'] ? (int) round(100 * $project['completed'] / $project['total']) : 0; unset($project);
-            $upcoming = $this->query('SELECT t.id, t.title, t.due_on, p.id AS project_id, p.name AS project_name' . $assigned . ' AND t.completed_at IS NULL AND t.due_on BETWEEN UTC_DATE() AND DATE_ADD(UTC_DATE(), INTERVAL 7 DAY) ORDER BY t.due_on, t.id LIMIT 5', [$userId, $userId]);
-            $recent = $this->query('SELECT a.id, a.action, a.created_at, a.task_id, p.id AS project_id, p.name AS project_name, u.name AS author, t.title AS task_title' . self::HISTORY . self::ACCESS . self::SCOPE . ' ORDER BY a.created_at DESC, a.id DESC LIMIT 10', [$userId]);
+            $upcoming = $this->query('SELECT t.id, t.title, t.due_on, p.id AS project_id, p.name AS project_name' . $assigned . ' AND t.completed_at IS NULL AND t.due_on BETWEEN UTC_DATE() AND DATE_ADD(UTC_DATE(), INTERVAL 7 DAY) ORDER BY t.due_on, t.id LIMIT 5', [$userId, $this->activeContext->tenantId, $userId]);
+            $recent = $this->query('SELECT a.id, a.action, a.created_at, a.task_id, p.id AS project_id, p.name AS project_name, u.name AS author, t.title AS task_title' . self::HISTORY . self::ACCESS . self::SCOPE . ' ORDER BY a.created_at DESC, a.id DESC LIMIT 10', [$userId, $this->activeContext->tenantId]);
             foreach ($recent as &$event) $event['label'] = ActivityPresenter::LABELS[$event['action']] ?? 'Atividade registrada'; unset($event);
             $this->pdo->commit();
             return ['counts' => $counts, 'projects' => ['items' => $progress, 'page' => $page, 'pages' => $pages], 'upcoming' => $upcoming, 'recent' => $recent];

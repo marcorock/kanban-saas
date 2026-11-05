@@ -2,11 +2,11 @@
 {% set prefix = noteFieldPrefix|default('quick-note') %}
 {% set standalone = noteStandalone|default(false) %}
 {% set note = nota|default({}) %}
-<form method="post" action="{{ noteAction|default('/notes') }}" id="{{ prefix }}-form" class="postit-form {{ {green: 'priority-baixa', yellow: 'priority-media', orange: 'priority-alta'}[note.color|default('yellow')]|default('priority-media') }}" data-postit-form{% if not standalone %} data-note-form{% endif %} aria-labelledby="{{ prefix }}-title">
+<form method="post" action="{{ noteAction|default(((workspacePath|default('')) ~ '/notes')) }}" id="{{ prefix }}-form" class="postit-form {{ {green: 'priority-baixa', yellow: 'priority-media', orange: 'priority-alta'}[note.color|default('yellow')]|default('priority-media') }}" data-postit-form{% if not standalone %} data-note-form{% endif %} aria-labelledby="{{ prefix }}-title">
     <input type="hidden" name="_token" value="{{ csrf }}"><input type="hidden" name="revision" value="{{ note.revision|default('') }}">
     <div class="pi-top">
         <div class="pi-meta"><h2 id="{{ prefix }}-title">{{ noteMode|default('Nota rápida') }}</h2><span aria-hidden="true"> · </span><time data-postit-date datetime="{{ note.created_at|default('now')|date('c', 'UTC') }}">{{ note.created_at|default('now')|date('d/m/Y H:i', 'America/Sao_Paulo') }}</time></div>
-        {% if standalone %}<a class="pi-close" href="/tasks#brainstorm" aria-label="Fechar nota rápida">{{ noteUi.icon('close') }}</a>{% else %}<button class="pi-close" type="button" data-note-close aria-label="Fechar nota rápida">{{ noteUi.icon('close') }}</button>{% endif %}
+        {% if standalone %}<a class="pi-close" href="{{ workspacePath|default('') }}/tasks#brainstorm" aria-label="Fechar nota rápida">{{ noteUi.icon('close') }}</a>{% else %}<button class="pi-close" type="button" data-note-close aria-label="Fechar nota rápida">{{ noteUi.icon('close') }}</button>{% endif %}
     </div>
     <label class="visually-hidden" for="{{ prefix }}-heading">Título (opcional)</label>
     <input class="pi-title" id="{{ prefix }}-heading" name="title" type="text" maxlength="200" placeholder="Título (opcional)" value="{{ note.title|default('') }}">
@@ -28,6 +28,6 @@
     <p class="pi-hint pi-privacy" id="{{ prefix }}-privacy" data-note-privacy-help>Privado por padrão.</p>
     <p class="qn-error" data-note-error role="alert" hidden></p>
     <footer class="pi-footer">
-        <div class="pi-actions">{% if standalone %}<a class="btn-pi-ghost" href="/tasks#brainstorm">Cancelar</a>{% else %}<button class="btn-pi-ghost" type="button" data-note-close>Cancelar</button>{% endif %}<button class="btn-pi-save" type="submit">Salvar nota</button></div>
+        <div class="pi-actions">{% if standalone %}<a class="btn-pi-ghost" href="{{ workspacePath|default('') }}/tasks#brainstorm">Cancelar</a>{% else %}<button class="btn-pi-ghost" type="button" data-note-close>Cancelar</button>{% endif %}<button class="btn-pi-save" type="submit">Salvar nota</button></div>
     </footer>
 </form>

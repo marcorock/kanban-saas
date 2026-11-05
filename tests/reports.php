@@ -52,18 +52,18 @@ $projects->change($me, $archived, 'archive'); $projects->change($me, $deleted, '
 $privateEmail = 'convite-privado-' . $suffix . '@example.com';
 (new App\Services\ProjectMemberService($pdo))->invite($me, $a, $privateEmail, 'viewer', new App\Services\Mailer($config['mail']), $config['url']);
 $dashboard = $reports->dashboard($me, 1);
-check($dashboard['counts'] === ['pending' => 3, 'in_progress' => 1, 'completed' => 1, 'overdue' => 1, 'active_projects' => 3], 'Contagens sem duplicação, excluídos ou arquivados');
+check($dashboard['counts'] === ['pending' => 2, 'in_progress' => 1, 'completed' => 1, 'overdue' => 1, 'active_projects' => 2], 'Contagens sem duplicação, excluídos ou arquivados');
 $progress = array_column($dashboard['projects']['items'], null, 'id');
 check($progress[$a]['percentage'] === 25 && (int) $progress[$a]['total'] === 4 && $progress[$emptyProject]['percentage'] === 0, 'Progresso de todos os cards e projeto vazio');
-check(count($dashboard['upcoming']) === 2, 'Próximos prazos somente atribuídos');
+check(count($dashboard['upcoming']) === 1, 'Próximos prazos somente atribuídos');
 $tasks = $reports->tasks($me, ReportFilters::parse([]));
-check($tasks['total'] === 3 && !in_array($someoneElse, array_column($tasks['items'], 'id')), 'Minhas tarefas pendentes');
+check($tasks['total'] === 2 && !in_array($someoneElse, array_column($tasks['items'], 'id')), 'Minhas tarefas pendentes');
 check($reports->tasks($me, ReportFilters::parse(['status' => 'completed']))['total'] === 1, 'Filtro concluídas');
 check($reports->tasks($me, ReportFilters::parse(['due' => 'overdue']))['total'] === 1, 'Filtro atrasadas');
-check($reports->tasks($me, ReportFilters::parse(['due' => 'upcoming']))['total'] === 2, 'Filtro próximos prazos');
+check($reports->tasks($me, ReportFilters::parse(['due' => 'upcoming']))['total'] === 1, 'Filtro próximos prazos');
 check($reports->tasks($me, ReportFilters::parse(['priority' => 'urgent']))['total'] === 1, 'Filtro prioridade');
 check($reports->tasks($me, ReportFilters::parse(['archived' => 'archived']))['total'] === 1, 'Filtro arquivadas');
-check($reports->tasks($me, ReportFilters::parse(['archived' => 'all', 'status' => 'all']))['total'] === 5, 'Todos os estados sem excluídos');
+check($reports->tasks($me, ReportFilters::parse(['archived' => 'all', 'status' => 'all']))['total'] === 4, 'Todos os estados sem excluídos');
 $personal = $reports->history($me, ReportFilters::parse([], true), true);
 check(count(array_unique(array_column($personal['items'], 'actor_id'))) === 1 && (int) $personal['items'][0]['actor_id'] === $me, 'Meu histórico só contém ações próprias');
 check(!str_contains(json_encode($personal), 'SEGREDO') && !str_contains(json_encode($personal), 'EXCLUIDO'), 'Histórico não expõe projetos inacessíveis');
@@ -71,7 +71,7 @@ $projectHistory = $reports->history($me, ReportFilters::parse(['project_id' => $
 check(in_array($other, array_map('intval', array_column($projectHistory['items'], 'actor_id')), true), 'Histórico do projeto contém outros participantes');
 $ownerInvites = $reports->history($me, ReportFilters::parse(['project_id' => $a, 'action' => 'invitation.created'], true), false);
 check(str_contains(json_encode($ownerInvites), $privateEmail), 'Administração pode inspecionar convite');
-$viewerInvites = $reports->history($viewer, ReportFilters::parse(['project_id' => $a, 'action' => 'invitation.created'], true), false);
+$viewerInvites = (new ReportingService($pdo,new App\Services\WorkspaceContext($viewer,(int)(new App\Repositories\ProjectRepository($pdo))->find($me,$a)['tenant_id'])))->history($viewer, ReportFilters::parse(['project_id' => $a, 'action' => 'invitation.created'], true), false);
 check($viewerInvites['total'] === 1 && $viewerInvites['items'][0]['restricted'] && !str_contains(json_encode($viewerInvites), $privateEmail), 'Privacidade dos convites no histórico');
 // Período inclui o último segundo e exclui o início do dia seguinte.
 $event = (int) $pdo->query("SELECT id FROM activity_logs WHERE task_id = {$late} AND action = 'task.updated' LIMIT 1")->fetchColumn();
@@ -95,11 +95,11 @@ foreach (['/dashboard', '/tasks', '/history', '/projects/' . $a . '/history'] as
 $cookie = $meCookie;
 for ($i = 0; $i < 26; $i++) makeTask($me, $a, 'Paginação ' . $i, [$me]);
 $paginated = $reports->tasks($me, ReportFilters::parse([]));
-check($paginated['total'] === 29 && count($paginated['items']) === 25 && $paginated['pages'] === 2, 'Paginação de tarefas');
-check(count($reports->tasks($me, ReportFilters::parse(['page' => '2']))['items']) === 4, 'Segunda página');
+check($paginated['total'] === 28 && count($paginated['items']) === 25 && $paginated['pages'] === 2, 'Paginação de tarefas');
+check(count($reports->tasks($me, ReportFilters::parse(['page' => '2']))['items']) === 3, 'Segunda página');
 check(request('/tasks?page=2')[0] === 200 && request('/history?page=2')[0] === 200, 'Paginação HTTP');
 for ($i = 0; $i < 11; $i++) makeProject($me, 'Página projeto ' . $i);
-check($reports->dashboard($me, 2)['projects']['pages'] === 2 && count($reports->dashboard($me, 2)['projects']['items']) === 4, 'Paginação de progresso');
+check($reports->dashboard($me, 2)['projects']['pages'] === 2 && count($reports->dashboard($me, 2)['projects']['items']) === 3, 'Paginação de progresso');
 (new App\Services\ProjectMemberService($pdo))->member($other, $shared, $me, 'remove');
 check(!str_contains(request('/tasks')[1], 'Tarefa compartilhada') && !str_contains(request('/history')[1], 'Tarefa compartilhada'), 'Remoção revoga relatórios');
 check(request('/projects/' . $shared . '/history')[0] === 404, 'Revogar histórico de projeto');

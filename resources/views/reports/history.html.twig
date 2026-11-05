@@ -13,7 +13,7 @@
     <div class="hi-field"><label for="action">Tipo de ação</label><select id="action" name="action"><option value="">Todas as ações</option>{% for value, label in actions %}<option value="{{ value }}" {{ filters.action == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></div>
     <div class="hi-field"><label for="from">De (UTC)</label><input type="date" id="from" name="from" value="{{ filters.from }}" min="1000-01-01" max="9999-12-31"></div>
     <div class="hi-field"><label for="to">Até (UTC)</label><input type="date" id="to" name="to" value="{{ filters.to }}" min="1000-01-01" max="9999-12-31"></div>
-    <div class="hi-actions"><button class="hi-button hi-primary" type="submit">Filtrar</button><a class="hi-button hi-secondary" href="{{ project ? (workspacePath|default('')) ~ '/projects/' ~ project.id ~ '/history' : '/history' }}">Limpar filtros</a></div>
+    <div class="hi-actions"><button class="hi-button hi-primary" type="submit">Filtrar</button><a class="hi-button hi-secondary" href="{{ project ? (workspacePath|default('')) ~ '/projects/' ~ project.id ~ '/history' : ((workspacePath|default('')) ~ '/history') }}">Limpar filtros</a></div>
 </form>
     <p class="hi-help">O período considera a data da atividade em UTC, incluindo os dias inicial e final.</p></details>
     <div class="hi-results-heading"><h3>Atividades encontradas</h3><span class="hi-total">{{ result.total }} {{ result.total == 1 ? 'atividade' : 'atividades' }}</span></div>

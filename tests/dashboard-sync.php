@@ -29,7 +29,8 @@ boardLogin($users['pending']['email']);
 check(request('/dashboard?sync=state')[0] === 403, 'Sync exige confirmação');
 boardLogin($users['member']['email']);
 function dashboardSync(string $mode = 'version', string $query = ''): array {
-    [$status, $body, $headers] = request('/dashboard?sync=' . $mode . $query);
+    global $tenant;
+    [$status, $body, $headers] = request('/workspaces/'.$tenant.'/dashboard?sync=' . $mode . $query);
     check($status === 200 && str_contains($headers, 'no-store'), 'JSON sem cache');
     return json_decode($body, true, flags: JSON_THROW_ON_ERROR);
 }
@@ -53,7 +54,7 @@ $beforeAuthor = dashboardSync()['version'];
 $pdo->prepare('UPDATE users SET name = ? WHERE id = ?')->execute(['Autor atualizado', $owner]);
 check($beforeAuthor !== dashboardSync()['version'] && str_contains(dashboardSync('state')['html'], 'Autor atualizado'), 'Nome do autor invalida atividades');
 $extraProjects = [];
-for ($i = 0; $i < 10; $i++) $extraProjects[] = $projects->create($member, ['name' => 'Paginação sync ' . $i, 'description' => '', 'starts_on' => '', 'due_on' => '']);
+for ($i = 0; $i < 10; $i++) $extraProjects[] = (new ProjectService($pdo,new App\Services\WorkspaceContext($member,(int)$tenant)))->create($member, ['name' => 'Paginação sync ' . $i, 'description' => '', 'starts_on' => '', 'due_on' => '']);
 $pageTwo = dashboardSync('state', '&page=2');
 check(str_contains($pageTwo['html'], 'Página 2 de 2') && str_contains($pageTwo['html'], 'Dashboard compartilhado'), 'Estado mantém segunda página de progresso');
 foreach ($extraProjects as $extra) $projects->change($member, $extra, 'archive');
@@ -68,5 +69,5 @@ check(request('/dashboard?sync=state')[0] === 401, 'Sessão revogada interrompe 
 // Fixture independente para validação direcionada em duas sessões de navegador.
 $fixtureProject = $projects->create($owner, ['name' => 'Dashboard navegador', 'description' => '', 'starts_on' => '', 'due_on' => '']);
 $pdo->prepare("INSERT INTO project_members (tenant_id, project_id, user_id, role) VALUES (?, ?, ?, 'member')")->execute([$tenant, $fixtureProject, $member]);
-file_put_contents('/tmp/kanban-dashboard-sync.json', json_encode(['users' => $users, 'project' => $fixtureProject, 'password' => $password], JSON_THROW_ON_ERROR));
+file_put_contents('/tmp/kanban-dashboard-sync.json', json_encode(['workspaceId' => (int)$tenant, 'users' => $users, 'project' => $fixtureProject, 'password' => $password], JSON_THROW_ON_ERROR));
 echo "OK: versão/estado, mutação remota, indicadores/progresso, XSS, paginação, arquivamento, isolamento, remoção e sessão revogada.\n";

@@ -16,6 +16,7 @@ const {default: AxeBuilder} = require('@axe-core/playwright');
             await target.goto(base + '/login'); await target.locator('#email').fill(f.users[role].email);
             await target.locator('#password').fill(f.password); await target.getByRole('button', {name: 'Entrar', exact: true}).click();
             await target.waitForURL('**/dashboard');
+            await target.goto(base + '/workspaces/' + f.workspaceId + '/dashboard');
         }
         await login(actor, 'owner'); await page.clock.install(); await login(page, 'member');
         const endpoint = base + '/projects/' + f.project + '/board';
@@ -76,7 +77,7 @@ const {default: AxeBuilder} = require('@axe-core/playwright');
             assert.deepEqual(audit.violations.map(v => v.id), []);
         }
         const fallback = await browser.newContext({javaScriptEnabled: false}); await fallback.addCookies(await context.cookies());
-        const noJs = await fallback.newPage(); await noJs.goto(base + '/dashboard');
+        const noJs = await fallback.newPage(); await noJs.goto(base + '/workspaces/' + f.workspaceId + '/dashboard');
         assert.equal(await noJs.locator('[data-metric="completed"]').innerText(), '1');
         assert.equal(await noJs.locator('.dash-progress').getAttribute('value'), '100');
         await fallback.close();

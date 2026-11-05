@@ -13,6 +13,7 @@
             const meta = await FluxoSync.json(endpoint('version'), signal);
             if (meta.version === version) return;
             const state = await FluxoSync.json(endpoint('state'), signal);
+            FluxoSync.assertCurrent(signal);
             const fragment = new DOMParser().parseFromString(state.html, 'text/html');
             const changes = [];
             for (const current of root.querySelectorAll('[data-dashboard-part]')) {

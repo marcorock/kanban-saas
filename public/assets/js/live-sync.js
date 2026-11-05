@@ -1,14 +1,24 @@
 'use strict';
 (() => {
+    const workspace = () => document.body?.dataset.workspacePath || '';
+    const initialWorkspace = workspace();
+    const current = signal => !signal?.aborted && workspace() === initialWorkspace;
+    function assertCurrent(signal) {
+        if (!current(signal)) throw new DOMException('Contexto alterado.', 'AbortError');
+    }
     async function json(url, signal) {
+        assertCurrent(signal);
         const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', headers: {Accept: 'application/json'}, signal});
+        assertCurrent(signal);
         if (!response.ok) { const error = new Error('Não foi possível sincronizar.'); error.status = response.status; throw error; }
-        return response.json();
+        const result = await response.json();
+        assertCurrent(signal);
+        return result;
     }
     function create({run, busy = () => false, onError = () => {}, onRecover = () => {}, interval = 7000}) {
         interval = Math.max(5000, Math.min(10000, Number(interval) || 7000));
         let timer; let controller; let running = false; let stopped = false; let pending = false; let failures = 0; let suspended = false;
-        const active = () => !suspended && !document.hidden && navigator.onLine !== false;
+        const active = () => !suspended && current() && !document.hidden && navigator.onLine !== false;
         function schedule(delay = interval) { clearTimeout(timer); if (!stopped && active()) timer = setTimeout(tick, delay); }
         async function tick() {
             if (stopped || !active()) return;
@@ -37,5 +47,5 @@
         window.addEventListener('pageshow', event => { if (event.persisted) { suspended = false; requestNow(); } });
         schedule(); return {requestNow, destroy};
     }
-    window.FluxoSync = {create, json};
+    window.FluxoSync = {create, json, current, assertCurrent};
 })();

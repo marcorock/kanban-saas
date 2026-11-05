@@ -16,26 +16,29 @@ final class QuickNoteController
         if($optional&&($id===null||$id===''))return null;
         if(!is_string($id)||!ctype_digit($id)||strlen($id)>18||(int)$id<1)throw new HttpException('Identificador inválido.',422);return (int)$id;
     }
-    public function handle(string $mode,?string $id=null):string
+    public function handle(string $mode,?string $id=null,?string $workspaceId=null):string
     {
         $json=in_array($mode,['version','state'],true)||str_contains($_SERVER['HTTP_ACCEPT']??'','application/json');
         $pdo=Database::connect($this->config['database']);$user=(new AuthService($pdo))->currentUser();
         if(!$user){if($json)return $this->json(['message'=>'Entre novamente.'],401);header('Location: /login',true,303);return '';}
         if(!$user['email_verified_at']){if($json)return $this->json(['message'=>'Confirme seu e-mail.'],403);throw new HttpException('Confirme seu e-mail.',403);}
-        $service=new QuickNoteService($pdo);$uid=(int)$user['id'];
         try {
+            $uid=(int)$user['id'];
+            $context=$workspaceId===null?\App\Services\WorkspaceContext::initial($pdo,$uid):\App\Services\WorkspaceContext::resolve($pdo,$uid,$workspaceId);
+            $workspacePath='/workspaces/'.$context->tenantId;
+            $service=new QuickNoteService($pdo,$context);
             if(in_array($mode,['version','state'],true)){
                 $project=$this->id($_GET['project_id']??null,true);
                 $page=filter_var($_GET['notes_page']??1,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]]);
                 if($page===false)throw new HttpException('Página inválida.',422);
                 $result=$service->sync($uid,$project,$page,$mode==='state');
-                if($mode==='state'){$result['html']=$this->views->render('notes/section.html.twig',$result['data']+['user'=>$user,'csrf'=>$_SESSION['csrf']]);unset($result['data']);}
+                if($mode==='state'){$result['html']=$this->views->render('notes/section.html.twig',$result['data']+['user'=>$user,'csrf'=>$_SESSION['csrf'],'workspacePath'=>$workspacePath]);unset($result['data']);}
                 return $this->json($result);
             }
             if($mode==='projects')return $this->json(['projects'=>$service->projects($uid,($_GET['writable']??'')==='1')]);
             if($mode==='recipients')return $this->json(['recipients'=>$service->recipients($uid,$this->id($id))]);
             if($mode==='columns')return $this->json(['columns'=>$service->columns($uid,$this->id($_GET['project_id']??null))]);
-            if($mode==='new')return $this->views->render('notes/new.html.twig',['projectName'=>$this->config['name'],'user'=>$user,'csrf'=>$_SESSION['csrf'],'destinations'=>$service->projects($uid)]);
+            if($mode==='new')return $this->views->render('notes/new.html.twig',['workspacePath'=>$workspacePath,'projectName'=>$this->config['name'],'user'=>$user,'csrf'=>$_SESSION['csrf'],'destinations'=>$service->projects($uid)]);
             if(!Session::verifyCsrf($_POST['_token']??null))throw new HttpException('Sessão do formulário expirada. Recarregue a página.',419);
             $project=$this->id($_POST['project_id']??null,true);
             if($mode==='create'){$service->create($uid,$_POST['body']??null,$project,$_POST['title']??'',$_POST['color']??'yellow',$_POST['visibility']??'private');$message='Nota salva.';}
@@ -43,8 +46,8 @@ final class QuickNoteController
             elseif($mode==='delete'){$service->delete($uid,$this->id($id),$_POST['revision']??null);$message='Nota excluída.';}
             elseif($mode==='transfer'){$project=$service->transfer($uid,$this->id($id),$this->id($_POST['recipient_id']??null),($_POST['confirm']??'')==='1',$_POST['revision']??null);$message='Propriedade da nota transferida.';}
             else{$task=$service->convert($uid,$this->id($id),$this->id($_POST['project_id']??null),$this->id($_POST['column_id']??null),$_POST['title']??null,$_POST['revision']??null);$message='Nota convertida em tarefa.';}
-            if($json)return $this->json(['ok'=>true,'message'=>$message,'task_url'=>isset($task)?'/projects/'.$project.'/board?task='.$task:null]);
-            header('Location: '.($project?'/projects/'.$project:'/tasks').'#brainstorm',true,303);return '';
+            if($json)return $this->json(['ok'=>true,'message'=>$message,'task_url'=>isset($task)?$workspacePath.'/projects/'.$project.'/board?task='.$task:null]);
+            header('Location: '.$workspacePath.($project?'/projects/'.$project:'/tasks').'#brainstorm',true,303);return '';
         }catch(HttpException $e){if($json)return $this->json(['message'=>$e->getMessage()],(int)$e->getCode());throw $e;}
     }
     private function json(array $data,int $status=200):string{http_response_code($status);header('Content-Type: application/json; charset=UTF-8');header('Cache-Control: no-store');return json_encode($data,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);}

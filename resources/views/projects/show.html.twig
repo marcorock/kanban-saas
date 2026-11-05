@@ -5,7 +5,7 @@
 {% block projects %}
 {% set roles = {owner: 'Proprietário', admin: 'Administrador', member: 'Membro', viewer: 'Visualizador'} %}
 <div class="project-details">
-    <a class="pd-back" href="{{ project.archived_at ? '/projects?status=archived' : '/projects' }}">{{ ui.icon('arrow-left') }} Voltar aos projetos</a>
+    <a class="pd-back" href="{{ workspacePath|default('') }}{{ project.archived_at ? '/projects?status=archived' : '/projects' }}">{{ ui.icon('arrow-left') }} Voltar aos projetos</a>
     <div class="pd-intro">
         <div class="pd-badges"><span class="pd-status {{ project.archived_at ? 'pd-status-archived' : '' }}">{{ ui.icon(project.archived_at ? 'archive' : 'projects') }} {{ project.archived_at ? 'Arquivado' : 'Ativo' }}</span><span class="pd-role">{{ roles[project.role] }}</span></div>
         <h2>{{ project.name }}</h2>

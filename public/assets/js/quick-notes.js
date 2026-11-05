@@ -1,5 +1,7 @@
 'use strict';
 (() => {
+    const workspacePath = document.body.dataset.workspacePath || '';
+    const notePath = path => workspacePath + path;
     const dialog = document.querySelector('[data-note-dialog]');
     const convertDialog = document.querySelector('[data-note-convert-dialog]');
     const transferDialog = document.querySelector('[data-note-transfer-dialog]');
@@ -21,11 +23,11 @@
     const column = convertForm.elements.column_id;
     const toast = document.querySelector('[data-note-toast]');
     let timer; let opener; let editing = false; let loading = 0; let columnsLoading = 0;
-    function error(parent, message = '') { const node = parent.querySelector('[data-note-error]'); node.textContent = message; node.hidden = !message; }
-    function announce(message) { clearTimeout(timer); toast.textContent = message; toast.hidden = false; timer = setTimeout(() => { toast.hidden = true; }, 6000); }
+    function error(parent, message = '') { if (window.FluxoSync && !FluxoSync.current()) return; const node = parent.querySelector('[data-note-error]'); node.textContent = message; node.hidden = !message; }
+    function announce(message) { if (window.FluxoSync && !FluxoSync.current()) return; clearTimeout(timer); toast.textContent = message; toast.hidden = false; timer = setTimeout(() => { toast.hidden = true; }, 6000); }
     async function get(path) {
         const response = await fetch(path, {credentials: 'same-origin', headers: {Accept: 'application/json'}, cache: 'no-store'});
-        const result = await response.json(); if (!response.ok) throw new Error(result.message || 'Não foi possível carregar. Reabra a nota para tentar novamente.'); return result;
+        const result = await response.json(); window.FluxoSync?.assertCurrent(); if (!response.ok) throw new Error(result.message || 'Não foi possível carregar. Reabra a nota para tentar novamente.'); return result;
     }
     async function send(formNode) {
         mutations++; operation++;
@@ -33,7 +35,7 @@
         try {
             const response = await fetch(formNode.action, {method: 'POST', credentials: 'same-origin', headers: {Accept: 'application/json'}, body: new URLSearchParams(new FormData(formNode)), signal: controller.signal});
             let result;
-            try { result = await response.json(); } catch { throw new Error('Não foi possível confirmar a alteração. Atualize a lista antes de tentar novamente.'); }
+            try { result = await response.json(); window.FluxoSync?.assertCurrent(controller.signal); } catch { throw new Error('Não foi possível confirmar a alteração. Atualize a lista antes de tentar novamente.'); }
             if (!response.ok) throw new Error(result.message || 'Não foi possível salvar. Tente novamente.'); return result;
         } catch (issue) {
             if (issue.name === 'AbortError') throw new Error('Não foi possível confirmar o salvamento a tempo. Confira a lista antes de tentar novamente.');
@@ -46,7 +48,7 @@
     function close(modal) { if (modal.querySelector('form')?.dataset.busy) return; modal.close(); if (opener?.isConnected) opener.focus(); }
     function sectionUrl(resource) {
         const section = document.querySelector('[data-note-section]');
-        const url = new URL('/notes/' + resource, location.origin);
+        const url = new URL(notePath('/notes/') + resource, location.origin);
         if (section.dataset.noteProject) url.searchParams.set('project_id', section.dataset.noteProject);
         url.searchParams.set('notes_page', section.dataset.notePage);
         return url;
@@ -88,6 +90,7 @@
         if (meta.token === document.querySelector('[data-note-section]').dataset.noteToken || mutations || generation !== operation) return;
         const result = await FluxoSync.json(sectionUrl('state'), signal);
         if (mutations || generation !== operation || signal.aborted) return;
+        FluxoSync.assertCurrent(signal);
         applySection(result.html); document.querySelector('[data-note-section]').dataset.noteToken = result.token;
     }
     async function refresh() {
@@ -101,12 +104,12 @@
     }
     async function openNote(button) {
         if (document.querySelector('dialog[open]')) return;
-        if (editing) { form.reset(); text.value = ''; } editing = false; form.elements.revision.value = ''; form.action = '/notes'; destination.disabled = false; document.getElementById('quick-note-title').textContent = 'Nota rápida';
+        if (editing) { form.reset(); text.value = ''; } editing = false; form.elements.revision.value = ''; form.action = notePath('/notes'); destination.disabled = false; document.getElementById('quick-note-title').textContent = 'Nota rápida';
         opener = button || document.activeElement; const sequence = ++loading;
         error(dialog); destination.replaceChildren(new Option('Sem projeto / Inbox pessoal', ''));
         previewColor(new Date().toISOString()); syncVisibility(); dialog.showModal(); text.focus();
         try {
-            const result = await get('/notes/projects'); if (sequence !== loading || !dialog.open) return;
+            const result = await get(notePath('/notes/projects')); if (sequence !== loading || !dialog.open) return;
             for (const item of result.projects) destination.add(new Option(item.name, String(item.id)));
             const selected = button?.dataset.noteProject || '';
             if ([...destination.options].some(option => option.value === selected)) destination.value = selected;
@@ -116,7 +119,7 @@
     async function editNote(button) {
         if (document.querySelector('dialog[open]')) return;
         const sequence = ++loading; opener = button.closest('details')?.querySelector('summary') || button; editing = true; error(dialog);
-        form.action = '/notes/' + button.dataset.noteEdit + '/update';
+        form.action = notePath('/notes/') + button.dataset.noteEdit + '/update';
         const card = button.closest('.qn-card');
         text.value = card.querySelector('.qn-body').textContent;
         form.elements.title.value = card.dataset.noteTitle;
@@ -129,7 +132,7 @@
         document.getElementById('quick-note-title').textContent = 'Editar nota';
         previewColor(card.querySelector('time')?.dateTime); syncVisibility(); dialog.showModal(); text.focus();
         try {
-            const result = await get('/notes/projects'); if (sequence !== loading || !dialog.open) return;
+            const result = await get(notePath('/notes/projects')); if (sequence !== loading || !dialog.open) return;
             destination.replaceChildren(new Option('Sem projeto / Inbox pessoal', ''));
             for (const item of result.projects) destination.add(new Option(item.name, String(item.id)));
             if (project && ![...destination.options].some(option => option.value === project)) destination.add(new Option('Projeto atual (arquivado)', project));
@@ -142,7 +145,7 @@
         column.replaceChildren(new Option('Selecione uma coluna', ''));
         if (!project) return;
         try {
-            const result = await get('/notes/columns?project_id=' + encodeURIComponent(project));
+            const result = await get(notePath('/notes/columns?project_id=') + encodeURIComponent(project));
             if (sequence !== columnsLoading || target.value !== project || !convertDialog.open) return;
             for (const item of result.columns) column.add(new Option(item.name + (Number(item.is_done) ? ' (concluída)' : ''), String(item.id)));
             column.disabled = !result.columns.length; convertForm.querySelector('[type="submit"]').disabled = !result.columns.length;
@@ -152,7 +155,7 @@
     async function openConversion(button) {
         if (document.querySelector('dialog[open]')) return;
         const project = button.dataset.noteProject; if (!project) { announce('Vincule a nota a um projeto antes de converter.'); return; }
-        const card = button.closest('.qn-card'); opener = button; error(convertDialog); convertForm.action = '/notes/' + button.dataset.noteConvert + '/convert';
+        const card = button.closest('.qn-card'); opener = button; error(convertDialog); convertForm.action = notePath('/notes/') + button.dataset.noteConvert + '/convert';
         target.value = project; convertForm.elements.title.value = card.dataset.noteTitle; convertForm.elements.revision.value = card.dataset.noteRevision;
         column.replaceChildren(new Option('Carregando colunas', '')); column.disabled = true;
         convertForm.querySelector('[type="submit"]').disabled = true; convertDialog.showModal(); convertForm.elements.title.focus(); await loadColumns();
@@ -161,12 +164,12 @@
         if (document.querySelector('dialog[open]')) return;
         const card = button.closest('.qn-card'); const sequence = ++transferLoading;
         opener = button.closest('details')?.querySelector('summary') || button; card.querySelector('details').open = false;
-        transferForm.reset(); error(transferDialog); transferForm.action = '/notes/' + button.dataset.noteTransfer + '/transfer';
+        transferForm.reset(); error(transferDialog); transferForm.action = notePath('/notes/') + button.dataset.noteTransfer + '/transfer';
         transferForm.elements.project_id.value = button.dataset.noteProject; transferForm.elements.revision.value = card.dataset.noteRevision;
         const recipient = transferForm.elements.recipient_id; recipient.replaceChildren(new Option('Selecione um membro', ''));
         transferForm.querySelector('[type="submit"]').disabled = true; transferDialog.showModal(); recipient.focus();
         try {
-            const result = await get('/notes/' + button.dataset.noteTransfer + '/recipients'); if (!transferDialog.open || sequence !== transferLoading) return;
+            const result = await get(notePath('/notes/') + button.dataset.noteTransfer + '/recipients'); if (!transferDialog.open || sequence !== transferLoading) return;
             for (const person of result.recipients) recipient.add(new Option(person.name, String(person.id)));
             transferForm.querySelector('[type="submit"]').disabled = !result.recipients.length;
             if (!result.recipients.length) error(transferDialog, 'Nenhum outro membro disponível neste projeto.');

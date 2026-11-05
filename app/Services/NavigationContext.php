@@ -9,6 +9,7 @@ final class NavigationContext
 {
     public static function forPath(string $path): array
     {
+        $path = preg_replace('~^/workspaces/[0-9]+(?=/)~', '', $path);
         $path = rtrim($path, '/') ?: '/';
         $section = ''; $title = 'Seu espaço'; $caption = 'Um passo de cada vez';
         if ($path === '/dashboard') { $section = 'dashboard'; $title = 'Visão geral'; $caption = 'Seu trabalho, no seu ritmo'; }

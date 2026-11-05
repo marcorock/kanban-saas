@@ -156,16 +156,19 @@
                 body: JSON.stringify({...payload, action, version: expectedVersion, _token: root.dataset.csrf})
             });
             const result = await response.json();
+            window.FluxoSync?.assertCurrent();
             if (!response.ok || !result.ok) throw new Error(response.status === 409 ? ('Outro participante alterou o quadro. Seu rascunho foi mantido. Use ' + (panel.classList.contains('show') ? 'Atualizar detalhes' : 'Atualizar quadro') + ' para conferir e tentar novamente.') : (result.message || 'Não foi possível salvar. Atualize o quadro para conferir o estado atual.'));
             board = result.board; boardDrafts.clear();
             success = true;
             if (action === 'column.create') document.getElementById('column-create').reset();
             notify('Quadro atualizado.');
         } catch (error) {
+            if (window.FluxoSync && !FluxoSync.current()) return false;
             if (panel.classList.contains('show')) taskNotify(error.message, true);
             notify(error instanceof TypeError ? 'A conexão falhou. Atualize o quadro para conferir o estado atual antes de tentar novamente.' : error.message, true);
         } finally {
             saving = false;
+            if (window.FluxoSync && !FluxoSync.current()) return false;
             if (success || !source) render();
             originalDisabled.forEach((disabled, control) => { if (control.isConnected) control.disabled = disabled; });
             root.removeAttribute('aria-busy');
@@ -344,12 +347,13 @@
             const query = new URLSearchParams({comments_page: page.comments || 1, activity_page: page.activity || 1});
             const response = await fetch(`${root.dataset.endpoint.replace(/\/board$/, '')}/tasks/${taskId}?${query}`, {credentials: 'same-origin', headers: {'Accept': 'application/json'}});
             const result = await response.json();
+            window.FluxoSync?.assertCurrent();
             if (sequence !== taskRequest) return;
             if (!response.ok || !result.ok) throw new Error(result.message || 'Não foi possível carregar a tarefa.');
             taskVersion = result.board.version; taskSyncToken = result.board.sync_token; if (result.board.version >= board.version) board = result.board; taskDetails = result.details; render(); renderTask(); panel.dataset.syncToken = taskSyncToken; taskMessage.hidden = true;
             if (position) restorePanelPosition(position); else panel.querySelector('.offcanvas-body').scrollTop = 0;
-        } catch (error) { if (sequence === taskRequest) { taskNotify(error.message, true); document.getElementById('task-retry').hidden = false; } }
-        finally { if (sequence === taskRequest) { panelContent.removeAttribute('aria-busy'); loadingTask = false; sync?.requestNow(); } }
+        } catch (error) { if ((!window.FluxoSync || FluxoSync.current()) && sequence === taskRequest) { taskNotify(error.message, true); document.getElementById('task-retry').hidden = false; } }
+        finally { if ((!window.FluxoSync || FluxoSync.current()) && sequence === taskRequest) { panelContent.removeAttribute('aria-busy'); loadingTask = false; sync?.requestNow(); } }
     }
     async function taskSave(action, payload, source = null) {
         if (taskMissing) { taskNotify('A tarefa foi excluída. Copie seu rascunho antes de fechar.', true); return false; }

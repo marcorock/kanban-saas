@@ -1,6 +1,6 @@
 # Dashboard, tarefas e históricos
 
-A navegação principal inclui **Dashboard**, **Projetos**, **Minhas Tarefas** e **Meu Histórico**. Todas essas páginas exigem sessão válida e e-mail confirmado.
+A navegação principal inclui **Dashboard**, **Projetos**, **Minhas Tarefas** e **Meu Histórico**. Todas essas páginas exigem sessão válida e e-mail confirmado. Projetos, tarefas, indicadores e históricos são delimitados pela Área de Trabalho explícita em `/workspaces/{workspaceId}/...`, com vínculo vigente e acesso individual ao projeto. As entradas sem prefixo usam um único Workspace inicial, priorizando o pessoal próprio; padrão e seletor pertencem à etapa 5.
 
 ## Dashboard
 
@@ -15,9 +15,9 @@ As consultas do dashboard usam uma transação de leitura para manter as contage
 
 ## Sincronização automática do Dashboard
 
-O FluxoSync consulta `GET /dashboard?sync=version` a cada 7 segundos na aba ativa. A versão usa metadados dos projetos acessíveis, `board_version`, os dez eventos recentes/autores e a data UTC. Somente quando a versão muda busca `GET /dashboard?sync=state`, que entrega os fragmentos renderizados por Twig. Ambos preservam a página solicitada (`page`), a identidade da sessão e os vínculos atuais em tenant/projeto, com respostas sem cache. Sessão encerrada/revogada retorna 401; e-mail não confirmado retorna 403.
+O FluxoSync consulta `GET /workspaces/{workspaceId}/dashboard?sync=version` a cada 7 segundos na aba ativa. A versão inclui o Workspace e usa metadados dos projetos acessíveis, `board_version`, os dez eventos recentes/autores e a data UTC. Somente quando a versão muda busca `GET /workspaces/{workspaceId}/dashboard?sync=state`, que entrega os fragmentos renderizados por Twig. Ambos preservam a página solicitada (`page`), a identidade da sessão e os vínculos atuais em tenant/projeto, com respostas sem cache. Sessão encerrada/revogada retorna 401; e-mail não confirmado retorna 403.
 
-Somente os blocos cujo HTML mudou são substituídos. Se a troca remover o elemento em foco, a aplicação é adiada até uma consulta posterior sem esse impedimento. A paginação continua por links GET; saudação e banner de convite mantêm o comportamento anterior. Sem JavaScript, a página completa continua funcional.
+Respostas atrasadas são descartadas quando o contexto do documento muda ou a requisição é abortada; Kanban e Post-its usam a mesma proteção. Somente os blocos cujo HTML mudou são substituídos. Se a troca remover o elemento em foco, a aplicação é adiada até uma consulta posterior sem esse impedimento. A paginação continua por links GET; saudação e banner de convite mantêm o comportamento anterior. Sem JavaScript, a página completa continua funcional.
 
 A infraestrutura existente suspende consultas em aba inativa/offline, consulta imediatamente no retorno/reconexão e aplica backoff nas falhas, sem requisições sobrepostas. Não há garantia de atualização instantânea: a latência normal é de até um ciclo de polling, e falhas/foco podem adiá-la. Uma alteração em qualquer tarefa de projeto acessível pode invalidar a versão mesmo que não altere os blocos visíveis.
 
@@ -35,7 +35,7 @@ Estado vazio oferece ação de criar projeto e explica ausência de prazos/ativi
 
 ## Minhas Tarefas
 
-`/tasks` consolida atribuições do usuário em todos os projetos acessíveis. O padrão mostra pendentes em projetos ativos; filtros permitem projeto, prioridade, estado (pendentes/iniciadas/concluídas/todas), prazo, intervalo de vencimento e projetos ativos/arquivados/todos.
+`/workspaces/{workspaceId}/tasks` consolida atribuições do usuário nos projetos acessíveis da mesma Área de Trabalho. O Inbox de notas também pertence a esse Workspace; movimentação e conversão de notas não atravessam Workspaces. O padrão mostra pendentes em projetos ativos; filtros permitem projeto, prioridade, estado (pendentes/iniciadas/concluídas/todas), prazo, intervalo de vencimento e projetos ativos/arquivados/todos.
 
 O intervalo de datas filtra o prazo previsto, não a criação da tarefa. A ordenação prioriza prazos definidos mais próximos, prioridade e identificador; são 25 itens por página. Tarefas atribuídas também a outros usuários aparecem uma única vez. Criar uma tarefa sem atribuí-la ao próprio usuário não a inclui nesta visão.
 
