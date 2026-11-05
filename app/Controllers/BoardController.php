@@ -37,6 +37,7 @@ final class BoardController
                 http_response_code(403);
                 return $this->views->render('verify-notice.html.twig', ['projectName' => $this->config['name'], 'csrf' => $_SESSION['csrf']]);
             }
+            $this->views->addGlobal('workspaceChoices', (new \App\Repositories\WorkspaceRepository($pdo))->forUser((int) $user['id']));
             if (!ctype_digit($id) || strlen($id) > 18 || (int) $id < 1) { throw new HttpException('Quadro não encontrado.', 404); }
             $context = $workspaceId === null ? new \App\Services\WorkspaceContext((int) $user['id'], (int) (new \App\Repositories\ProjectRepository($pdo))->find((int) $user['id'], (int) $id)['tenant_id']) : \App\Services\WorkspaceContext::resolve($pdo, (int) $user['id'], $workspaceId);
             $service = new BoardService($pdo, $context);

@@ -70,7 +70,7 @@ async function run() {
         await submitted(page.getByRole('button', {name: 'Entrar', exact: true}), 419);
         await page.getByRole('alert').filter({hasText: 'Sua sessão expirou.'}).waitFor();
         const email = `ui-${Date.now()}@example.com`; const password = 'Senha-ui-segura-123'; const newPassword = 'Nova-senha-ui-segura-456';
-        await page.goto(base + '/register'); await page.locator('#name').fill('Marina Teste');
+        await page.goto(base + '/register'); await page.locator('#workspace-name').fill('Workspace de testes'); await page.locator('#name').fill('Marina Teste');
         await page.locator('#email').fill(email); await page.locator('#password').fill(password); await page.locator('#confirmation').fill(password);
         await submitted(page.getByRole('button', {name: 'Criar conta', exact: true}), 303);
         await page.waitForURL('**/dashboard');

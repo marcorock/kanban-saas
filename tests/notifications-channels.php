@@ -9,7 +9,7 @@ use GuzzleHttp\{Client,HandlerStack};use GuzzleHttp\Handler\MockHandler;use Guzz
 $pdo->exec("UPDATE notification_outbox SET available_at='2099-01-01' WHERE channel IN ('push','email') AND status IN ('pending','retry')");
 $auth=new AuthService($pdo);$projects=new ProjectService($pdo);$boards=new BoardService($pdo);$service=new NotificationService($pdo);$devices=new PushSubscriptionService($pdo);
 $password='Senha-canais-segura-123';$suffix=bin2hex(random_bytes(6));$users=[];
-foreach(['owner','member','other'] as $name){$email=$name.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,$password);$pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id=?')->execute([$id]);$users[$name]=compact('id','email');}
+foreach(['owner','member','other'] as $name){$email=$name.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,$password, 'Workspace de testes');$pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id=?')->execute([$id]);$users[$name]=compact('id','email');}
 $owner=$users['owner']['id'];$member=$users['member']['id'];$other=$users['other']['id'];$email=$users['member']['email'];
 $projectId=$projects->create($owner,['name'=>'Projeto multicanal','description'=>'SEGREDO-PROJETO','starts_on'=>'','due_on'=>'']);
 $project=(new App\Repositories\ProjectRepository($pdo))->find($owner,$projectId);$tenant=(int)$project['tenant_id'];

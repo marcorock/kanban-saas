@@ -11,7 +11,7 @@ $suffix = bin2hex(random_bytes(6));
 $users = [];
 foreach (['owner', 'member', 'viewer', 'outsider'] as $name) {
     $email = 'board-' . $name . '-' . $suffix . '@example.com';
-    $id = $auth->register($name, $email, $password);
+    $id = $auth->register($name, $email, $password, 'Workspace de testes');
     $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
     $users[$name] = ['id' => $id, 'email' => $email];
 }

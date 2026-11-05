@@ -16,7 +16,7 @@ function blocked(callable $operation, int $status=404): void {
 }
 $suffix=bin2hex(random_bytes(5)); $password='Workspaces-modulos-123';
 $auth=new AuthService($pdo); $email="modules-$suffix@example.com";
-$me=$auth->register('Módulos',$email,$password); $other=$auth->register('Outro',"other-modules-$suffix@example.com",$password);
+$me=$auth->register('Módulos',$email,$password, 'Workspace de testes'); $other=$auth->register('Outro',"other-modules-$suffix@example.com",$password, 'Workspace de testes');
 $pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id IN (?,?)')->execute([$me,$other]);
 $a=WorkspaceContext::initial($pdo,$me); $otherContext=WorkspaceContext::initial($pdo,$other);
 $pdo->prepare("INSERT INTO tenant_users(tenant_id,user_id,role) VALUES (?,?,'member')")->execute([$otherContext->tenantId,$me]);

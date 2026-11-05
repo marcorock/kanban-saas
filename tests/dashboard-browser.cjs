@@ -78,7 +78,7 @@ runBoardBrowser(async ({page, context, save, boardUrl}) => {
     const fresh = await context.browser().newContext({viewport: {width: 390, height: 844}});
     try {
         const empty = await fresh.newPage(); const email = `dashboard-empty-${Date.now()}@example.com`;
-        await empty.goto(base + '/register'); await empty.locator('#name').fill('Marina'); await empty.locator('#email').fill(email);
+        await empty.goto(base + '/register'); await empty.locator('#workspace-name').fill('Workspace de testes'); await empty.locator('#name').fill('Marina'); await empty.locator('#email').fill(email);
         await empty.locator('#password').fill('Senha-dashboard-segura-123'); await empty.locator('#confirmation').fill('Senha-dashboard-segura-123');
         await empty.getByRole('button', {name: 'Criar conta', exact: true}).click(); await empty.waitForURL('**/dashboard');
         const mailpit = process.env.MAILPIT_TEST_URL || 'http://127.0.0.1:8025';

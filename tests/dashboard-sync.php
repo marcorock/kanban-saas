@@ -15,7 +15,7 @@ $auth = new AuthService($pdo); $projects = new ProjectService($pdo); $boards = n
 $suffix = bin2hex(random_bytes(6)); $users = [];
 foreach (['owner', 'member', 'outsider', 'pending'] as $role) {
     $email = "dashboard-sync-{$role}-{$suffix}@example.com";
-    $id = $auth->register($role, $email, $password);
+    $id = $auth->register($role, $email, $password, 'Workspace de testes');
     if ($role !== 'pending') $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
     $users[$role] = compact('id', 'email');
 }

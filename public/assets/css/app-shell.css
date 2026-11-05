@@ -94,3 +94,12 @@
     .app-bottom-link[aria-current], .app-bottom-link[data-active="true"], .app-nav a[aria-current] { border: 2px solid Highlight; }
     .app-avatar { border: 1px solid CanvasText; }
 }
+
+.workspace-switcher { margin: .75rem 1rem 0; padding: .75rem 1rem; border: 1px solid var(--ds-color-border); border-radius: .75rem; background: var(--ds-color-surface); min-width: 0; }
+.workspace-switcher summary { cursor: pointer; min-height: 44px; overflow-wrap: anywhere; }
+.workspace-switcher summary span { font-size: .75rem; color: var(--ds-color-muted); }
+.workspace-switcher summary strong { display: block; font-size: .9375rem; }
+.workspace-switcher nav { display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto; margin-top: .5rem; }
+.workspace-switcher a { padding: .75rem; min-height: 44px; color: var(--ds-color-primary); overflow-wrap: anywhere; border-radius: .5rem; }
+.workspace-switcher a[aria-current] { font-weight: 700; background: var(--ds-color-soft); }
+.workspace-switcher :is(summary, a):focus-visible { outline: 3px solid var(--ds-color-primary); outline-offset: 2px; }

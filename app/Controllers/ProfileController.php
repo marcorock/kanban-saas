@@ -20,7 +20,8 @@ final class ProfileController
         $auth = new AuthService($pdo);
         $user = $auth->currentUser();
         if (!$user) { header('Location: /login', true, 303); return ''; }
-        $base = ['projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf'], 'wide' => true];
+        $this->views->addGlobal('workspaceChoices', (new \App\Repositories\WorkspaceRepository($pdo))->forUser((int) $user['id']));
+        $base = ['projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf'], 'wide' => true, 'defaultWorkspace' => (new \App\Repositories\WorkspaceRepository($pdo))->defaultForUser((int) $user['id'])];
         if ($user['email_verified_at'] === null) { http_response_code(403); return $this->views->render('verify-notice.html.twig', $base); }
         $errors = []; $name = $user['name']; $formAction = 'profile';
         $success = $_SESSION['profile_success'] ?? null;

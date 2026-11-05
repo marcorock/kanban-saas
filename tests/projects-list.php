@@ -8,7 +8,7 @@ $service = new App\Services\ProjectService($pdo);
 $password = 'Senha-listagem-segura-123';
 $suffix = bin2hex(random_bytes(5)); $users = [];
 foreach (['owner' => 'Marina Costa', 'other' => 'Bruno Lima', 'empty' => 'Conta nova', 'pager' => 'Paginação', 'xss' => 'Teste de texto'] as $key => $name) {
-    $email = 'projects-ui-' . $key . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password);
+    $email = 'projects-ui-' . $key . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password, 'Workspace de testes');
     $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
     $users[$key] = ['id' => $id, 'email' => $email];
 }

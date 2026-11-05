@@ -12,16 +12,18 @@ final class AuthService
 {
     public function __construct(private PDO $pdo) {}
 
-    public function register(string $name, string $email, string $password): ?int
+    public function register(string $name, string $email, string $password, string $workspaceName): ?int
     {
+        $workspaceName = WorkspaceService::validateName($workspaceName);
         $hash = password_hash($password, PASSWORD_DEFAULT);
         $this->pdo->beginTransaction();
         try {
             $this->pdo->prepare('INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)')->execute([$name, $email, $hash]);
             $userId = (int) $this->pdo->lastInsertId();
-            $this->pdo->prepare('INSERT INTO tenants (name, owner_id) VALUES (?, ?)')->execute([$name, $userId]);
+            $this->pdo->prepare('INSERT INTO tenants (name, owner_id) VALUES (?, ?)')->execute([$workspaceName, $userId]);
             $tenantId = (int) $this->pdo->lastInsertId();
             $this->pdo->prepare('INSERT INTO tenant_users (tenant_id, user_id) VALUES (?, ?)')->execute([$tenantId, $userId]);
+            $this->pdo->prepare('UPDATE users SET default_tenant_id=? WHERE id=?')->execute([$tenantId, $userId]);
             $this->pdo->commit();
             return $userId;
         } catch (Throwable $exception) {

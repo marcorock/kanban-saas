@@ -31,6 +31,7 @@
     {% include 'navigation.html.twig' %}
     <div class="app-workspace">
         {% include 'app/header.html.twig' %}
+        {% include 'workspaces/switcher.html.twig' %}
         <main id="app-content" class="app-content {{ wide|default(false) ? 'app-content-wide' : 'app-content-reading' }}" tabindex="-1">
     {% else %}
         <main class="container py-5 legacy-content {{ wide|default(false) ? 'legacy-content-wide' : '' }}"><h1 class="h3 mb-4">{{ projectName }}</h1>

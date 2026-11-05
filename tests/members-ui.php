@@ -5,7 +5,7 @@ require __DIR__ . '/http.php';
 $auth = new App\Services\AuthService($pdo); $projects = new App\Services\ProjectService($pdo);
 $password = 'Senha-equipe-ui-segura-123'; $suffix = bin2hex(random_bytes(5)); $users = [];
 foreach (['owner' => 'Marina Costa', 'admin' => 'Bruno Lima', 'member' => 'Luiza Martins', 'viewer' => 'Rafael Alves', 'recipient' => '<script>window.memberXss=true</script>', 'wrong' => 'Outra conta'] as $role => $name) {
-    $email = 'team-ui-' . $role . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password);
+    $email = 'team-ui-' . $role . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password, 'Workspace de testes');
     $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
     $users[$role] = ['id' => $id, 'email' => $email];
 }

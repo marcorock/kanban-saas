@@ -24,6 +24,7 @@ final class QuickNoteController
         if(!$user['email_verified_at']){if($json)return $this->json(['message'=>'Confirme seu e-mail.'],403);throw new HttpException('Confirme seu e-mail.',403);}
         try {
             $uid=(int)$user['id'];
+            $this->views->addGlobal('workspaceChoices', (new \App\Repositories\WorkspaceRepository($pdo))->forUser((int) $user['id']));
             $context=$workspaceId===null?\App\Services\WorkspaceContext::initial($pdo,$uid):\App\Services\WorkspaceContext::resolve($pdo,$uid,$workspaceId);
             $workspacePath='/workspaces/'.$context->tenantId;
             $service=new QuickNoteService($pdo,$context);

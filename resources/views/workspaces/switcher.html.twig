@@ -1,0 +1,11 @@
+{% set activeWorkspaceName = '' %}
+{% for workspace in workspaceChoices|default([]) %}
+    {% if workspacePath|default('') == '/workspaces/' ~ workspace.id %}{% set activeWorkspaceName = workspace.name %}{% endif %}
+{% endfor %}
+<details class="workspace-switcher">
+    <summary><span>Área de Trabalho{{ activeWorkspaceName ? ' ativa' : 's' }}</span><strong>{{ activeWorkspaceName ?: 'Selecionar Área de Trabalho' }}</strong></summary>
+    <nav aria-label="Alternar Área de Trabalho">
+        {% for workspace in workspaceChoices|default([]) %}<a href="/workspaces/{{ workspace.id }}/dashboard" {% if workspacePath|default('') == '/workspaces/' ~ workspace.id %}aria-current="location"{% endif %}>{{ workspace.name }}</a>{% endfor %}
+        <a href="/workspaces/new">Criar Área de Trabalho</a>
+    </nav>
+</details>

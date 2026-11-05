@@ -14,7 +14,7 @@ final class MeasuredPDO extends PDO
         $this->queries++; return parent::query($query, $fetchMode, ...$fetchModeArgs);
     }
 }
-$id = (new App\Services\AuthService($pdo))->register('Carga descartável', 'load-' . bin2hex(random_bytes(6)) . '@example.com', 'Senha-carga-segura-123');
+$id = (new App\Services\AuthService($pdo))->register('Carga descartável', 'load-' . bin2hex(random_bytes(6)) . '@example.com', 'Senha-carga-segura-123', 'Workspace de testes');
 $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
 $projectId = (new App\Services\ProjectService($pdo))->create($id, ['name' => 'Carga de revisão', 'description' => '', 'starts_on' => '', 'due_on' => '']);
 $project = (new App\Repositories\ProjectRepository($pdo))->find($id, $projectId);

@@ -11,7 +11,7 @@ use Pecee\SimpleRouter\Exceptions\HttpException;
 if (!str_starts_with($config['database']['name'],'kanban_workspace_')) throw new RuntimeException('Use banco descartável kanban_workspace_*.');
 $password='Workspace-notificacoes-123';$suffix=bin2hex(random_bytes(6));$auth=new AuthService($pdo);
 $email="notify-workspace-$suffix@example.com";
-$user=$auth->register('Destinatário',$email,$password);$owner=$auth->register('Proprietário',"notify-owner-$suffix@example.com",$password);
+$user=$auth->register('Destinatário',$email,$password, 'Workspace de testes');$owner=$auth->register('Proprietário',"notify-owner-$suffix@example.com",$password, 'Workspace de testes');
 $pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id IN (?,?)')->execute([$user,$owner]);
 $a=WorkspaceContext::initial($pdo,$user);$ownerB=WorkspaceContext::initial($pdo,$owner);
 $pdo->prepare("INSERT INTO tenant_users(tenant_id,user_id,role) VALUES (?,?,'member')")->execute([$ownerB->tenantId,$user]);

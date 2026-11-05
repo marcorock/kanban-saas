@@ -12,7 +12,7 @@ $service = new App\Services\BoardService($pdo);
 $memberService = new App\Services\ProjectMemberService($pdo);
 $suffix = bin2hex(random_bytes(6)); $users = [];
 foreach (['owner', 'member', 'viewer', 'outside', 'pending'] as $name) {
-    $email = 'tasks-' . $name . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password);
+    $email = 'tasks-' . $name . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password, 'Workspace de testes');
     if ($name !== 'pending') $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
     $users[$name] = ['id' => $id, 'email' => $email];
 }

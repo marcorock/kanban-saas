@@ -14,7 +14,7 @@ $suffix = bin2hex(random_bytes(6));
 $users = [];
 foreach (['owner', 'admin', 'guest', 'wrong', 'rollback', 'concurrent', 'revoked', 'expired'] as $name) {
     $email = $name . '-' . $suffix . '@example.com';
-    $id = $auth->register($name, $email, $password);
+    $id = $auth->register($name, $email, $password, 'Workspace de testes');
     $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
     $users[$name] = ['id' => $id, 'email' => $email];
 }
@@ -129,7 +129,7 @@ $service->invite($owner, $projectId, $newEmail, 'member', $mailer, $config['url'
 $newRaw = mailToken($newEmail, '/invitations/accept');
 $cookie = ''; openInvitation($newRaw);
 $newCsrf = token(request('/register')[1]);
-check(request('/register', ['_token' => $newCsrf, 'name' => 'Novo participante', 'email' => $newEmail, 'password' => $password, 'password_confirmation' => $password])[0] === 303, 'Cadastrar convidado');
+check(request('/register', ['_token' => $newCsrf, 'workspace_name' => 'Meu Workspace', 'name' => 'Novo participante', 'email' => $newEmail, 'password' => $password, 'password_confirmation' => $password])[0] === 303, 'Cadastrar convidado');
 check(request('/invitations/accept')[0] === 403, 'Convidado exige confirmação');
 $verifyRaw = mailToken($newEmail, '/email/verify');
 $newCsrf = token(request('/email/verify?token=' . $verifyRaw)[1]);

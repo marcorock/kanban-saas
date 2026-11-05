@@ -18,6 +18,13 @@ final class WorkspaceRepository
         return $statement->fetch();
     }
 
+    public function forUser(int $userId): array
+    {
+        $statement = $this->pdo->prepare('SELECT t.id, t.name FROM tenants t JOIN tenant_users tu ON tu.tenant_id=t.id JOIN tenant_users owner_membership ON owner_membership.tenant_id=t.id AND owner_membership.user_id=t.owner_id WHERE tu.user_id=? ORDER BY t.name, t.id');
+        $statement->execute([$userId]);
+        return $statement->fetchAll();
+    }
+
     public function defaultForUser(int $userId): array|false
     {
         $statement = $this->pdo->prepare('SELECT default_tenant_id FROM users WHERE id = ?');

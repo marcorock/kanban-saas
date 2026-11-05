@@ -14,7 +14,11 @@ SimpleRouter::post('/register', static fn (): string => $auth->submit(true));
 SimpleRouter::get('/login', static fn (): string => $auth->form(false));
 SimpleRouter::post('/login', static fn (): string => $auth->submit(false));
 SimpleRouter::post('/logout', static fn (): string => $auth->logout());
+$workspaces = new \App\Controllers\WorkspaceController($views, $config);
 SimpleRouter::get('/dashboard', static fn (): string => $auth->dashboard());
+SimpleRouter::get('/workspaces/new', static fn (): string => $workspaces->handle('new'));
+SimpleRouter::post('/workspaces', static fn (): string => $workspaces->handle('create'));
+SimpleRouter::post('/settings/workspace', static fn (): string => $workspaces->handle('default'));
 
 $account = new \App\Controllers\AccountController($views, $config);
 SimpleRouter::get('/password/forgot', static fn (): string => $account->page('forgot'));

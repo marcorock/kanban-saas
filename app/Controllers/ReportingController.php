@@ -27,6 +27,7 @@ final class ReportingController
         $user = (new AuthService($pdo))->currentUser();
         if ($sync && !$user) return $this->json(['error' => 'Sessão encerrada.'], 401);
         if (!$user) { header('Location: /login', true, 303); return ''; }
+        $this->views->addGlobal('workspaceChoices', (new \App\Repositories\WorkspaceRepository($pdo))->forUser((int) $user['id']));
         $base = ['projectName' => $this->config['name'], 'user' => $user, 'wide' => true, 'csrf' => $_SESSION['csrf'], 'sessionInvitation' => isset($_SESSION['pending_invitation'])];
         if ($sync && $user['email_verified_at'] === null) return $this->json(['error' => 'Confirme seu e-mail.'], 403);
         if ($user['email_verified_at'] === null) { http_response_code(403); return $this->views->render('verify-notice.html.twig', $base); }

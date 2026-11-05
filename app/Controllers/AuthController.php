@@ -33,7 +33,7 @@ final class AuthController
     {
         return $this->views->render('auth.html.twig', [
             'projectName' => $this->config['name'], 'register' => $register,
-            'errors' => $errors, 'old' => array_intersect_key($old, array_flip(['name', 'email'])), 'csrf' => $_SESSION['csrf'],
+            'errors' => $errors, 'old' => array_intersect_key($old, array_flip(['name', 'email', 'workspace_name'])), 'csrf' => $_SESSION['csrf'],
         ]);
     }
 
@@ -47,13 +47,14 @@ final class AuthController
             return $this->redirect('/dashboard');
         }
         $data = [];
-        foreach (['name', 'email', 'password', 'password_confirmation'] as $key) {
+        foreach (['name', 'email', 'password', 'password_confirmation', 'workspace_name'] as $key) {
             if (isset($_POST[$key]) && !is_string($_POST[$key])) {
                 http_response_code(422);
                 return $this->form($register, ['Formato de formulário inválido.']);
             }
             $data[$key] = $_POST[$key] ?? '';
         }
+        $data['workspace_name'] = trim($data['workspace_name']);
         $data['name'] = trim($data['name']);
         $data['email'] = strtolower(trim($data['email']));
         $pdo = Database::connect($this->config['database']);
@@ -73,7 +74,7 @@ final class AuthController
         }
         $auth = new AuthService($pdo);
         $authenticated = $register ? null : $auth->authenticate($data['email'], $data['password']);
-        $id = $register ? $auth->register($data['name'], $data['email'], $data['password']) : ($authenticated['id'] ?? null);
+        $id = $register ? $auth->register($data['name'], $data['email'], $data['password'], $data['workspace_name']) : ($authenticated['id'] ?? null);
         if ($id === null) {
             http_response_code($register ? 422 : 401);
             return $this->form($register, [$register ? 'Não foi possível criar a conta com os dados informados.' : 'E-mail ou senha inválidos.'], $data);
@@ -82,7 +83,8 @@ final class AuthController
         if ($register) {
             (new \App\Services\AccountTokenService($pdo, new \App\Services\Mailer($this->config['mail']), $this->config['url']))->request($data['email'], 'verify');
         }
-        return $this->redirect(isset($_SESSION['pending_invitation']) ? '/invitations/accept' : '/dashboard');
+        $context = \App\Services\WorkspaceContext::initial($pdo, $id);
+        return $this->redirect(isset($_SESSION['pending_invitation']) ? '/invitations/accept' : '/workspaces/' . $context->tenantId . '/dashboard');
     }
 
     public function dashboard(): string

@@ -12,6 +12,8 @@ final class AuthValidator
     {
         $rules = ['email' => 'required|email|max:254', 'password' => 'required|min:12|max:72'];
         if ($register) {
+            try { \App\Services\WorkspaceService::validateName($data['workspace_name'] ?? ''); }
+            catch (\DomainException $error) { return [$error->getMessage()]; }
             $rules['name'] = 'required|min:2|max:120';
             $rules['password_confirmation'] = 'required|same:password';
         } else {

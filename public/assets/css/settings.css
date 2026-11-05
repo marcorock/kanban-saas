@@ -29,7 +29,7 @@
 .sp-disclosure-body { padding-top: 1.25rem; }
 .sp-field { min-width: 0; margin: 0 0 1rem; }
 .sp-field label { display: block; margin-bottom: .5rem; font-size: .8125rem; font-weight: 600; }
-.sp-field input { display: block; width: 100%; min-width: 0; min-height: 48px; padding: .625rem .75rem; border: 1px solid var(--ds-color-control-border); border-radius: .625rem; color: var(--ds-color-ink); background: #fff; font: 400 1rem/1.6 var(--ds-font-body); }
+.sp-field input, .sp-field select { display: block; width: 100%; min-width: 0; min-height: 48px; padding: .625rem .75rem; border: 1px solid var(--ds-color-control-border); border-radius: .625rem; color: var(--ds-color-ink); background: #fff; font: 400 1rem/1.6 var(--ds-font-body); }
 .sp-help { margin: .5rem 0 1rem; color: var(--ds-color-muted); font-size: .75rem; line-height: 1.8; }
 .sp-context { margin: 0 0 1.25rem; padding: .875rem; border-radius: .625rem; background: var(--ds-color-soft); color: var(--ds-color-muted); font-size: .8125rem; line-height: 1.8; }
 .sp-password { position: relative; }

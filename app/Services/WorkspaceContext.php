@@ -26,14 +26,12 @@ final class WorkspaceContext
         return $context;
     }
 
-    /** Entrada das rotas sem contexto, até a navegação/padrão da etapa 5. */
+    /** A preferência resolve somente entradas sem contexto; nunca altera uma aba aberta. */
     public static function initial(PDO $pdo, int $userId): self
     {
-        $query = $pdo->prepare("SELECT t.id FROM tenants t JOIN tenant_users tu ON tu.tenant_id=t.id AND tu.user_id=? JOIN tenant_users owner_membership ON owner_membership.tenant_id=t.id AND owner_membership.user_id=t.owner_id ORDER BY (t.owner_id=? AND t.kind='personal') DESC, t.id LIMIT 1");
-        $query->execute([$userId, $userId]);
-        $id = $query->fetchColumn();
-        if (!$id) throw new HttpException('Área de Trabalho não encontrada.', 404);
-        return self::resolve($pdo, $userId, (string) $id);
+        $workspace = (new WorkspaceRepository($pdo))->defaultForUser($userId);
+        if (!$workspace) throw new HttpException('Área de Trabalho não encontrada.', 404);
+        return self::resolve($pdo, $userId, (string) $workspace['id']);
     }
 
     public function authorize(PDO $pdo, int $userId, bool $lock = false): void

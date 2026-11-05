@@ -17,6 +17,7 @@ final class NotificationController
         if($count){header('Content-Type: application/json');header('Cache-Control: private, no-store');}
         $pdo=Database::connect($this->config['database']);$user=(new AuthService($pdo))->currentUser();
         if (!$user) {if ($count) {http_response_code(401);header('Content-Type: application/json');return '{"error":"unauthenticated"}';}header('Location: /login',true,303);return '';}
+        $this->views->addGlobal('workspaceChoices', (new \App\Repositories\WorkspaceRepository($pdo))->forUser((int) $user['id']));
         $base=['projectName'=>$this->config['name'],'user'=>$user,'csrf'=>$_SESSION['csrf'],'wide'=>false];
         if (!$user['email_verified_at']) {http_response_code(403);if($count)return '{"error":"unverified"}';return $this->views->render('verify-notice.html.twig',$base);}
         $invitations=in_array($mode,['invitations','invitation-read'],true);

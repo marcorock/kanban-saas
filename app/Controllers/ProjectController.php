@@ -32,6 +32,7 @@ final class ProjectController
         if (!$user) { return $this->redirect('/login'); }
         $notice = $_SESSION['project_notice'] ?? '';
         unset($_SESSION['project_notice']);
+        $this->views->addGlobal('workspaceChoices', (new \App\Repositories\WorkspaceRepository($pdo))->forUser((int) $user['id']));
         $base = ['wide' => true, 'notice' => $notice, 'projectName' => $this->config['name'], 'user' => $user, 'csrf' => $_SESSION['csrf']];
         if ($user['email_verified_at'] === null) {
             http_response_code(403);

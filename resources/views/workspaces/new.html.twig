@@ -1,0 +1,14 @@
+{% extends 'layout.html.twig' %}
+{% block content %}
+<section aria-labelledby="workspace-title">
+    <h2 id="workspace-title">Criar Área de Trabalho</h2>
+    <p>Organize projetos em um espaço independente. Você será o proprietário.</p>
+    {% if errors %}<div class="alert alert-danger" role="alert"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+    <form method="post" action="/workspaces">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <div class="mb-3"><label class="form-label" for="workspace-name">Nome da Área de Trabalho</label><input class="form-control" id="workspace-name" name="workspace_name" value="{{ name }}" required minlength="2" maxlength="120" aria-describedby="workspace-help"><p id="workspace-help">Use de 2 a 120 caracteres.</p></div>
+        <button class="btn btn-primary" type="submit">Criar Área de Trabalho</button>
+        <a class="btn btn-link" href="/settings">Configurações</a>
+    </form>
+</section>
+{% endblock %}

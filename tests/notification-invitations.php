@@ -7,7 +7,7 @@ use Pecee\SimpleRouter\Exceptions\HttpException;
 $auth=new AuthService($pdo);$members=new ProjectMemberService($pdo);$notices=new NotificationService($pdo,null,true);$worker=new NotificationWorker($pdo);$mailer=new Mailer($config['mail']);
 $password='Senha-convite-interno-123';$suffix=bin2hex(random_bytes(6));$users=[];
 foreach (['owner','guest','other'] as $name) {
-    $email=$name.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,$password);
+    $email=$name.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,$password, 'Workspace de testes');
     $pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id=?')->execute([$id]);$users[$name]=compact('id','email');
 }
 $owner=$users['owner']['id'];$guest=$users['guest']['id'];$other=$users['other']['id'];

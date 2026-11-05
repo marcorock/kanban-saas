@@ -11,7 +11,7 @@ $email = 'tokens-' . bin2hex(random_bytes(6)) . '@example.com';
 $password = 'Senha-inicial-segura-123';
 $newPassword = 'Nova-senha-segura-456';
 $csrf = token(request('/register')[1]);
-check(request('/register', ['_token' => $csrf, 'name' => 'Conta de teste', 'email' => $email, 'password' => $password, 'password_confirmation' => $password])[0] === 303, 'Cadastro');
+check(request('/register', ['_token' => $csrf, 'workspace_name' => 'Meu Workspace', 'name' => 'Conta de teste', 'email' => $email, 'password' => $password, 'password_confirmation' => $password])[0] === 303, 'Cadastro');
 check(request('/dashboard')[0] === 403, 'Bloquear usuário não verificado');
 $verify = mailToken($email, '/email/verify');
 $statement = $pdo->prepare('SELECT id, email_verified_at FROM users WHERE email = ?');

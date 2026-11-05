@@ -54,6 +54,7 @@ final class InvitationController
             http_response_code(403);
             return $this->views->render('verify-notice.html.twig', $base);
         }
+        $this->views->addGlobal('workspaceChoices', (new \App\Repositories\WorkspaceRepository($pdo))->forUser((int) $user['id']));
         $service = new ProjectMemberService($pdo);
         $raw = $_SESSION['pending_invitation'] ?? '';
         $errors = [];

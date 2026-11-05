@@ -7,7 +7,7 @@ $projects = new App\Services\ProjectService($pdo);
 $boards = new App\Services\BoardService($pdo);
 $password = 'Senha-minhas-tarefas-123'; $suffix = bin2hex(random_bytes(5)); $users = [];
 foreach (['owner' => 'Marina Costa', 'viewer' => 'Bruno Lima', 'empty' => 'Conta sem tarefas', 'outside' => 'Outra conta'] as $role => $name) {
-    $email = 'my-tasks-' . $role . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password);
+    $email = 'my-tasks-' . $role . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password, 'Workspace de testes');
     $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
     $users[$role] = ['id' => $id, 'email' => $email];
 }

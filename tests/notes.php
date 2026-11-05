@@ -5,7 +5,7 @@ require __DIR__.'/board-http.php';
 use App\Services\{AuthService,ProjectService,BoardService,QuickNoteService};
 use Pecee\SimpleRouter\Exceptions\HttpException;
 $auth=new AuthService($pdo);$projects=new ProjectService($pdo);$boards=new BoardService($pdo);$notes=new QuickNoteService($pdo);$password='Senha-brainstorm-123';$suffix=bin2hex(random_bytes(6));$users=[];
-foreach(['owner','member','viewer','outside','unverified'] as $name){$email=$name.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,$password);if($name!=='unverified')$pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id=?')->execute([$id]);$users[$name]=compact('id','email');}
+foreach(['owner','member','viewer','outside','unverified'] as $name){$email=$name.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,$password, 'Workspace de testes');if($name!=='unverified')$pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id=?')->execute([$id]);$users[$name]=compact('id','email');}
 $owner=$users['owner']['id'];$member=$users['member']['id'];$viewer=$users['viewer']['id'];$outside=$users['outside']['id'];
 function newNotesProject(int $user,string $name):int{global $projects;return $projects->create($user,['name'=>$name,'description'=>'','starts_on'=>'','due_on'=>'']);}
 $projectId=newNotesProject($owner,'Brainstorm principal');$second=newNotesProject($owner,'Segundo destino');$foreign=newNotesProject($outside,'Tenant alheio');

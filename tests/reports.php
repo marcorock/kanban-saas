@@ -14,7 +14,7 @@ $password = 'Senha-relatorios-segura-123';
 $auth = new App\Services\AuthService($pdo); $boards = new BoardService($pdo); $projects = new ProjectService($pdo); $reports = new ReportingService($pdo);
 $suffix = bin2hex(random_bytes(6)); $users = [];
 foreach (['me', 'other', 'viewer', 'pending', 'empty'] as $name) {
-    $email = 'reports-' . $name . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password);
+    $email = 'reports-' . $name . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password, 'Workspace de testes');
     if ($name !== 'pending') $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
     $users[$name] = ['id' => $id, 'email' => $email];
 }

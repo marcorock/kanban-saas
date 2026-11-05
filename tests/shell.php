@@ -7,7 +7,7 @@ check(request('/settings')[0] === 303, 'Shell não concede acesso anônimo');
 $email = 'shell-' . bin2hex(random_bytes(6)) . '@example.com';
 $password = 'Senha-shell-segura-123';
 $auth = new App\Services\AuthService($pdo);
-$id = $auth->register('<script>shell-xss</script>', $email, $password);
+$id = $auth->register('<script>shell-xss</script>', $email, $password, 'Workspace de testes');
 $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]);
 $csrf = token(request('/login')[1]);
 check(request('/login', ['_token' => $csrf, 'email' => $email, 'password' => $password])[0] === 303, 'Login');

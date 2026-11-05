@@ -1,0 +1,10 @@
+<section class="sp-section" id="workspace-settings" aria-labelledby="workspace-settings-title">
+    <h3 id="workspace-settings-title">Área de Trabalho padrão</h3>
+    <p>Escolha o Dashboard que será aberto após entrar. Esta preferência não muda as Áreas de Trabalho abertas em outras abas.</p>
+    <form method="post" action="/settings/workspace">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <div class="sp-field"><label for="default-workspace">Área de Trabalho</label><select id="default-workspace" name="workspace_id" required>{% for workspace in workspaceChoices|default([]) %}<option value="{{ workspace.id }}" {{ defaultWorkspace and defaultWorkspace.id == workspace.id ? 'selected' : '' }}>{{ workspace.name }}</option>{% endfor %}</select></div>
+        <button type="submit" class="sp-button sp-primary">Salvar padrão</button>
+    </form>
+    <p><a href="/workspaces/new">Criar outra Área de Trabalho</a></p>
+</section>

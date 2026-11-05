@@ -6,7 +6,7 @@ use App\Services\{AuthService,ProjectService,BoardService,NotificationService,No
 $password='Senha-notificacao-segura-123';$auth=new AuthService($pdo);$projects=new ProjectService($pdo);$boards=new BoardService($pdo);$members=new ProjectMemberService($pdo);$service=new NotificationService($pdo);$worker=new NotificationWorker($pdo);
 $suffix=bin2hex(random_bytes(5));$users=[];
 foreach (['owner','member','viewer','outside','unverified'] as $name) {
-    $email='notify-'.$name.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,$password);
+    $email='notify-'.$name.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,$password, 'Workspace de testes');
     if ($name!=='unverified') $pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id=?')->execute([$id]);
     $users[$name]=['id'=>$id,'email'=>$email];
 }

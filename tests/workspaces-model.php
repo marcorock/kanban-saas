@@ -26,7 +26,7 @@ $auth = new AuthService($pdo);
 $suffix = bin2hex(random_bytes(5));
 $users = [];
 foreach (['owner', 'admin', 'member', 'outside'] as $name) {
-    $users[$name] = $auth->register($name, "$name-$suffix@example.com", 'Senha-workspace-123');
+    $users[$name] = $auth->register($name, "$name-$suffix@example.com", 'Senha-workspace-123', 'Workspace de testes');
 }
 $owner = $users['owner']; $admin = $users['admin']; $member = $users['member']; $outside = $users['outside'];
 $tenant = (int) $pdo->query("SELECT id FROM tenants WHERE owner_id=$owner")->fetchColumn();
@@ -34,7 +34,7 @@ $otherTenant = (int) $pdo->query("SELECT id FROM tenants WHERE owner_id=$outside
 $repository = new WorkspaceRepository($pdo);
 $workspace = $repository->find($owner, $tenant);
 check($workspace !== false && $workspace['role'] === 'member' && WorkspacePolicy::isOwner($workspace, $owner), 'Proprietário deriva de owner_id com vínculo válido');
-check($repository->defaultForUser($owner) === false, 'Padrão ainda não definido, sem preenchimento retroativo');
+check((int)$repository->defaultForUser($owner)['id'] === $tenant, 'Cadastro define o padrão');
 $pdo->prepare("INSERT INTO tenant_users(tenant_id,user_id,role) VALUES (?,?,'admin'),(?,?,'member')")->execute([$tenant,$admin,$tenant,$member]);
 $a = $repository->find($admin, $tenant); $m = $repository->find($member, $tenant);
 foreach ([$workspace,$a,$m] as $row) check(WorkspacePolicy::can($row,(int)$row['user_id'],'create_project'), 'Todo membro pode criar projeto');
@@ -89,10 +89,10 @@ check(!App\Policies\ProjectPolicy::canManage($viewerProject,$admin), 'Admin de W
 $pdo->prepare('UPDATE tenants SET owner_id=? WHERE id=?')->execute([$owner,$otherTenant]);
 check($repository->find($outside,$otherTenant) === false, 'Workspace com proprietário sem vínculo não concede permissões');
 $pdo->prepare('UPDATE tenants SET owner_id=? WHERE id=?')->execute([$outside,$otherTenant]);
-check($auth->register('Duplicado', "owner-$suffix@example.com", 'Senha-workspace-123') === null, 'Cadastro duplicado mantém transação');
+check($auth->register('Duplicado', "owner-$suffix@example.com", 'Senha-workspace-123', 'Workspace de testes') === null, 'Cadastro duplicado mantém transação');
 $pdo->exec("CREATE TRIGGER test_workspace_reject_membership BEFORE INSERT ON tenant_users FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='forced failure'");
 try {
-    try { $auth->register('Rollback', "rollback-$suffix@example.com", 'Senha-workspace-123'); throw new RuntimeException('Falha esperada'); }
+    try { $auth->register('Rollback', "rollback-$suffix@example.com", 'Senha-workspace-123', 'Workspace de testes'); throw new RuntimeException('Falha esperada'); }
     catch (PDOException) {}
     $q=$pdo->prepare('SELECT COUNT(*) FROM users WHERE email=?');$q->execute(["rollback-$suffix@example.com"]);
     check((int)$q->fetchColumn() === 0, 'Falha de vínculo reverte usuário e Workspace');

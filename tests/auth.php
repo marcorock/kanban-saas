@@ -15,7 +15,7 @@ $csrf = token($html);
 check(request('/register', ['email' => $email])[0] === 419, 'CSRF obrigatório');
 check(request('/register', ['_token' => $csrf, 'email' => ['invalid']])[0] === 422, 'Rejeitar arrays');
 check(request('/register', ['_token' => $csrf, 'email' => $email, 'password' => 'curta'])[0] === 422, 'Validar cadastro');
-$data = ['_token' => $csrf, 'name' => '<script>alert(1)</script>', 'email' => strtoupper($email), 'password' => $password, 'password_confirmation' => $password];
+$data = ['_token' => $csrf, 'workspace_name' => 'Meu Workspace', 'name' => '<script>alert(1)</script>', 'email' => strtoupper($email), 'password' => $password, 'password_confirmation' => $password];
 $oldCookie = $cookie;
 check(request('/register', $data)[0] === 303 && $cookie !== $oldCookie, 'Cadastro e rotação de sessão');
 check(request('/dashboard')[0] === 403, 'Exigir e-mail confirmado');
@@ -51,7 +51,7 @@ $auth = new App\Services\AuthService($pdo);
 $rollbackEmail = 'rollback-' . $email;
 $pdo->exec("CREATE TRIGGER test_reject_tenant BEFORE INSERT ON tenants FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'forced failure'");
 try {
-    try { $auth->register('Rollback', $rollbackEmail, $password); check(false, 'Falha esperada'); }
+    try { $auth->register('Rollback', $rollbackEmail, $password, 'Workspace de testes'); check(false, 'Falha esperada'); }
     catch (PDOException) {}
     $statement = $pdo->prepare('SELECT COUNT(*) FROM users WHERE email = ?');
     $statement->execute([$rollbackEmail]);

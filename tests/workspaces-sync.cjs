@@ -29,5 +29,21 @@ vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../public/assets/js/liv
     const valid = window.FluxoSync.json('/workspaces/1/projects/1/board/state');
     await new Promise(resolve => setImmediate(resolve)); release({board: {version: 3}});
     assert.equal((await valid).board.version, 3);
+    // Mesmo em uma entrada /dashboard, o polling usa o contexto fixado no documento.
+    for (const workspace of ['/workspaces/1', '/workspaces/2']) {
+        let poll; const urls = [];
+        const root = {dataset: {dashboardVersion: 'stable'}};
+        const FluxoSync = {
+            create(options) { poll = options.run; },
+            async json(url) { urls.push(url); return {version: 'stable'}; }
+        };
+        vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../public/assets/js/dashboard.js'), 'utf8'), {
+            URL, FluxoSync,
+            window: {FluxoSync, location: {href: 'http://example.test/dashboard?page=2'}},
+            document: {querySelector: () => root, body: {dataset: {workspacePath: workspace}}}
+        });
+        await poll();
+        assert.deepEqual(urls, [workspace + '/dashboard?page=2&sync=version']);
+    }
     console.log('OK: respostas atrasadas de outro Workspace e requisições abortadas descartadas; contexto atual aceito.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

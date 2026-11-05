@@ -6,7 +6,7 @@ $auth = new App\Services\AuthService($pdo); $projects = new App\Services\Project
 $boards = new App\Services\BoardService($pdo); $members = new App\Services\ProjectMemberService($pdo);
 $password = 'Senha-historico-ui-123'; $suffix = bin2hex(random_bytes(5)); $users = [];
 foreach (['owner' => 'Marina Costa', 'admin' => 'Bruno Lima', 'member' => '<script>window.historyXss=true</script>', 'viewer' => 'Luiza Martins', 'empty' => 'Conta sem atividades', 'outside' => 'Outra conta'] as $role => $name) {
-    $email = 'history-ui-' . $role . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password);
+    $email = 'history-ui-' . $role . '-' . $suffix . '@example.com'; $id = $auth->register($name, $email, $password, 'Workspace de testes');
     $pdo->prepare('UPDATE users SET email_verified_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$id]); $users[$role] = ['id' => $id, 'email' => $email];
 }
 $ids = []; $tasks = [];

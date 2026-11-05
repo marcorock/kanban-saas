@@ -3,7 +3,7 @@
 declare(strict_types=1);
 require __DIR__.'/http.php';
 $auth=new App\Services\AuthService($pdo);$projects=new App\Services\ProjectService($pdo);$boards=new App\Services\BoardService($pdo);$suffix=bin2hex(random_bytes(5));$users=[];
-foreach (['owner'=>'Marina Costa','member'=>'Bruno Lima'] as $role=>$name) {$email='notice-ui-'.$role.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,'Senha-notificacao-ui-123');$pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id=?')->execute([$id]);$users[$role]=['id'=>$id,'email'=>$email];}
+foreach (['owner'=>'Marina Costa','member'=>'Bruno Lima'] as $role=>$name) {$email='notice-ui-'.$role.'-'.$suffix.'@example.com';$id=$auth->register($name,$email,'Senha-notificacao-ui-123', 'Workspace de testes');$pdo->prepare('UPDATE users SET email_verified_at=UTC_TIMESTAMP() WHERE id=?')->execute([$id]);$users[$role]=['id'=>$id,'email'=>$email];}
 $owner=$users['owner']['id'];$member=$users['member']['id'];$id=$projects->create($owner,['name'=>'Lançamento do site','description'=>'PRIVADO-DESCRICAO','starts_on'=>'','due_on'=>'']);$tenant=(new App\Repositories\ProjectRepository($pdo))->find($owner,$id)['tenant_id'];
 $pdo->prepare('INSERT INTO tenant_users(tenant_id,user_id) VALUES (?,?)')->execute([$tenant,$member]);$pdo->prepare("INSERT INTO project_members(tenant_id,project_id,user_id,role) VALUES (?,?,?,'member')")->execute([$tenant,$id,$member]);
 $state=$boards->state($owner,$id);$state=$boards->mutate($owner,$id,$state['version'],'task.create',['column_id'=>$state['columns'][0]['id'],'title'=>'Preparar a próxima entrega']);$task=$state['columns'][0]['tasks'][0]['id'];

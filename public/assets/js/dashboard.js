@@ -5,6 +5,7 @@
     let version = root.dataset.dashboardVersion;
     function endpoint(mode) {
         const url = new URL(window.location.href);
+        url.pathname = document.body.dataset.workspacePath + '/dashboard';
         url.searchParams.set('sync', mode);
         return url.pathname + url.search;
     }
